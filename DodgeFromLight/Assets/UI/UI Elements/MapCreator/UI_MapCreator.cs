@@ -30,6 +30,8 @@ public class UI_MapCreator : MonoBehaviour
     public GameObject GearsPanel;
     public TextMeshProUGUI EnnemyHeaderName;
     public Image EnnemyPreview;
+    // play map button
+    public Button PlayButton;
 
     private List<GameObject> UnwalkableFeedback = new List<GameObject>();
     private Cell selectedCell;
@@ -42,6 +44,7 @@ public class UI_MapCreator : MonoBehaviour
     private Dictionary<string, GameObject> MapDecoButtons = new Dictionary<string, GameObject>();
     private Color CurrentToolButtonBaseColor = Color.white;
     private bool isHub = false;
+    private RotateAndScale currentRotateAndScale = null;
 
     private void Awake()
     {
@@ -71,6 +74,7 @@ public class UI_MapCreator : MonoBehaviour
 
     private void Start()
     {
+        PlayButton.gameObject.SetActive(true);
         DodgeFromLight.UI_WorkerNotifier.Show("Loading Map...");
         isHub = false;
         if (PlayerPrefs.HasKey("CreateMapName"))
@@ -96,6 +100,7 @@ public class UI_MapCreator : MonoBehaviour
             isHub = PlayerPrefs.GetInt("EditingHub") == 1;
             if (isHub) // editing Hub, let's download it
             {
+                PlayButton.gameObject.SetActive(false);
                 DFLClient.DownloadHub(DFLClient.CurrentUser.ID, (res) =>
                 {
                     if (res.Error) // error getting hub
@@ -429,7 +434,10 @@ public class UI_MapCreator : MonoBehaviour
                         CellPos p = new CellPos(c.X + Mathf.RoundToInt(pos.x), c.Y + Mathf.RoundToInt(pos.z));
 
                         Cell cell = DodgeFromLight.CurrentMap.Grid.GetCell(p);
-                        cell.HasElement = true;
+                        if (cell != null)
+                        {
+                            cell.HasElement = true;
+                        }
                     }
                 }
             }
@@ -748,21 +756,21 @@ public class UI_MapCreator : MonoBehaviour
             if (element != null)
             {
                 var mdd = DodgeFromLight.Databases.ResourcesData.GetMapDeco(cell.ElementID);
-                var ras = element.AddComponent<RotateAndScale>();
-                ras.OnRotate = (rotation) =>
+                currentRotateAndScale = element.AddComponent<RotateAndScale>();
+                currentRotateAndScale.OnRotate = (rotation) =>
                 {
                     selectedCell.ElementOrientation = rotation;
                     element.transform.eulerAngles = new Vector3(0f, rotation, 0f);
                     DrawFeedbacks();
                 };
-                ras.OnScale = (scale) =>
+                currentRotateAndScale.OnScale = (scale) =>
                 {
                     selectedCell.ElementScale = scale;
                     element.transform.localScale = Vector3.one * mdd.BaseScale * scale;
                 };
-                ras.SetDefaultValues(selectedCell.ElementOrientation, selectedCell.ElementScale);
-                ras.SetConstraintes(mdd.CanFreeRotate(), mdd.Scalable);
-                ras.StartDrag();
+                currentRotateAndScale.SetDefaultValues(selectedCell.ElementOrientation, selectedCell.ElementScale);
+                currentRotateAndScale.SetConstraintes(mdd.CanFreeRotate(), mdd.Scalable);
+                currentRotateAndScale.StartDrag();
             }
         }
 
@@ -829,6 +837,8 @@ public class UI_MapCreator : MonoBehaviour
             if (c == null) return;
             GridController.RefreshCrossCell(c, DodgeFromLight.CurrentMap.Grid, true);
             GridController.AddCellColider(c, true);
+            if (currentRotateAndScale != null)
+                Destroy(currentRotateAndScale);
         }
         EnnemyPanel.SetActive(false);
         GearsPanel.SetActive(false);

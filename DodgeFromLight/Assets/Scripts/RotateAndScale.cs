@@ -1,7 +1,7 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(Collider))]
 public class RotateAndScale : MonoBehaviour
 {
     public float AxisDeterminationThreshold = 32f;
@@ -18,6 +18,29 @@ public class RotateAndScale : MonoBehaviour
     private Vector2 lastMousePosition;
     private bool dragging = false;
     private RotateAndScaleType type = RotateAndScaleType.None;
+    private List<MeshCollider> addedColliders;
+
+    private void Awake()
+    {
+        addedColliders = new List<MeshCollider>();
+        // add mesh colliders to all children that does not have one
+        foreach (var renderer in GetComponentsInChildren<Renderer>())
+        {
+            if (renderer.GetComponent<Collider>() == null)
+            {
+                MeshCollider collider = renderer.gameObject.AddComponent<MeshCollider>();
+                collider.convex = true;
+                addedColliders.Add(collider);
+            }
+        }
+    }
+
+    private void OnDestroy()
+    {
+        // remove added colliders
+        foreach (var collider in addedColliders)
+            Destroy(collider);
+    }
 
     public void SetDefaultValues(float rotation, float scale)
     {
@@ -46,6 +69,7 @@ public class RotateAndScale : MonoBehaviour
     private void OnMouseEnter()
     {
         DodgeFromLight.CursorManager.SetCursor(CursorType.RotationAndScale);
+        DodgeFromLight.CursorManager.Lock();
     }
 
     private void OnMouseExit()
@@ -62,10 +86,13 @@ public class RotateAndScale : MonoBehaviour
 
     private void OnMouseUp()
     {
-        dragging = false;
-        type = RotateAndScaleType.None;
-        DodgeFromLight.CursorManager.UnLock();
-        DodgeFromLight.CursorManager.SetCursor(CursorType.Arrow);
+        if (dragging)
+        {
+            dragging = false;
+            type = RotateAndScaleType.None;
+            DodgeFromLight.CursorManager.UnLock();
+            DodgeFromLight.CursorManager.SetCursor(CursorType.Arrow);
+        }
     }
 
     private void Update()

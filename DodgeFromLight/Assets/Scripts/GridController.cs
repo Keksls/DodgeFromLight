@@ -497,9 +497,13 @@ public class GridController : MonoBehaviour
             Collider c = cellsElements[cell.ToString()].GetComponent<Collider>();
             if (c == null)
             {
-                MeshCollider mc = cellsElements[cell.ToString()].AddComponent<MeshCollider>();
-                mc.sharedMesh = cellsElements[cell.ToString()].GetComponentInChildren<MeshFilter>().mesh;
-                mc.convex = true;
+                // add collider on each child
+                foreach (Renderer r in cellsElements[cell.ToString()].GetComponentsInChildren<Renderer>())
+                {
+                    MeshCollider mc = r.gameObject.AddComponent<MeshCollider>();
+                    mc.sharedMesh = r.GetComponent<MeshFilter>().mesh;
+                    mc.convex = true;
+                }
             }
             CursorSetter cse = cellsElements[cell.ToString()].AddComponent<CursorSetter>();
             cse.PointerEnterCursor = CursorType.Hand;
