@@ -1,0 +1,224 @@
+﻿<Window x:Class="Slyvek_Launcher.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Slyvek_Launcher"
+        mc:Ignorable="d"
+        ResizeMode="NoResize"
+        WindowStyle="None"
+        Title="Slyvek Launcher" Height="350" Width="800">
+    <Window.Resources>
+        <Style x:Key="ComboBoxTest2" TargetType="{x:Type ComboBox}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton Grid.Column="2" Focusable="false" IsChecked="{Binding Path=IsDropDownOpen,Mode=TwoWay,RelativeSource={RelativeSource TemplatedParent}}" >
+                                <ToggleButton.Template>
+                                    <ControlTemplate>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="5*" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <Border x:Name="Border"  Grid.ColumnSpan="2" CornerRadius="5" Background="#FF2B2723" BorderBrush="Black" BorderThickness="1" />
+                                            <Border Grid.Column="0" CornerRadius="5,0,0,5"  Margin="1"  Background="AliceBlue"  BorderBrush="Black" BorderThickness="0,0,1,0" />
+                                            <Path x:Name="Arrow" Grid.Column="1"  Fill="Orange" HorizontalAlignment="Center" VerticalAlignment="Center" Data="M 0 0 L 4 4 L 8 0 Z"/>
+                                        </Grid>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="ToggleButton.IsMouseOver" Value="true">
+                                                <Setter TargetName="Border" Property="Background" Value="#FF2C2723" />
+                                            </Trigger>
+                                            <Trigger Property="ToggleButton.IsChecked" Value="true">
+                                                <Setter TargetName="Border" Property="Background" Value="#FF2B2723" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <ContentPresenter Name="ContentSite" IsHitTestVisible="False"  Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}" Margin="3"  />
+                            <TextBox x:Name="PART_EditableTextBox" BorderThickness="1" Visibility="Visible" Background="#FF2B231C" Margin="0,0,36,0" Foreground="White">
+                                <TextBox.BorderBrush>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="#FF2B231C" Offset="0"/>
+                                        <GradientStop Color="#FF918276" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </TextBox.BorderBrush>
+                                <TextBox.Style>
+                                    <Style TargetType="{x:Type TextBox}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsChecked, ElementName=cb}" Value="True">
+                                                <Setter Property="Background" Value="Red"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBox.Style>
+                            </TextBox>
+                            <Popup Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True"  Focusable="False" PopupAnimation="Slide">
+                                <Grid  Name="DropDown" SnapsToDevicePixels="True" MinWidth="{TemplateBinding ActualWidth}" MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="56*"/>
+                                        <ColumnDefinition Width="141*"/>
+                                        <ColumnDefinition Width="11*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border x:Name="DropDownBorder" Background="#FF2E2924" Grid.ColumnSpan="3" />
+                                    <ScrollViewer SnapsToDevicePixels="True" Grid.ColumnSpan="3">
+                                        <StackPanel IsItemsHost="True" />
+                                    </ScrollViewer>
+                                </Grid>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+    <DockPanel>
+        <!--Menu-->
+        <StackPanel Orientation="Horizontal" Background="#FF2E2924" Height="30" DockPanel.Dock="Top" MouseLeftButtonDown="Menu_MouseLeftButtonDown">
+            <Menu Background="#FF2E2924" BorderThickness="1"  Height="30">
+                <MenuItem Header="_File" Foreground="White" Background="#FF2E2924" Height="30" BorderBrush="#FF2E2924" FontSize="16">
+                    <MenuItem.Icon>
+                        <Image Source="pack://siteoforigin:,,,/Resources/icon.png" RenderOptions.BitmapScalingMode="HighQuality"/>
+                    </MenuItem.Icon>
+                    <MenuItem Header="_Check Update" x:Name="MenuItem_CheckUpdate" Click="MenuItem_CheckUpdate_Click" Foreground="#FF2E2924" Background="White">
+                        <MenuItem.Icon>
+                            <Image Source="pack://siteoforigin:,,,/Resources/update.png" RenderOptions.BitmapScalingMode="HighQuality"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="_Force Update" x:Name="MenuItem_ForceUpdate" Click="MenuItem_ForceUpdate_Click" Foreground="#FF2E2924" Background="White">
+                        <MenuItem.Icon>
+                            <Image Source="pack://siteoforigin:,,,/Resources/update.png" RenderOptions.BitmapScalingMode="HighQuality"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="_Start Server" x:Name="MenuItem_StartServer" Click="MenuItem_StartServer_Click" Foreground="#FF2E2924" Background="White">
+                        <MenuItem.Icon>
+                            <Image Source="pack://siteoforigin:,,,/Resources/server.png" RenderOptions.BitmapScalingMode="HighQuality"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <Separator Background="#FF2E2924" />
+                    <MenuItem Header="_Exit" x:Name="MenuItem_Exit" Click="MenuItem_Exit_Click" Background="White" Foreground="#FF2E2924">
+                        <MenuItem.Icon>
+                            <Image Source="pack://siteoforigin:,,,/Resources/exit.png" RenderOptions.BitmapScalingMode="HighQuality"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </MenuItem>
+            </Menu>
+
+            <TextBlock x:Name="tbTitle" Text="Slyvek Launcher - v1.0.0.0" Margin="12,5,0,0" Width="600" Height="30" Foreground="White" FontSize="14"></TextBlock>
+
+            <Button x:Name="CloseButton" Height="25" Cursor="Hand" Margin="100,1,0,0" Width="25" BorderThickness="2" Click="MenuItem_Exit_Click" Content="X" Background="#FF342F2A" Foreground="White" FontSize="14" FontWeight="Bold">
+                <Button.BorderBrush>
+                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                        <GradientStop Color="#FF918276" Offset="0"/>
+                        <GradientStop Color="#FF342F2A" Offset="1"/>
+                    </LinearGradientBrush>
+                </Button.BorderBrush>
+                <Button.Style>
+                    <Style TargetType="{x:Type Button}">
+                        <Setter Property="Background" Value="#FF6C4949"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="{x:Type Button}">
+                                    <Border Background="{TemplateBinding Background}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#FF6C4949"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+        </StackPanel>
+        <!--Body-->
+        <Grid x:Name="BodyContainer">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="11*"/>
+                <ColumnDefinition Width="10*"/>
+                <ColumnDefinition Width="773*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.Background>
+                <ImageBrush ImageSource="Resources/Back.png" Stretch="UniformToFill"/>
+            </Grid.Background>
+            <StackPanel Grid.ColumnSpan="3">
+                <Image Source="pack://siteoforigin:,,,/Resources/Slyvek Logo.png" RenderOptions.BitmapScalingMode="HighQuality" Width="500" Height="150" Margin="143,0,143,0"/>
+                <Button x:Name="PlayButton" Height="50" Width="200" Click="PlayButton_Click">
+                    <Grid>
+                        <Image Source="pack://siteoforigin:,,,/Resources/ButtonBack.png" RenderOptions.BitmapScalingMode="HighQuality" Stretch="Fill" Margin="-12,-8,-12,-8" />
+                        <TextBlock Text="Play" FontFamily="{StaticResource KhmerUIb}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="24" FontWeight="Bold" Foreground="#FF422D01" />
+                    </Grid>
+                    <Button.Style>
+                        <Style TargetType="{x:Type Button}">
+                            <Setter Property="Background" Value="#FF804C00"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="{x:Type Button}">
+                                        <Border Background="{TemplateBinding Background}">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="DarkGoldenrod"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+
+                <StackPanel Orientation="Horizontal" Width="150" HorizontalAlignment="Center" Margin="0,10,0,0">
+                    <RadioButton x:Name="rtbOff" Content="Officiel" BorderThickness="3" Foreground="White" FontFamily="{StaticResource KhmerUIb}" FontSize="16" IsChecked="True" Background="#FFFF8000">
+                        <RadioButton.BorderBrush>
+                            <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                <GradientStop Color="#FF918276" Offset="0"/>
+                                <GradientStop Color="#FF342F2A" Offset="1"/>
+                            </LinearGradientBrush>
+                        </RadioButton.BorderBrush>
+                    </RadioButton>
+                    <RadioButton Content="Local" x:Name="rtbLocal" BorderThickness="3" Margin="20,0,0,0" FontFamily="{StaticResource KhmerUIb}" Foreground="White" FontSize="16" Background="#FFFF8000">
+                        <RadioButton.BorderBrush>
+                            <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                <GradientStop Color="#FF918276" Offset="0"/>
+                                <GradientStop Color="#FF342F2A" Offset="1"/>
+                            </LinearGradientBrush>
+                        </RadioButton.BorderBrush>
+                    </RadioButton>
+                </StackPanel>
+                <!--<Grid>
+                    <ComboBox x:Name="tbIP" Text="82.165.76.227" BorderThickness="2" Height="25" FontFamily="{StaticResource KhmerUIb}" SelectionChanged="tbIP_SelectionChanged" Margin="296,5,296,0" FontSize="17" Style="{StaticResource ComboBoxTest2}" Foreground="White">
+                        <ComboBoxItem IsSelected="True">82.165.76.227</ComboBoxItem>
+                        <ComboBoxItem>127.0.0.1</ComboBoxItem>
+                    </ComboBox>
+                    <TextBlock x:Name="tbIPText" TextAlignment="Center" Text="toto" Foreground="White" Height="20" Margin="296,5,337,5" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18" Width="167"></TextBlock>
+                </Grid>-->
+                <Grid  Margin="0,30,0,0">
+                    <ProgressBar x:Name="pbDownload" Height="30" Background="#FF2E2924" Margin="0,0,0,0" BorderThickness="3">
+                        <ProgressBar.BorderBrush>
+                            <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                <GradientStop Color="#FF918276" Offset="0"/>
+                                <GradientStop Color="#FF342F2A" Offset="1"/>
+                            </LinearGradientBrush>
+                        </ProgressBar.BorderBrush>
+                        <ProgressBar.Foreground>
+                            <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
+                                <GradientStop Color="#FFE6BB60"/>
+                                <GradientStop Color="#FFCB732C" Offset="1"/>
+                            </LinearGradientBrush>
+                        </ProgressBar.Foreground>
+                    </ProgressBar>
+                    <TextBlock  x:Name="lbDownload" Text="Checking Update" Margin="10,0,0,0" Height="23" Foreground="White" FontFamily="{StaticResource KhmerUIb}" FontSize="14" HorizontalAlignment="Left" VerticalAlignment="Bottom"/>
+                </Grid>
+            </StackPanel>
+        </Grid>
+    </DockPanel>
+</Window>

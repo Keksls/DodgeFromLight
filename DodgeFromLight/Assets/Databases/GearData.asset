@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 826ec2898bdd2864da6ab5e4258d96b1, type: 3}
+  m_Name: GearData
+  m_EditorClassIdentifier: 
+  Gears:
+  - Type: 1
+    Image: {fileID: 2800000, guid: 3a47a39c8489e434081359aabc3e77bb, type: 3}
+    Name: Bombe
+    Description: 
+  - Type: 2
+    Image: {fileID: 2800000, guid: 0013fa8559c357f48bcccc839244a7b7, type: 3}
+    Name: Disco Ball
+    Description: 
+  - Type: 3
+    Image: {fileID: 2800000, guid: 54e5763e399518141a3a3bb5f9aa799e, type: 3}
+    Name: Grapple
+    Description: 
+  - Type: 4
+    Image: {fileID: 2800000, guid: cc299b4dccfb7e24a9e9dd6cf2017555, type: 3}
+    Name: Invisibility Cloack
+    Description: 
+  - Type: 5
+    Image: {fileID: 2800000, guid: 6ea25907500d9034fb0e8caf5aaa61f1, type: 3}
+    Name: Mirror
+    Description: 
+  - Type: 6
+    Image: {fileID: 2800000, guid: d344d1d7a33b2e94eba27d6f15e9c090, type: 3}
+    Name: Powder Of Darkness
+    Description: 
+  - Type: 7
+    Image: {fileID: 2800000, guid: 7d5fa848201fb904a8d510301c4e316e, type: 3}
+    Name: Remote Control
+    Description: 
+  - Type: 8
+    Image: {fileID: 2800000, guid: 63435af13ab4aaa479873cab11cf36c9, type: 3}
+    Name: Speed Boots
+    Description: 
+  - Type: 9
+    Image: {fileID: 2800000, guid: f4ef4d209af3ce44cb81794597bbc72f, type: 3}
+    Name: Time Controller
+    Description: 
+  - Type: 10
+    Image: {fileID: 2800000, guid: b637a4ff90a40824dbbbda2200cbf714, type: 3}
+    Name: Jump Spring
+    Description: 

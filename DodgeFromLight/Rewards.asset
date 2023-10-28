@@ -1,0 +1,977 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ef2bc156ed305c44b5da98bbdd63fe2, type: 3}
+  m_Name: Rewards
+  m_EditorClassIdentifier: 
+  CommonItemColor: {r: 0.6509434, g: 0.6509434, b: 0.6509434, a: 1}
+  RareItemColor: {r: 0.0039215684, g: 0.7019486, b: 1, a: 1}
+  EpicItemColor: {r: 0.6725217, g: 0, b: 0.94509804, a: 1}
+  LegendaryItemColor: {r: 1, g: 0.47008726, b: 0, a: 1}
+  XpForLevel: 0a0000000a000000140000001e0000001e00000028000000320000003c0000004600000046000000500000005a000000640000006e0000007800000078000000820000008c00000096000000a0000000aa000000b4000000b4000000be000000c8000000d2000000dc000000e6000000f0000000fa000000040100000e0100000e01000018010000220100002c01000036010000400100004a010000540100005e01000068010000720100007c01000086010000900100009a010000a4010000a4010000ae010000b8010000c2010000cc010000d6010000e0010000ea010000f4010000fe01000008020000120200001c02000026020000300200003a020000440200004e02000058020000620200006c02000076020000800200008a020000940200009e020000a8020000b2020000bc020000c6020000d0020000da020000e4020000ee020000f8020000020300000c03000016030000200300002a030000340300003e03000048030000520300005c03000066030000700300007a030000840300008e03000098030000a2030000ac030000b6030000c0030000ca030000d4030000de030000e8030000f2030000fc03000006040000100400001a0400002404000038040000420400004c04000056040000600400006a040000740400007e04000088040000920400009c040000a6040000b0040000ba040000c4040000ce040000d8040000e2040000ec040000f6040000000500000a0500001e05000028050000320500003c05000046050000500500005a050000640500006e05000078050000820500008c05000096050000a0050000aa050000b4050000c8050000d2050000dc050000e6050000f0050000fa050000040600000e06000018060000220600002c06000036060000400600004a0600005e06000068060000720600007c06000086060000900600009a060000a4060000ae060000b8060000c2060000cc060000e0060000ea060000f4060000fe06000008070000120700001c07000026070000300700003a070000440700004e070000620700006c07000076070000800700008a070000940700009e070000a8070000b2070000bc070000d0070000da070000e4070000ee070000f8070000020800000c08000016080000200800002a0800003e08000048080000520800005c08000066080000700800007a080000840800008e08000098080000ac080000b6080000c0080000ca080000d4080000de080000e8080000f2080000fc080000100900001a090000240900002e09000038090000420900004c0900005609000060090000740900007e09000088090000920900009c090000a6090000b0090000ba090000ce090000d8090000e2090000ec090000f6090000000a00000a0a0000140a0000280a0000320a00003c0a0000460a0000500a00005a0a0000640a00006e0a0000820a00008c0a0000960a0000a00a0000aa0a0000b40a0000be0a0000c80a0000dc0a0000e60a0000f00a0000fa0a0000040b00000e0b0000180b0000220b0000360b0000400b00004a0b0000540b00005e0b0000680b0000720b0000860b0000900b00009a0b0000a40b0000ae0b0000b80b0000c20b0000d60b0000e00b0000ea0b0000f40b0000fe0b0000080c0000120c0000260c0000300c00003a0c0000440c00004e0c0000580c0000620c0000760c0000800c00008a0c0000940c00009e0c0000a80c0000b20c0000c60c0000d00c0000da0c0000e40c0000ee0c0000f80c0000020d0000160d0000
+  SkinRarity:
+  - Skin: 0
+    SkinID: 6
+    Rarity: 1
+  - Skin: 0
+    SkinID: 2
+    Rarity: 4
+  - Skin: 0
+    SkinID: 3
+    Rarity: 4
+  - Skin: 12
+    SkinID: 0
+    Rarity: 4
+  - Skin: 12
+    SkinID: 1
+    Rarity: 4
+  - Skin: 12
+    SkinID: 2
+    Rarity: 3
+  - Skin: 12
+    SkinID: 3
+    Rarity: 3
+  - Skin: 12
+    SkinID: 4
+    Rarity: 3
+  - Skin: 12
+    SkinID: 9
+    Rarity: 4
+  - Skin: 12
+    SkinID: 8
+    Rarity: 4
+  - Skin: 12
+    SkinID: 7
+    Rarity: 3
+  - Skin: 12
+    SkinID: 5
+    Rarity: 3
+  - Skin: 12
+    SkinID: 6
+    Rarity: 3
+  - Skin: 12
+    SkinID: 10
+    Rarity: 4
+  - Skin: 4
+    SkinID: 39
+    Rarity: 4
+  - Skin: 4
+    SkinID: 40
+    Rarity: 3
+  - Skin: 4
+    SkinID: 41
+    Rarity: 3
+  - Skin: 0
+    SkinID: 9
+    Rarity: 3
+  - Skin: 0
+    SkinID: 8
+    Rarity: 1
+  - Skin: 0
+    SkinID: 0
+    Rarity: 1
+  - Skin: 0
+    SkinID: 4
+    Rarity: 1
+  - Skin: 0
+    SkinID: 1
+    Rarity: 2
+  - Skin: 0
+    SkinID: 7
+    Rarity: 2
+  - Skin: 0
+    SkinID: 5
+    Rarity: 2
+  - Skin: 5
+    SkinID: 7
+    Rarity: 3
+  - Skin: 5
+    SkinID: 8
+    Rarity: 2
+  - Skin: 5
+    SkinID: 28
+    Rarity: 4
+  - Skin: 5
+    SkinID: 29
+    Rarity: 3
+  - Skin: 5
+    SkinID: 27
+    Rarity: 3
+  - Skin: 5
+    SkinID: 10
+    Rarity: 3
+  - Skin: 4
+    SkinID: 48
+    Rarity: 2
+  - Skin: 4
+    SkinID: 49
+    Rarity: 3
+  - Skin: 4
+    SkinID: 50
+    Rarity: 3
+  - Skin: 4
+    SkinID: 47
+    Rarity: 4
+  - Skin: 4
+    SkinID: 46
+    Rarity: 2
+  - Skin: 4
+    SkinID: 45
+    Rarity: 3
+  - Skin: 4
+    SkinID: 43
+    Rarity: 4
+  - Skin: 4
+    SkinID: 38
+    Rarity: 2
+  - Skin: 4
+    SkinID: 37
+    Rarity: 2
+  - Skin: 4
+    SkinID: 36
+    Rarity: 2
+  - Skin: 4
+    SkinID: 35
+    Rarity: 3
+  - Skin: 4
+    SkinID: 34
+    Rarity: 2
+  - Skin: 4
+    SkinID: 33
+    Rarity: 2
+  - Skin: 4
+    SkinID: 32
+    Rarity: 2
+  - Skin: 4
+    SkinID: 31
+    Rarity: 2
+  - Skin: 4
+    SkinID: 30
+    Rarity: 3
+  - Skin: 4
+    SkinID: 29
+    Rarity: 3
+  - Skin: 4
+    SkinID: 28
+    Rarity: 2
+  - Skin: 4
+    SkinID: 27
+    Rarity: 2
+  - Skin: 4
+    SkinID: 26
+    Rarity: 3
+  - Skin: 4
+    SkinID: 25
+    Rarity: 3
+  - Skin: 4
+    SkinID: 24
+    Rarity: 3
+  - Skin: 4
+    SkinID: 23
+    Rarity: 2
+  - Skin: 4
+    SkinID: 22
+    Rarity: 2
+  - Skin: 4
+    SkinID: 21
+    Rarity: 2
+  - Skin: 4
+    SkinID: 20
+    Rarity: 2
+  - Skin: 4
+    SkinID: 19
+    Rarity: 2
+  - Skin: 4
+    SkinID: 18
+    Rarity: 2
+  - Skin: 4
+    SkinID: 17
+    Rarity: 2
+  - Skin: 4
+    SkinID: 16
+    Rarity: 2
+  - Skin: 4
+    SkinID: 15
+    Rarity: 2
+  - Skin: 4
+    SkinID: 14
+    Rarity: 2
+  - Skin: 4
+    SkinID: 13
+    Rarity: 2
+  - Skin: 4
+    SkinID: 12
+    Rarity: 2
+  - Skin: 4
+    SkinID: 11
+    Rarity: 3
+  - Skin: 4
+    SkinID: 10
+    Rarity: 3
+  - Skin: 4
+    SkinID: 9
+    Rarity: 3
+  - Skin: 4
+    SkinID: 8
+    Rarity: 2
+  - Skin: 4
+    SkinID: 7
+    Rarity: 2
+  - Skin: 4
+    SkinID: 2
+    Rarity: 2
+  - Skin: 4
+    SkinID: 3
+    Rarity: 2
+  - Skin: 4
+    SkinID: 4
+    Rarity: 2
+  - Skin: 4
+    SkinID: 6
+    Rarity: 2
+  - Skin: 4
+    SkinID: 5
+    Rarity: 3
+  - Skin: 4
+    SkinID: 1
+    Rarity: 2
+  - Skin: 4
+    SkinID: 0
+    Rarity: 2
+  - Skin: 7
+    SkinID: 1
+    Rarity: 4
+  - Skin: 7
+    SkinID: 2
+    Rarity: 3
+  - Skin: 7
+    SkinID: 0
+    Rarity: 3
+  - Skin: 8
+    SkinID: 1
+    Rarity: 4
+  - Skin: 3
+    SkinID: 11
+    Rarity: 4
+  - Skin: 3
+    SkinID: 14
+    Rarity: 4
+  - Skin: 9
+    SkinID: 4
+    Rarity: 4
+  - Skin: 9
+    SkinID: 10
+    Rarity: 4
+  - Skin: 2
+    SkinID: 35
+    Rarity: 4
+  - Skin: 2
+    SkinID: 36
+    Rarity: 4
+  - Skin: 2
+    SkinID: 38
+    Rarity: 3
+  - Skin: 2
+    SkinID: 37
+    Rarity: 2
+  - Skin: 2
+    SkinID: 34
+    Rarity: 3
+  - Skin: 2
+    SkinID: 33
+    Rarity: 3
+  - Skin: 2
+    SkinID: 32
+    Rarity: 3
+  - Skin: 2
+    SkinID: 31
+    Rarity: 3
+  - Skin: 2
+    SkinID: 30
+    Rarity: 3
+  - Skin: 2
+    SkinID: 29
+    Rarity: 3
+  - Skin: 2
+    SkinID: 28
+    Rarity: 2
+  - Skin: 1
+    SkinID: 15
+    Rarity: 4
+  - Skin: 11
+    SkinID: 7
+    Rarity: 4
+  - Skin: 11
+    SkinID: 4
+    Rarity: 4
+  - Skin: 11
+    SkinID: 47
+    Rarity: 4
+  - Skin: 11
+    SkinID: 44
+    Rarity: 4
+  - Skin: 6
+    SkinID: 19
+    Rarity: 4
+  - Skin: 6
+    SkinID: 17
+    Rarity: 4
+  - Skin: 6
+    SkinID: 32
+    Rarity: 4
+  - Skin: 5
+    SkinID: 5
+    Rarity: 4
+  - Skin: 4
+    SkinID: 44
+    Rarity: 4
+  - Skin: 4
+    SkinID: 42
+    Rarity: 4
+  - Skin: 6
+    SkinID: 22
+    Rarity: 4
+  - Skin: 6
+    SkinID: 38
+    Rarity: 2
+  - Skin: 6
+    SkinID: 37
+    Rarity: 2
+  - Skin: 6
+    SkinID: 36
+    Rarity: 2
+  - Skin: 6
+    SkinID: 35
+    Rarity: 2
+  - Skin: 6
+    SkinID: 34
+    Rarity: 2
+  - Skin: 6
+    SkinID: 33
+    Rarity: 2
+  - Skin: 6
+    SkinID: 31
+    Rarity: 3
+  - Skin: 6
+    SkinID: 30
+    Rarity: 2
+  - Skin: 6
+    SkinID: 29
+    Rarity: 3
+  - Skin: 6
+    SkinID: 28
+    Rarity: 2
+  - Skin: 6
+    SkinID: 27
+    Rarity: 2
+  - Skin: 6
+    SkinID: 26
+    Rarity: 3
+  - Skin: 6
+    SkinID: 25
+    Rarity: 2
+  - Skin: 6
+    SkinID: 24
+    Rarity: 3
+  - Skin: 6
+    SkinID: 23
+    Rarity: 2
+  - Skin: 6
+    SkinID: 21
+    Rarity: 3
+  - Skin: 6
+    SkinID: 20
+    Rarity: 2
+  - Skin: 6
+    SkinID: 18
+    Rarity: 3
+  - Skin: 6
+    SkinID: 16
+    Rarity: 3
+  - Skin: 6
+    SkinID: 15
+    Rarity: 3
+  - Skin: 6
+    SkinID: 14
+    Rarity: 2
+  - Skin: 6
+    SkinID: 13
+    Rarity: 3
+  - Skin: 6
+    SkinID: 12
+    Rarity: 2
+  - Skin: 6
+    SkinID: 11
+    Rarity: 2
+  - Skin: 6
+    SkinID: 10
+    Rarity: 2
+  - Skin: 6
+    SkinID: 9
+    Rarity: 2
+  - Skin: 6
+    SkinID: 8
+    Rarity: 2
+  - Skin: 6
+    SkinID: 7
+    Rarity: 3
+  - Skin: 6
+    SkinID: 6
+    Rarity: 2
+  - Skin: 6
+    SkinID: 5
+    Rarity: 3
+  - Skin: 6
+    SkinID: 4
+    Rarity: 3
+  - Skin: 6
+    SkinID: 2
+    Rarity: 2
+  - Skin: 6
+    SkinID: 1
+    Rarity: 3
+  - Skin: 6
+    SkinID: 0
+    Rarity: 2
+  - Skin: 6
+    SkinID: 3
+    Rarity: 2
+  - Skin: 1
+    SkinID: 16
+    Rarity: 3
+  - Skin: 1
+    SkinID: 17
+    Rarity: 3
+  - Skin: 1
+    SkinID: 18
+    Rarity: 2
+  - Skin: 1
+    SkinID: 19
+    Rarity: 2
+  - Skin: 1
+    SkinID: 20
+    Rarity: 2
+  - Skin: 1
+    SkinID: 21
+    Rarity: 2
+  - Skin: 1
+    SkinID: 22
+    Rarity: 2
+  - Skin: 1
+    SkinID: 5
+    Rarity: 3
+  - Skin: 1
+    SkinID: 0
+    Rarity: 3
+  - Skin: 1
+    SkinID: 1
+    Rarity: 2
+  - Skin: 1
+    SkinID: 2
+    Rarity: 1
+  - Skin: 1
+    SkinID: 3
+    Rarity: 2
+  - Skin: 1
+    SkinID: 6
+    Rarity: 1
+  - Skin: 1
+    SkinID: 7
+    Rarity: 1
+  - Skin: 1
+    SkinID: 8
+    Rarity: 1
+  - Skin: 1
+    SkinID: 9
+    Rarity: 1
+  - Skin: 1
+    SkinID: 10
+    Rarity: 1
+  - Skin: 1
+    SkinID: 11
+    Rarity: 1
+  - Skin: 1
+    SkinID: 12
+    Rarity: 1
+  - Skin: 1
+    SkinID: 13
+    Rarity: 1
+  - Skin: 3
+    SkinID: 13
+    Rarity: 3
+  - Skin: 3
+    SkinID: 17
+    Rarity: 3
+  - Skin: 3
+    SkinID: 1
+    Rarity: 3
+  - Skin: 3
+    SkinID: 0
+    Rarity: 2
+  - Skin: 3
+    SkinID: 9
+    Rarity: 1
+  - Skin: 3
+    SkinID: 2
+    Rarity: 3
+  - Skin: 3
+    SkinID: 3
+    Rarity: 2
+  - Skin: 3
+    SkinID: 4
+    Rarity: 2
+  - Skin: 3
+    SkinID: 5
+    Rarity: 2
+  - Skin: 3
+    SkinID: 6
+    Rarity: 2
+  - Skin: 3
+    SkinID: 7
+    Rarity: 2
+  - Skin: 3
+    SkinID: 8
+    Rarity: 3
+  - Skin: 3
+    SkinID: 10
+    Rarity: 3
+  - Skin: 3
+    SkinID: 12
+    Rarity: 3
+  - Skin: 3
+    SkinID: 16
+    Rarity: 2
+  - Skin: 3
+    SkinID: 15
+    Rarity: 3
+  - Skin: 5
+    SkinID: 23
+    Rarity: 3
+  - Skin: 5
+    SkinID: 22
+    Rarity: 3
+  - Skin: 5
+    SkinID: 18
+    Rarity: 3
+  - Skin: 5
+    SkinID: 21
+    Rarity: 2
+  - Skin: 5
+    SkinID: 0
+    Rarity: 1
+  - Skin: 5
+    SkinID: 1
+    Rarity: 1
+  - Skin: 5
+    SkinID: 2
+    Rarity: 1
+  - Skin: 5
+    SkinID: 3
+    Rarity: 1
+  - Skin: 5
+    SkinID: 4
+    Rarity: 1
+  - Skin: 5
+    SkinID: 6
+    Rarity: 3
+  - Skin: 5
+    SkinID: 19
+    Rarity: 2
+  - Skin: 5
+    SkinID: 9
+    Rarity: 2
+  - Skin: 5
+    SkinID: 11
+    Rarity: 2
+  - Skin: 5
+    SkinID: 12
+    Rarity: 1
+  - Skin: 5
+    SkinID: 13
+    Rarity: 1
+  - Skin: 5
+    SkinID: 14
+    Rarity: 1
+  - Skin: 5
+    SkinID: 15
+    Rarity: 2
+  - Skin: 5
+    SkinID: 16
+    Rarity: 2
+  - Skin: 5
+    SkinID: 25
+    Rarity: 1
+  - Skin: 5
+    SkinID: 24
+    Rarity: 1
+  - Skin: 5
+    SkinID: 17
+    Rarity: 2
+  - Skin: 5
+    SkinID: 20
+    Rarity: 2
+  - Skin: 5
+    SkinID: 26
+    Rarity: 1
+  - Skin: 2
+    SkinID: 4
+    Rarity: 1
+  - Skin: 2
+    SkinID: 0
+    Rarity: 1
+  - Skin: 2
+    SkinID: 1
+    Rarity: 1
+  - Skin: 2
+    SkinID: 2
+    Rarity: 1
+  - Skin: 2
+    SkinID: 3
+    Rarity: 1
+  - Skin: 2
+    SkinID: 5
+    Rarity: 1
+  - Skin: 2
+    SkinID: 10
+    Rarity: 1
+  - Skin: 2
+    SkinID: 9
+    Rarity: 1
+  - Skin: 2
+    SkinID: 8
+    Rarity: 1
+  - Skin: 2
+    SkinID: 7
+    Rarity: 2
+  - Skin: 2
+    SkinID: 6
+    Rarity: 2
+  - Skin: 2
+    SkinID: 11
+    Rarity: 1
+  - Skin: 2
+    SkinID: 12
+    Rarity: 1
+  - Skin: 2
+    SkinID: 13
+    Rarity: 1
+  - Skin: 2
+    SkinID: 14
+    Rarity: 2
+  - Skin: 2
+    SkinID: 15
+    Rarity: 2
+  - Skin: 2
+    SkinID: 16
+    Rarity: 2
+  - Skin: 2
+    SkinID: 17
+    Rarity: 2
+  - Skin: 2
+    SkinID: 26
+    Rarity: 2
+  - Skin: 2
+    SkinID: 27
+    Rarity: 2
+  - Skin: 2
+    SkinID: 25
+    Rarity: 2
+  - Skin: 2
+    SkinID: 24
+    Rarity: 2
+  - Skin: 2
+    SkinID: 23
+    Rarity: 2
+  - Skin: 2
+    SkinID: 22
+    Rarity: 2
+  - Skin: 2
+    SkinID: 21
+    Rarity: 2
+  - Skin: 2
+    SkinID: 20
+    Rarity: 1
+  - Skin: 2
+    SkinID: 19
+    Rarity: 1
+  - Skin: 2
+    SkinID: 18
+    Rarity: 1
+  - Skin: 9
+    SkinID: 35
+    Rarity: 1
+  - Skin: 9
+    SkinID: 0
+    Rarity: 1
+  - Skin: 9
+    SkinID: 5
+    Rarity: 1
+  - Skin: 9
+    SkinID: 2
+    Rarity: 1
+  - Skin: 9
+    SkinID: 1
+    Rarity: 1
+  - Skin: 9
+    SkinID: 3
+    Rarity: 1
+  - Skin: 9
+    SkinID: 8
+    Rarity: 1
+  - Skin: 9
+    SkinID: 9
+    Rarity: 1
+  - Skin: 9
+    SkinID: 7
+    Rarity: 1
+  - Skin: 9
+    SkinID: 6
+    Rarity: 1
+  - Skin: 9
+    SkinID: 11
+    Rarity: 1
+  - Skin: 9
+    SkinID: 12
+    Rarity: 1
+  - Skin: 9
+    SkinID: 13
+    Rarity: 1
+  - Skin: 9
+    SkinID: 14
+    Rarity: 1
+  - Skin: 9
+    SkinID: 15
+    Rarity: 1
+  - Skin: 9
+    SkinID: 20
+    Rarity: 1
+  - Skin: 9
+    SkinID: 19
+    Rarity: 1
+  - Skin: 9
+    SkinID: 17
+    Rarity: 1
+  - Skin: 9
+    SkinID: 18
+    Rarity: 1
+  - Skin: 9
+    SkinID: 16
+    Rarity: 1
+  - Skin: 9
+    SkinID: 21
+    Rarity: 1
+  - Skin: 9
+    SkinID: 22
+    Rarity: 1
+  - Skin: 9
+    SkinID: 23
+    Rarity: 1
+  - Skin: 9
+    SkinID: 24
+    Rarity: 1
+  - Skin: 9
+    SkinID: 25
+    Rarity: 1
+  - Skin: 9
+    SkinID: 30
+    Rarity: 1
+  - Skin: 9
+    SkinID: 29
+    Rarity: 1
+  - Skin: 9
+    SkinID: 27
+    Rarity: 1
+  - Skin: 9
+    SkinID: 28
+    Rarity: 1
+  - Skin: 9
+    SkinID: 26
+    Rarity: 1
+  - Skin: 9
+    SkinID: 31
+    Rarity: 1
+  - Skin: 9
+    SkinID: 32
+    Rarity: 1
+  - Skin: 9
+    SkinID: 33
+    Rarity: 1
+  - Skin: 9
+    SkinID: 34
+    Rarity: 1
+  - Skin: 11
+    SkinID: 0
+    Rarity: 1
+  - Skin: 11
+    SkinID: 1
+    Rarity: 1
+  - Skin: 11
+    SkinID: 2
+    Rarity: 1
+  - Skin: 11
+    SkinID: 6
+    Rarity: 1
+  - Skin: 11
+    SkinID: 5
+    Rarity: 1
+  - Skin: 11
+    SkinID: 3
+    Rarity: 1
+  - Skin: 11
+    SkinID: 8
+    Rarity: 1
+  - Skin: 11
+    SkinID: 9
+    Rarity: 1
+  - Skin: 11
+    SkinID: 10
+    Rarity: 1
+  - Skin: 11
+    SkinID: 11
+    Rarity: 1
+  - Skin: 11
+    SkinID: 12
+    Rarity: 1
+  - Skin: 11
+    SkinID: 17
+    Rarity: 1
+  - Skin: 11
+    SkinID: 16
+    Rarity: 1
+  - Skin: 11
+    SkinID: 15
+    Rarity: 1
+  - Skin: 11
+    SkinID: 14
+    Rarity: 1
+  - Skin: 11
+    SkinID: 13
+    Rarity: 1
+  - Skin: 11
+    SkinID: 18
+    Rarity: 1
+  - Skin: 11
+    SkinID: 19
+    Rarity: 1
+  - Skin: 11
+    SkinID: 20
+    Rarity: 1
+  - Skin: 11
+    SkinID: 21
+    Rarity: 1
+  - Skin: 11
+    SkinID: 22
+    Rarity: 1
+  - Skin: 11
+    SkinID: 27
+    Rarity: 1
+  - Skin: 11
+    SkinID: 24
+    Rarity: 1
+  - Skin: 11
+    SkinID: 25
+    Rarity: 1
+  - Skin: 11
+    SkinID: 26
+    Rarity: 1
+  - Skin: 11
+    SkinID: 23
+    Rarity: 1
+  - Skin: 11
+    SkinID: 28
+    Rarity: 1
+  - Skin: 11
+    SkinID: 29
+    Rarity: 1
+  - Skin: 11
+    SkinID: 30
+    Rarity: 1
+  - Skin: 11
+    SkinID: 31
+    Rarity: 1
+  - Skin: 11
+    SkinID: 32
+    Rarity: 1
+  - Skin: 11
+    SkinID: 37
+    Rarity: 1
+  - Skin: 11
+    SkinID: 36
+    Rarity: 1
+  - Skin: 11
+    SkinID: 35
+    Rarity: 1
+  - Skin: 11
+    SkinID: 34
+    Rarity: 1
+  - Skin: 11
+    SkinID: 33
+    Rarity: 1
+  - Skin: 11
+    SkinID: 38
+    Rarity: 1
+  - Skin: 11
+    SkinID: 39
+    Rarity: 1
+  - Skin: 11
+    SkinID: 40
+    Rarity: 1
+  - Skin: 11
+    SkinID: 41
+    Rarity: 1
+  - Skin: 11
+    SkinID: 42
+    Rarity: 1
+  - Skin: 11
+    SkinID: 46
+    Rarity: 1
+  - Skin: 11
+    SkinID: 45
+    Rarity: 1
+  - Skin: 11
+    SkinID: 43
+    Rarity: 1
+  - Skin: 11
+    SkinID: 48
+    Rarity: 1
+  - Skin: 11
+    SkinID: 49
+    Rarity: 1
+  - Skin: 11
+    SkinID: 50
+    Rarity: 1
+  - Skin: 11
+    SkinID: 51
+    Rarity: 1
+  - Skin: 11
+    SkinID: 52
+    Rarity: 1
+  - Skin: 11
+    SkinID: 55
+    Rarity: 1
+  - Skin: 11
+    SkinID: 54
+    Rarity: 1
+  - Skin: 11
+    SkinID: 53
+    Rarity: 1
+  - Skin: 1
+    SkinID: 14
+    Rarity: 2
+  - Skin: 1
+    SkinID: 4
+    Rarity: 4
+  - Skin: 1
+    SkinID: 23
+    Rarity: 2
+  - Skin: 8
+    SkinID: 0
+    Rarity: 1

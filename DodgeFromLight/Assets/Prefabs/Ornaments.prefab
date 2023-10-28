@@ -1,0 +1,122 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1147059350306265133
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3143497853209517758}
+  - component: {fileID: 3071179364149127890}
+  m_Layer: 0
+  m_Name: Ornaments
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3143497853209517758
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1147059350306265133}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3071179364149127890
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1147059350306265133}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94fd4227473580643915507092e58d53, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  OrnamentPrefab: {fileID: 7066580668318028918, guid: 914d27eeaedc0864caaabfeb1406d8f8, type: 3}
+  Ornaments:
+  - {fileID: 21300000, guid: c485dc6bf1943914f929a4f1d237b52c, type: 3}
+  - {fileID: 21300000, guid: cdcad38fd0c6a1d4d910206c31ddc6c1, type: 3}
+  - {fileID: 21300000, guid: d3952e60885091b488a44c577a58d7bd, type: 3}
+  - {fileID: 21300000, guid: bda8e710863ee0c45934a97ae626fe58, type: 3}
+  OrnamentsBG:
+  - {fileID: 21300000, guid: 6089d74b1aa53c44dbc346c3082fd4fa, type: 3}
+  - {fileID: 21300000, guid: a8df4f32ab0dd1a4d91ac8bc1e4f675f, type: 3}
+  - {fileID: 21300000, guid: 564d8f2ebcfc77545830b9d0f4a9feea, type: 3}
+  - {fileID: 21300000, guid: c46bec09b38662543a4f6e2fd7def7c5, type: 3}
+  OrnamentsData:
+  - Type: 1
+    OrnamentColor: {r: 0.6792453, g: 0.3944436, b: 0.16981132, a: 1}
+    BackColor: {r: 0.1981132, g: 0.051125985, b: 0, a: 1}
+    TextColor:
+      topLeft: {r: 0.9528302, g: 0.6312598, b: 0.40899786, a: 1}
+      topRight: {r: 0.6792453, g: 0.49944875, b: 0.40690637, a: 1}
+      bottomLeft: {r: 0.4716981, g: 0.29164642, b: 0.14462443, a: 1}
+      bottomRight: {r: 0.3679245, g: 0.2147565, b: 0.053800277, a: 1}
+  - Type: 2
+    OrnamentColor: {r: 1, g: 1, b: 1, a: 1}
+    BackColor: {r: 0.16820931, g: 0.2977216, b: 0.33962262, a: 1}
+    TextColor:
+      topLeft: {r: 0.7882353, g: 0.94509804, b: 1, a: 1}
+      topRight: {r: 0.7411765, g: 0.9490196, b: 1, a: 1}
+      bottomLeft: {r: 0.1981132, g: 0.59347826, b: 0.7924528, a: 1}
+      bottomRight: {r: 0.093716644, g: 0.33275414, b: 0.509434, a: 1}
+  - Type: 3
+    OrnamentColor: {r: 1, g: 0.5836293, b: 0.13679248, a: 1}
+    BackColor: {r: 0.31132078, g: 0.18855466, b: 0.0044054748, a: 1}
+    TextColor:
+      topLeft: {r: 1, g: 0.6412373, b: 0, a: 1}
+      topRight: {r: 0.972549, g: 0.53032565, b: 0, a: 1}
+      bottomLeft: {r: 0.7169812, g: 0.33740294, b: 0, a: 1}
+      bottomRight: {r: 0.58431375, g: 0.29803923, b: 0.003921569, a: 1}
+  - Type: 4
+    OrnamentColor: {r: 0.25, g: 0.76176476, b: 1, a: 1}
+    BackColor: {r: 0, g: 0.24121808, b: 0.3490566, a: 1}
+    TextColor:
+      topLeft: {r: 0.504717, g: 0.90382856, b: 1, a: 1}
+      topRight: {r: 0, g: 0.84705883, b: 1, a: 1}
+      bottomLeft: {r: 0.0473923, g: 0.47706208, b: 0.6698113, a: 1}
+      bottomRight: {r: 0, g: 0.3419811, b: 0.5471698, a: 1}
+  - Type: 5
+    OrnamentColor: {r: 1, g: 0, b: 0, a: 1}
+    BackColor: {r: 0.26415092, g: 0.07846067, b: 0, a: 1}
+    TextColor:
+      topLeft: {r: 1, g: 0.45882356, b: 0.47979861, a: 1}
+      topRight: {r: 1, g: 0.33786768, b: 0.23137254, a: 1}
+      bottomLeft: {r: 0.65882355, g: 0.12123379, b: 0, a: 1}
+      bottomRight: {r: 0.3584906, g: 0.013894482, b: 0, a: 1}
+  - Type: 6
+    OrnamentColor: {r: 0.039849162, g: 1, b: 0, a: 1}
+    BackColor: {r: 0, g: 0.2924528, b: 0.0182783, a: 1}
+    TextColor:
+      topLeft: {r: 0.82962817, g: 1, b: 0.16509432, a: 1}
+      topRight: {r: 0.68235296, g: 1, b: 0, a: 1}
+      bottomLeft: {r: 0.007876454, g: 0.5566038, b: 0.28224012, a: 1}
+      bottomRight: {r: 0.06065327, g: 0.4433962, b: 0.0744458, a: 1}
+  - Type: 7
+    OrnamentColor: {r: 0.61, g: 0, b: 1, a: 1}
+    BackColor: {r: 0.21459669, g: 0, b: 0.4339623, a: 1}
+    TextColor:
+      topLeft: {r: 0.9490196, g: 0.64705884, b: 1, a: 1}
+      topRight: {r: 0.7921569, g: 0.6666667, b: 1, a: 1}
+      bottomLeft: {r: 0.4538512, g: 0.3160377, b: 1, a: 1}
+      bottomRight: {r: 0.3493237, g: 0.1702118, b: 0.7075472, a: 1}
+  - Type: 8
+    OrnamentColor: {r: 0.2264151, g: 0.2264151, b: 0.2264151, a: 1}
+    BackColor: {r: 0.21698111, g: 0, b: 0, a: 1}
+    TextColor:
+      topLeft: {r: 0.735849, g: 0.32974365, b: 0.32974365, a: 1}
+      topRight: {r: 0.8018868, g: 0.1021271, b: 0.1021271, a: 1}
+      bottomLeft: {r: 0.5283019, g: 0, b: 0, a: 1}
+      bottomRight: {r: 0.21698111, g: 0, b: 0, a: 1}

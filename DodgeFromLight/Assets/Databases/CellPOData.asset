@@ -1,0 +1,82 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ccfe558e99f58245b9cbc8deecd2137, type: 3}
+  m_Name: CellPOData
+  m_EditorClassIdentifier: 
+  CellMaterialPrefab: {fileID: 2100000, guid: 909bf60d377bcc748b41220971639e23, type: 2}
+  EnnemiesColors:
+  - Type: 0
+    DownColorEmission: {r: 1, g: 0.44950742, b: 0, a: 1}
+    DownColor: {r: 1, g: 0.36501044, b: 0, a: 1}
+    UpColorEmission: {r: 0.1981132, g: 0.05504621, b: 0, a: 1}
+    UpColor: {r: 0.2830189, g: 0.15982243, b: 0, a: 1}
+  - Type: 1
+    DownColorEmission: {r: 0, g: 0.19128425, b: 0.8509804, a: 1}
+    DownColor: {r: 0, g: 0.40982145, b: 0.8509804, a: 1}
+    UpColorEmission: {r: 0, g: 0.22745098, b: 2, a: 1}
+    UpColor: {r: 0, g: 0.4055077, b: 0.990566, a: 1}
+  - Type: 2
+    DownColorEmission: {r: 1.3193722, g: 0, b: 2, a: 1}
+    DownColor: {r: 0.9630773, g: 0.6462264, b: 1, a: 1}
+    UpColorEmission: {r: 0.22352941, g: 0.0627451, b: 0.34117648, a: 1}
+    UpColor: {r: 0.2232902, g: 0.062477753, b: 0.33962262, a: 1}
+  - Type: 3
+    DownColorEmission: {r: 0.58372706, g: 1.5617899, b: 0, a: 1}
+    DownColor: {r: 0.049999952, g: 1, b: 0, a: 1}
+    UpColorEmission: {r: 0.007843138, g: 0.13333334, b: 0, a: 1}
+    UpColor: {r: 0.006674973, g: 0.2830189, b: 0.006674973, a: 1}
+  - Type: 4
+    DownColorEmission: {r: 0.24705882, g: 0.21960784, b: 0.7490196, a: 1}
+    DownColor: {r: 0.46226418, g: 0.46226418, b: 0.46226418, a: 1}
+    UpColorEmission: {r: 0, g: 0, b: 0, a: 1}
+    UpColor: {r: 0.16470589, g: 0.16862746, b: 0.25490198, a: 1}
+  - Type: 5
+    DownColorEmission: {r: 4, g: 1.1518325, b: 0, a: 1}
+    DownColor: {r: 1, g: 0.5176471, b: 0, a: 1}
+    UpColorEmission: {r: 0, g: 0, b: 0, a: 1}
+    UpColor: {r: 0.6603774, g: 0.43693948, b: 0, a: 1}
+  - Type: 6
+    DownColorEmission: {r: 3.4415908, g: 0.180188, b: 0, a: 1}
+    DownColor: {r: 1, g: 0, b: 0, a: 1}
+    UpColorEmission: {r: 0.1509434, g: 0, b: 0, a: 1}
+    UpColor: {r: 0.3207547, g: 0.0032075474, b: 0, a: 1}
+  - Type: 7
+    DownColorEmission: {r: 0.40392157, g: 0.48235294, b: 0, a: 1}
+    DownColor: {r: 0.6504392, g: 0.764151, b: 0.032440357, a: 1}
+    UpColorEmission: {r: 0.23584908, g: 0.20128842, b: 0, a: 1}
+    UpColor: {r: 0.30660376, g: 0.3679245, b: 0, a: 1}
+  - Type: 8
+    DownColorEmission: {r: 0.66, g: 0.66, b: 0.66, a: 1}
+    DownColor: {r: 0, g: 0, b: 0, a: 1}
+    UpColorEmission: {r: 0, g: 0, b: 0, a: 1}
+    UpColor: {r: 0.1254902, g: 0.1254902, b: 0.1254902, a: 1}
+  - Type: 9
+    DownColorEmission: {r: 0.66, g: 0.66, b: 0.66, a: 1}
+    DownColor: {r: 0, g: 0, b: 0, a: 1}
+    UpColorEmission: {r: 0, g: 0, b: 0, a: 1}
+    UpColor: {r: 0.1254902, g: 0.1254902, b: 0.1254902, a: 1}
+  - Type: 10
+    DownColorEmission: {r: 0.66, g: 0.66, b: 0.66, a: 1}
+    DownColor: {r: 0, g: 0, b: 0, a: 1}
+    UpColorEmission: {r: 0, g: 0, b: 0, a: 1}
+    UpColor: {r: 0.1254902, g: 0.1254902, b: 0.1254902, a: 1}
+  - Type: 11
+    DownColorEmission: {r: 0.66, g: 0.66, b: 0.66, a: 1}
+    DownColor: {r: 0, g: 0, b: 0, a: 1}
+    UpColorEmission: {r: 0, g: 0, b: 0, a: 1}
+    UpColor: {r: 0.1254902, g: 0.1254902, b: 0.1254902, a: 1}
+  GlouttonAttractionColorUpEmission: {r: 0, g: 0.26218987, b: 1, a: 1}
+  GlouttonAttractionColorUp: {r: 0, g: 0.38431373, b: 1, a: 1}
+  GlouttonAttractionColorDownEmission: {r: 0, g: 1.3333334, b: 1.9843137, a: 1}
+  GlouttonAttractionColorDown: {r: 0, g: 0.7607843, b: 1, a: 1}
+  AttractionCellUpMaterial: {fileID: 0}
+  AttractionCellDownMaterial: {fileID: 0}

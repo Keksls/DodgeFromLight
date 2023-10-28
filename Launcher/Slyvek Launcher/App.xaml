@@ -1,0 +1,9 @@
+﻿<Application x:Class="Slyvek_Launcher.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:Slyvek_Launcher"
+             StartupUri="Launcher.xaml">
+    <Application.Resources>
+        <FontFamily x:Key="cool">./Fonts/coolvetica condensed rg.otf#Coolvetica Condensed Rg</FontFamily>
+    </Application.Resources>
+</Application>

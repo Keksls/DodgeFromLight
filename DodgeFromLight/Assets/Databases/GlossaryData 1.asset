@@ -1,0 +1,218 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9f7951d010a3b984cab64a5fedeab6a5, type: 3}
+  m_Name: GlossaryData 1
+  m_EditorClassIdentifier: 
+  GlossaryItems:
+  - Name: Dodge From Light
+    Image: {fileID: 21300000, guid: 7490b798d488e8e46b76b39bd0a238f5, type: 3}
+    Description: "<i>Lexique :</i>\n - Turn : Each player input start a turn. On
+      a turn, every ennemies on the map do their patrol routine.\n - Turn Action
+      (TA) : Actions performed by the enemies during a game turn.\n- Sight (PO) :
+      Range: Field of view of the ennemies.\n- Gears : Your Hero can collect up to
+      2 pieces of equipment to help him overcome the obstacles encountered on the
+      map."
+  - Name: Start Cell
+    Image: {fileID: 21300000, guid: ab4678e586e5c404daeb50a526ace849, type: 3}
+    Description: '<i>[Dodge From Light] : It''s important to understant the rules.</i>
+
+
+      The
+      cell on which the hero appears at the start of the game.'
+  - Name: End Cell
+    Image: {fileID: 21300000, guid: 73c9e8f45da77084d8b2f50460dec13e, type: 3}
+    Description: '<i>[Dodge From Light] : It''s important to understant the rules.</i>
+
+
+      The
+      cell to reach to end the game.'
+  - Name: Checkpoint
+    Image: {fileID: 21300000, guid: 9db59d03e605e1948ae3a826bd763d36, type: 3}
+    Description: "<i>[Dodge From Light] : It's important to understant the rules.</i>\n\n\rA
+      cell where you can save your progress on a map during a game session.\r\nPLEASE
+      NOTE, if a checkpoint is saved, you can finish the map, but your score will
+      not be taken into account until your next launch of the current map."
+  - Name: Transposition
+    Image: {fileID: 21300000, guid: 6411ffc1f511cdf4bbbc594c499569d6, type: 3}
+    Description: "<i>[Dodge From Light] : It's important to understant the rules.</i>\n
+      \r\nAt any point in the game, you can use your sword or your wand.\r\nPlanting
+      your sword allows you to save a position.\r\nAt any time, you can swap your
+      position with that of your sword or wand."
+  - Name: Pet Emboding
+    Image: {fileID: 21300000, guid: 753218be3fe12094cbf2727eb80926e9, type: 3}
+    Description: "<i>[Dodge From Light] : It's important to understant the rules.</i>\n
+      \r\nIf you have equipped a pet, you can impersonate it at any time during a
+      run.\r\nWhen you play as a pet, your hero stays on his cell, and remains vulnerable
+      to enemies.\r\nIf your pet dies, you return to your hero's body.\r\nAt any
+      time during the incarnation, you can take the place of the pet and teleport
+      the heroes to the pet's cell."
+  - Name: Thirsty Gloutton
+    Image: {fileID: 21300000, guid: 3c29d1aca85b05446b43d1156e08d9c3, type: 3}
+    Description: "<i>[Enemy]: Enemies move around the map following their own patrol
+      path. If an enemy sees the Hero, he is killed. Each enemy has a different line
+      of sight of their own.</i>\r\n \r\nThe thirsty glutton only kills in close
+      combat (1 cell in front of him). But he sees from afar and will attract the
+      hero 1 cell per turn if he is in front of him."
+  - Name: Hellish Keeper
+    Image: {fileID: 21300000, guid: d78c397617f21624cb26d8c5ac0e893a, type: 3}
+    Description: "<i>[Enemy]: Enemies move around the map following their own patrol
+      path. If an enemy sees the Hero, he is killed. Each enemy has a different line
+      of sight of their own.</i>\r\n \r\nThe Hellish Keeper can see all around him.
+      He tends to be lazy and doesn't always move (at the whim of the mapper)."
+  - Name: Feiry Knight
+    Image: {fileID: 21300000, guid: 8a4f3e4cd99e359448585dd44ed783f9, type: 3}
+    Description: "<i>[Enemy]: Enemies move around the map following their own patrol
+      path. If an enemy sees the Hero, he is killed. Each enemy has a different line
+      of sight of their own.</i>\r\n \r\nThe Feiry Knight can see the Hero in a semicircle
+      in front of him. You might think that his helmet prevents him from seeing,
+      but he is blind anyway. How does he see?"
+  - Name: Zioned Lizardman
+    Image: {fileID: 21300000, guid: 3ad5603fc1fec314ca60b824a94185e9, type: 3}
+    Description: "<i>[Enemy]: Enemies move around the map following their own patrol
+      path. If an enemy sees the Hero, he is killed. Each enemy has a different line
+      of sight of their own.</i>\r\n \r\nThe Zioned Lizardman can see the Hero diagonally
+      around him. Indeed his very distant eyes do not allow him to see in front of
+      him. (Terribly painful to pee)."
+  - Name: Siamese Cyclops
+    Image: {fileID: 21300000, guid: 3bf131f9b6a03dc4b9fa3d9d50244649, type: 3}
+    Description: "<i>[Enemy]: Enemies move around the map following their own patrol
+      path. If an enemy sees the Hero, he is killed. Each enemy has a different line
+      of sight of their own.</i>\r\n \r\nThanks to their astonishing complicity,
+      this minautor and his little flying goblin can see both in front of them and
+      behind them.\r\nDue to their even more amazing stupidity, they are not able
+      to coordinate and they happen to see once ahead, once behind. Thanks for us!"
+  - Name: Brazen Scoute
+    Image: {fileID: 21300000, guid: cf91e2d1086ab6d47ad7a08f292df741, type: 3}
+    Description: "<i>[Enemy]: Enemies move around the map following their own patrol
+      path. If an enemy sees the Hero, he is killed. Each enemy has a different line
+      of sight of their own.</i>\r\n \r\nAh! The Brazen Scout, my favorite. Honestly,
+      he's classy, \u200B\u200Bisn't he?\r\nThis little hunk can only see ahead,
+      but still with class. Because it's stylish!"
+  - Name: Raised Thunderbird
+    Image: {fileID: 21300000, guid: 81649df72a577a2428631a39e6553371, type: 3}
+    Description: "<i>[Enemy]: Enemies move around the map following their own patrol
+      path. If an enemy sees the Hero, he is killed. Each enemy has a different line
+      of sight of their own.</i>\r\n \r\nThe Raised Thunderbird, a nightmare for
+      toddlers.\r\nHis field of view is... variable."
+  - Name: Oculte Trap
+    Image: {fileID: 21300000, guid: 6b9166e1ce6bf7a489133869820eb386, type: 3}
+    Description: "<i>[Neutre]: Some ennemies are not..</i>\r\n \r\nMake no mistake,
+      the Ocult Trap is not a fungus. Well, not only.\r\nHis past as a master of
+      the mystical arts has taught him how to attract and push the heroes who pass
+      in front of him in line.\r\nNot great as a power, maybe that's why he exiled
+      himself here...\r\nDeeply pacifist, he always refused to kill anyone."
+  - Name: Evil Axe
+    Image: {fileID: 21300000, guid: 8d1688308bac47a418744ce1529792e3, type: 3}
+    Description: "<i>[Traps]: Traps do not move. If the Hero steps on a trap, the
+      trap is killed. Each trap has its own diferent field of effect.</i>\r\n \r\nEvil
+      Axes *speaks*:<i> 'Once left, once right, once left, once right, then left,
+      then right, then left, then right, again and again... '.</i>\r\n\r\nTypical
+      of Evil Axes."
+  - Name: Shit Catapult
+    Image: {fileID: 21300000, guid: 8ea1db4ca4567594f81210f24ba1ede6, type: 3}
+    Description: "<i>[Traps]: Traps do not move. If the Hero steps on a trap, the
+      trap is killed. Each trap has its own diferent field of effect.</i>\r\n \r\nA
+      catapult like no other can.\r\nFineness of the materials, robustness of the
+      design, perfect alignment of the side guards...\r\nEvery other turn, BOOM,
+      5 cells in front of them means death and destruction."
+  - Name: Gifted Hammer
+    Image: {fileID: 21300000, guid: 87ae00c92dfb85b4ea50e4c99f255b14, type: 3}
+    Description: "<i>[Traps]: Traps do not move. If the Hero steps on a trap, the
+      trap is killed. Each trap has its own diferent field of effect.</i>\r\n \r\nIt
+      is said that this hammer is bewitched so that it is animated in this way.\r\nPersonally,
+      I only have to call Update() for it to animate.\r\nEither way, he'll cross
+      tap once to the left, once to the right."
+  - Name: Needle Trap
+    Image: {fileID: 21300000, guid: ac84ae9d3af08234eb961de2a27d89e6, type: 3}
+    Description: "<i>[Traps]: Traps do not move. If the Hero steps on a trap, the
+      trap is killed. Each trap has its own diferent field of effect.</i>\r\n \r\nWatch
+      where you step!"
+  - Name: Pillar of Eternity
+    Image: {fileID: 21300000, guid: 500119fdbd27510489c8c4ae17d970c1, type: 3}
+    Description: "<i>[Traps]: Traps do not move. If the Hero steps on a trap, the
+      trap is killed. Each trap has its own diferent field of effect.</i>\r\n \r\nThis
+      pillar of eternity is surmounted by the lost soul of a dead mage.\r\nFrom the
+      world of souls, he can see all around. Sometimes he will see far, sometimes
+      he will see near, each time he will see."
+  - Name: Collapsable Cell
+    Image: {fileID: 21300000, guid: 8bf13ff3b319b8e4fb7c1c795e919d45, type: 3}
+    Description: "<i>[Cells] :  Some cell has special effect when your Hero walk
+      on it</i>\n\nYou can only step on this cell once. \nAfter your passave, it
+      will collapse and become unwalkable."
+  - Name: Speed-Boost Cell
+    Image: {fileID: 21300000, guid: efece28cf430b624280ba5aab3f7355c, type: 3}
+    Description: '<i>[Cells] :  Some cell has special effect when your Hero walk
+      on it</i>
+
+
+      When you pass over this cell, your Hero is boosted for the
+      next 2 game turns.
+
+      When you move during these 2 turns, your hero will
+      be able to dash on 2 cells'
+  - Name: Spring Cell
+    Image: {fileID: 21300000, guid: 9ba401d6ccf2db74797a8edac03b2753, type: 3}
+    Description: '<i>[Cells] :  Some cell has special effect when your Hero walk
+      on it</i>
+
+
+      When your Hero walks on this cell, he is pushed over everything
+      a distance defined by the mapper who created the map.
+
+      You cannot know
+      in advance how many cells the spring will push you.'
+  - Name: Teleportation Cell
+    Image: {fileID: 21300000, guid: 69313a459a01e704d99d71b8d3ed89da, type: 3}
+    Description: '<i>[Cells] :  Some cell has special effect when your Hero walk
+      on it</i>
+
+
+      This cell teleports the hero who walks on it to a random
+      cell on the map.'
+  - Name: Bombe
+    Image: {fileID: 21300000, guid: 3a47a39c8489e434081359aabc3e77bb, type: 3}
+    Description: "<i>[Gear]: pick or use a gear is counted as a hero action, so it
+      causes enemies to skip a turn.</i>\r\n \r\nDestroys all decorative elements
+      in a cross zone of 1 cell around the hero."
+  - Name: Discoball
+    Image: {fileID: 21300000, guid: 0013fa8559c357f48bcccc839244a7b7, type: 3}
+    Description: "\r<i>[Gear]: pick or use a gear is counted as a hero action, so
+      it causes enemies to skip a turn.</i>\r\n \r\nPlaces the DiscoBall which remains
+      active for 5 turns.\r\nThe DiscoBall stuns enemies who see it.\r\nShe disappears
+      after stunning."
+  - Name: Grapple
+    Image: {fileID: 21300000, guid: 54e5763e399518141a3a3bb5f9aa799e, type: 3}
+    Description: "<i>[Gear]: pick or use a gear is counted as a hero action, so it
+      causes enemies to skip a turn.</i>\r\n \r\nLaunches a 5-cell maximum grappling
+      hook that pulls the Hero to him.\r\nThe Grapple can pass over holes in the
+      map, but it is stopped by decorating it.\r\nIt cannot be cast on an enemy."
+  - Name: Mirror
+    Image: {fileID: 21300000, guid: 6ea25907500d9034fb0e8caf5aaa61f1, type: 3}
+    Description: "<i>[Gear]: pick or use a gear is counted as a hero action, so it
+      causes enemies to skip a turn.</i>\r\n \r\nPlace a mirror that blocks mobs'
+      field of vision for 3 turns.\r\nThe mirror is a piece of scenery for enemies
+      that blocks them in their patrols.\r\nWhen an enemy is 1 cell away from the
+      mirror, he will turn around and reverse the direction of his patrol."
+  - Name: Remote Control
+    Image: {fileID: 21300000, guid: 7d5fa848201fb904a8d510301c4e316e, type: 3}
+    Description: "<i>[Gear]: pick or use a gear is counted as a hero action, so it
+      causes enemies to skip a turn.</i>\r\n \r\nReverse the routine of enemies."
+  - Name: Speed Boots
+    Image: {fileID: 21300000, guid: 63435af13ab4aaa479873cab11cf36c9, type: 3}
+    Description: "<i>[Gear]: pick or use a gear is counted as a hero action, so it
+      causes enemies to skip a turn.</i>\r\n \r\nDuring the next 2 turns the Hero
+      dashes 2 cells."
+  - Name: Time Controller
+    Image: {fileID: 21300000, guid: f4ef4d209af3ce44cb81794597bbc72f, type: 3}
+    Description: "<i>[Gear]: pick or use a gear is counted as a hero action, so it
+      causes enemies to skip a turn.</i>\r\n \r\nEnemies are frozen for 3 turns.\r\nThey
+      continue to see but no longer move.\r\nThe Hero can move freely."

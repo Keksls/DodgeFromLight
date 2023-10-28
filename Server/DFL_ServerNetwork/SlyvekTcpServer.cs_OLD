@@ -1,0 +1,271 @@
+﻿using DFL.Utils;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading;
+
+namespace DFLNetwork
+{
+    public class TcpClientEventArg : EventArgs
+    {
+        public TcpClient Client;
+
+        public TcpClientEventArg(TcpClient _client)
+        {
+            Client = _client;
+        }
+    }
+
+    public class MessageEventArg : EventArgs
+    {
+        public Message Message;
+
+        public MessageEventArg(Message _Message)
+        {
+            Message = _Message;
+        }
+    }
+
+    public class TCPServer
+    {
+        //public List<sendingArgs> SendingQueue = new List<sendingArgs>();
+        public Dictionary<TcpClient, int> ClientsID = new Dictionary<TcpClient, int>();
+        public TCPServer()
+        {
+        }
+
+        private List<ServerListener> _listeners = new List<ServerListener>();
+        private object client;
+
+        public event EventHandler<TcpClientEventArg> ClientConnected;
+        public event EventHandler<TcpClientEventArg> ClientDisconnected;
+        public event EventHandler<MessageEventArg> DataReceived;
+
+        public IEnumerable<IPAddress> GetIPAddresses()
+        {
+            List<IPAddress> ipAddresses = new List<IPAddress>();
+
+            IEnumerable<NetworkInterface> enabledNetInterfaces = NetworkInterface.GetAllNetworkInterfaces()
+                .Where(nic => nic.OperationalStatus == OperationalStatus.Up);
+            foreach (NetworkInterface netInterface in enabledNetInterfaces)
+            {
+                IPInterfaceProperties ipProps = netInterface.GetIPProperties();
+                foreach (UnicastIPAddressInformation addr in ipProps.UnicastAddresses)
+                {
+                    if (!ipAddresses.Contains(addr.Address))
+                    {
+                        ipAddresses.Add(addr.Address);
+                    }
+                }
+            }
+
+            var ipSorted = ipAddresses.OrderByDescending(ip => RankIpAddress(ip)).ToList();
+            return ipSorted;
+        }
+
+        public List<IPAddress> GetListeningIPs()
+        {
+            List<IPAddress> listenIps = new List<IPAddress>();
+            foreach (var l in _listeners)
+            {
+                if (!listenIps.Contains(l.IPAddress))
+                {
+                    listenIps.Add(l.IPAddress);
+                }
+            }
+
+            return listenIps.OrderByDescending(ip => RankIpAddress(ip)).ToList();
+        }
+
+
+        public void Broadcast(HeadActions action, byte[] data)
+        {
+            foreach (var client in _listeners.SelectMany(x => x.ConnectedClients))
+                client.GetStream().Write(data, 0, data.Length);
+            Writer.Write(action + " <<<= Message Broadcasted. " + data.Length + " bytes ", ConsoleColor.Magenta);
+        }
+
+        public void SendToClients(HeadActions action, byte[] data, List<TcpClient> Clients)
+        {
+            foreach (var Client in Clients)
+                Client.GetStream().Write(data, 0, data.Length);
+            Writer.Write(action + " <<= Message Sended on map. " + data.Length + " bytes", ConsoleColor.Cyan);
+        }
+
+        public void SendToClient(HeadActions action, byte[] data, TcpClient Client)
+        {
+            Client.GetStream().Write(data, 0, data.Length);
+            Writer.Write(action + " <= Message Sended. " + data.Length + " bytes", ConsoleColor.DarkCyan);
+        }
+
+        public void Reply(HeadActions action, byte[] data, TcpClient Client)
+        {
+            Client.GetStream().Write(data, 0, data.Length);
+            Writer.Write(action + " <=> Reply " + data.Length + " bytes ", ConsoleColor.DarkYellow);
+        }
+
+        public void SendMessageToClient(byte[] data, TcpClient Client)
+        {
+            Client.GetStream().Write(data, 0, data.Length);
+        }
+
+
+        private int RankIpAddress(IPAddress addr)
+        {
+            int rankScore = 1000;
+
+            if (IPAddress.IsLoopback(addr))
+            {
+                // rank loopback below others, even though their routing metrics may be better
+                rankScore = 300;
+            }
+            else if (addr.AddressFamily == AddressFamily.InterNetwork)
+            {
+                rankScore += 100;
+                // except...
+                if (addr.GetAddressBytes().Take(2).SequenceEqual(new byte[] { 169, 254 }))
+                {
+                    // APIPA generated address - no router or DHCP server - to the bottom of the pile
+                    rankScore = 0;
+                }
+            }
+
+            if (rankScore > 500)
+            {
+                foreach (var nic in TryGetCurrentNetworkInterfaces())
+                {
+                    var ipProps = nic.GetIPProperties();
+                    if (ipProps.GatewayAddresses.Any())
+                    {
+                        if (ipProps.UnicastAddresses.Any(u => u.Address.Equals(addr)))
+                        {
+                            // if the preferred NIC has multiple addresses, boost all equally
+                            // (justifies not bothering to differentiate... IOW YAGNI)
+                            rankScore += 1000;
+                        }
+
+                        // only considering the first NIC that is UP and has a gateway defined
+                        break;
+                    }
+                }
+            }
+
+            return rankScore;
+        }
+
+        private static IEnumerable<NetworkInterface> TryGetCurrentNetworkInterfaces()
+        {
+            try
+            {
+                return NetworkInterface.GetAllNetworkInterfaces().Where(ni => ni.OperationalStatus == OperationalStatus.Up);
+            }
+            catch (NetworkInformationException)
+            {
+                return Enumerable.Empty<NetworkInterface>();
+            }
+        }
+
+        public TCPServer Start(int port, bool ignoreNicsWithOccupiedPorts = true)
+        {
+            var ipSorted = GetIPAddresses();
+            bool anyNicFailed = false;
+            foreach (var ipAddr in ipSorted)
+            {
+                try
+                {
+                    Start(ipAddr, port);
+                }
+                catch (SocketException ex)
+                {
+                    // DebugInfo(ex.ToString());
+                    anyNicFailed = true;
+                }
+            }
+
+            if (!IsStarted)
+                throw new InvalidOperationException("Port was already occupied for all network interfaces");
+
+            if (anyNicFailed && !ignoreNicsWithOccupiedPorts)
+            {
+                Stop();
+                throw new InvalidOperationException("Port was already occupied for one or more network interfaces.");
+            }
+
+            return this;
+        }
+
+        public TCPServer Start(int port, AddressFamily addressFamilyFilter)
+        {
+            var ipSorted = GetIPAddresses().Where(ip => ip.AddressFamily == addressFamilyFilter);
+            foreach (var ipAddr in ipSorted)
+            {
+                try
+                {
+                    Start(ipAddr, port);
+                }
+                catch { }
+            }
+
+            return this;
+        }
+
+        public bool IsStarted { get { return _listeners.Any(l => l.Listener.Active); } }
+
+        public TCPServer Start(IPAddress ipAddress, int port)
+        {
+            ServerListener listener = new ServerListener(this, ipAddress, port);
+            _listeners.Add(listener);
+
+            return this;
+        }
+
+        public void Stop()
+        {
+            _listeners.All(l => l.QueueStop = true);
+            while (_listeners.Any(l => l.Listener.Active))
+            {
+                Thread.Sleep(100);
+            };
+            _listeners.Clear();
+        }
+
+        public int ConnectedClientsCount
+        {
+            get
+            {
+                return _listeners.Sum(l => l.ConnectedClientsCount);
+            }
+        }
+
+        internal void NotifyEndTransmissionRx(ServerListener listener, TcpClient client, byte[] msg)
+        {
+            if (DataReceived != null)
+            {
+                Message m = new Message(msg, client);
+                DataReceived(this, new MessageEventArg(m));
+            }
+        }
+
+        internal void NotifyClientConnected(ServerListener listener, TcpClient newClient)
+        {
+            if (ClientConnected != null)
+            {
+                ClientConnected(this, new TcpClientEventArg(newClient));
+            }
+        }
+
+        internal void NotifyClientDisconnected(ServerListener listener, TcpClient disconnectedClient)
+        {
+            if (ClientDisconnected != null)
+            {
+                ClientDisconnected(this, new TcpClientEventArg(disconnectedClient));
+            }
+        }
+
+    }
+}

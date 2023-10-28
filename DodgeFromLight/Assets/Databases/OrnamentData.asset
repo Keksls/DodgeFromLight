@@ -1,0 +1,89 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 412ec29be1e734e4e942237b65fafa71, type: 3}
+  m_Name: OrnamentData
+  m_EditorClassIdentifier: 
+  OrnamentPrefab: {fileID: 7066580668318028918, guid: 914d27eeaedc0864caaabfeb1406d8f8, type: 3}
+  Ornaments:
+  - {fileID: 21300000, guid: b9e3feb3d48dc27449ee69316f80f82e, type: 3}
+  - {fileID: 21300000, guid: 67ed558684b0fa9448576829b897ba9b, type: 3}
+  - {fileID: 21300000, guid: 3f3b142c569afc8419eeb793d120b49b, type: 3}
+  - {fileID: 21300000, guid: b7364a337b66fc04aa80eade58021c0e, type: 3}
+  - {fileID: 21300000, guid: cbdaecb364fad3243b8a2c2686fc1ee9, type: 3}
+  - {fileID: 21300000, guid: 958695139019df34faffbe2b5081462c, type: 3}
+  - {fileID: 21300000, guid: 0a7d86828e416ec4d910040a9d804c84, type: 3}
+  OrnamentsBG: {fileID: 21300000, guid: c9a38465b793a254da0fbb2b9796e5b0, type: 3}
+  OrnamentsData:
+  - Type: 1
+    OrnamentColor: {r: 0.5377358, g: 0.3897739, b: 0.27140442, a: 1}
+    BackColor: {r: 0.1981132, g: 0.051125985, b: 0, a: 1}
+    TextColor:
+      topLeft: {r: 0.9528302, g: 0.6312598, b: 0.40899786, a: 1}
+      topRight: {r: 0.6792453, g: 0.49944875, b: 0.40690637, a: 1}
+      bottomLeft: {r: 0.4716981, g: 0.29164642, b: 0.14462443, a: 1}
+      bottomRight: {r: 0.3679245, g: 0.2147565, b: 0.053800277, a: 1}
+  - Type: 2
+    OrnamentColor: {r: 0.66206837, g: 0.75985444, b: 0.8113208, a: 1}
+    BackColor: {r: 0.16820931, g: 0.2977216, b: 0.33962262, a: 1}
+    TextColor:
+      topLeft: {r: 0.7882353, g: 0.94509804, b: 1, a: 1}
+      topRight: {r: 0.7411765, g: 0.9490196, b: 1, a: 1}
+      bottomLeft: {r: 0.1981132, g: 0.59347826, b: 0.7924528, a: 1}
+      bottomRight: {r: 0.093716644, g: 0.33275414, b: 0.509434, a: 1}
+  - Type: 3
+    OrnamentColor: {r: 1, g: 0.63488555, b: 0.1372549, a: 1}
+    BackColor: {r: 0.31132078, g: 0.18855466, b: 0.0044054748, a: 1}
+    TextColor:
+      topLeft: {r: 1, g: 0.6412373, b: 0, a: 1}
+      topRight: {r: 0.972549, g: 0.53032565, b: 0, a: 1}
+      bottomLeft: {r: 0.7169812, g: 0.33740294, b: 0, a: 1}
+      bottomRight: {r: 0.58431375, g: 0.29803923, b: 0.003921569, a: 1}
+  - Type: 4
+    OrnamentColor: {r: 0.30860624, g: 0.7085571, b: 0.8962264, a: 1}
+    BackColor: {r: 0, g: 0.24121808, b: 0.3490566, a: 1}
+    TextColor:
+      topLeft: {r: 0.504717, g: 0.90382856, b: 1, a: 1}
+      topRight: {r: 0, g: 0.84705883, b: 1, a: 1}
+      bottomLeft: {r: 0.0473923, g: 0.47706208, b: 0.6698113, a: 1}
+      bottomRight: {r: 0, g: 0.3419811, b: 0.5471698, a: 1}
+  - Type: 5
+    OrnamentColor: {r: 1, g: 0.50084907, b: 0.4764151, a: 1}
+    BackColor: {r: 0.31132078, g: 0.027396228, b: 0, a: 1}
+    TextColor:
+      topLeft: {r: 1, g: 0.45882356, b: 0.47979861, a: 1}
+      topRight: {r: 1, g: 0.33786768, b: 0.23137254, a: 1}
+      bottomLeft: {r: 0.65882355, g: 0.12123379, b: 0, a: 1}
+      bottomRight: {r: 0.3584906, g: 0.013894482, b: 0, a: 1}
+  - Type: 6
+    OrnamentColor: {r: 0.829246, g: 1, b: 0.3176471, a: 1}
+    BackColor: {r: 0.26014906, g: 0.29411766, b: 0, a: 1}
+    TextColor:
+      topLeft: {r: 0.82962817, g: 1, b: 0.16509432, a: 1}
+      topRight: {r: 0.68235296, g: 1, b: 0, a: 1}
+      bottomLeft: {r: 0.007876454, g: 0.5566038, b: 0.28224012, a: 1}
+      bottomRight: {r: 0.06065327, g: 0.4433962, b: 0.0744458, a: 1}
+  - Type: 7
+    OrnamentColor: {r: 0.7090724, g: 0.24056602, b: 1, a: 1}
+    BackColor: {r: 0.27130476, g: 0, b: 0.43529412, a: 1}
+    TextColor:
+      topLeft: {r: 0.9490196, g: 0.64705884, b: 1, a: 1}
+      topRight: {r: 0.7921569, g: 0.6666667, b: 1, a: 1}
+      bottomLeft: {r: 0.4538512, g: 0.3160377, b: 1, a: 1}
+      bottomRight: {r: 0.3493237, g: 0.1702118, b: 0.7075472, a: 1}
+  - Type: 8
+    OrnamentColor: {r: 0.41509432, g: 0.41509432, b: 0.41509432, a: 1}
+    BackColor: {r: 0.21698111, g: 0, b: 0, a: 1}
+    TextColor:
+      topLeft: {r: 0.735849, g: 0.32974365, b: 0.32974365, a: 1}
+      topRight: {r: 0.8018868, g: 0.1021271, b: 0.1021271, a: 1}
+      bottomLeft: {r: 0.5283019, g: 0, b: 0, a: 1}
+      bottomRight: {r: 0.21698111, g: 0, b: 0, a: 1}

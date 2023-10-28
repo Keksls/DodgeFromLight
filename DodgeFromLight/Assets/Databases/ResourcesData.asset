@@ -1,0 +1,2973 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 47204817350c2e644b618cbe0032cf7a, type: 3}
+  m_Name: ResourcesData
+  m_EditorClassIdentifier: 
+  Data:
+  - Texture: {fileID: 2800000, guid: 7162b219809f2374ca00d5a0905d773c, type: 3}
+    Prefab: {fileID: 7548259717519944623, guid: 6a40b1830a4d26f4a8034495d28757bf, type: 3}
+    ID: EmptyTile1
+    Type: Floor
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: e4f8780c69f963549853f21306876c6e, type: 3}
+    Prefab: {fileID: 7548259717519944623, guid: f76d54aa8372a524a873fbe524f819b2, type: 3}
+    ID: EmptyTile2
+    Type: Floor
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 84f5a3391a6402041a3c46ac2851822c, type: 3}
+    Prefab: {fileID: 7548259717519944623, guid: 838653664c10a4e48b7946047d54770b, type: 3}
+    ID: EmptyTile3
+    Type: Floor
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 6c835689e48e9f3499c192804bed9f4a, type: 3}
+    Prefab: {fileID: 7548259717519944623, guid: 19d16e0bb8eea65418ed9bdc2701b738, type: 3}
+    ID: EmptyTile4
+    Type: Floor
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 73a59beb3949d614cbaf0520ac306e29, type: 3}
+    Prefab: {fileID: 7548259717519944623, guid: 05df7e63e50df1a4aa67a4fefb72d8d2, type: 3}
+    ID: EmptyTile5
+    Type: Floor
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: b00f1c19d16435045acc6aabc182adb1, type: 3}
+    Prefab: {fileID: 7548259717519944623, guid: 43c6366d460902e4bb5fcd5942da31f2, type: 3}
+    ID: EmptyTile6
+    Type: Floor
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: b53bea29fe9284840a3e7f40e5f93730, type: 3}
+    Prefab: {fileID: 9188563491999468919, guid: 44d57a019d4c456499186f38ebe7cf9a, type: 3}
+    ID: Arch1
+    Type: Wall
+    UnWalkableCells:
+    - X: 1
+      Y: 0
+    - X: -1
+      Y: 0
+    BaseScale: 2
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 9b922d28473692944bda46ee3300f246, type: 3}
+    Prefab: {fileID: 4065924338498279626, guid: eb9374cb53305e64199a34fc9f118e7d, type: 3}
+    ID: Block1
+    Type: Rock
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 2
+    Scalable: 0
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 1f622fdf4a925894290dd28eb395c397, type: 3}
+    Prefab: {fileID: 8484117396177567793, guid: d6218fae58bd5754ca72b66962b8e6d9, type: 3}
+    ID: Block2
+    Type: Rock
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 2
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 8969be58d2915af448f503ab32b2573f, type: 3}
+    Prefab: {fileID: 2810875354137829381, guid: 93ee7854e145c9748b68658c537b7d15, type: 3}
+    ID: Block3
+    Type: Rock
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 2.204
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: baf14eb0b9ddf1748a1b40d45eace782, type: 3}
+    Prefab: {fileID: 6775807971996222365, guid: 77394fb9424bf1a46926bf7c832e316e, type: 3}
+    ID: BlockStack
+    Type: Pillar
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1.526
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: fe6f42ed6146c924ab17421d8a94ca2a, type: 3}
+    Prefab: {fileID: 7212502755084900924, guid: 30914a346037bb24388be0c90ae1f86f, type: 3}
+    ID: Bone1
+    Type: FloorDeco
+    UnWalkableCells: []
+    BaseScale: 1.0090001
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: a8ae4be322f7fc644ae205cc29bc514e, type: 3}
+    Prefab: {fileID: 215412818119100838, guid: 754c3effee5560d40980e33cb8dc1441, type: 3}
+    ID: Bone2
+    Type: FloorDeco
+    UnWalkableCells: []
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 1f1c91c3d38428740882ae140c48f39f, type: 3}
+    Prefab: {fileID: 2043792616211634269, guid: 1d1f23c06cd9b2e4b886322198ab2088, type: 3}
+    ID: Bone3
+    Type: FloorDeco
+    UnWalkableCells: []
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: cacbcbbca5ca7d24b9fc931ee4c2aa8d, type: 3}
+    Prefab: {fileID: 4384437713703636899, guid: 3f42d525d00b52647b654e8f15dc2a67, type: 3}
+    ID: Bone4
+    Type: FloorDeco
+    UnWalkableCells: []
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: b7467644801966142af7c902d48fe8f1, type: 3}
+    Prefab: {fileID: 8668333893974786547, guid: f9a48bfb272a6494699c6ed3a637cc3e, type: 3}
+    ID: Bone5
+    Type: FloorDeco
+    UnWalkableCells: []
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: ec80ff487f175f540bd3d4ee85be90de, type: 3}
+    Prefab: {fileID: 9030019928730066580, guid: 043b9fa999528094e89b64f62e928f82, type: 3}
+    ID: BonePile1
+    Type: FloorDeco
+    UnWalkableCells: []
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: a722d01ad8716664da0efbe227cff8e6, type: 3}
+    Prefab: {fileID: 4003677642128958567, guid: 4663f14837ef5b44dbb4ce80bb8065cd, type: 3}
+    ID: Bookshelf_Empty
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 2
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 2b5a919e3516d824ebfa9fbb41c8a0b2, type: 3}
+    Prefab: {fileID: 4003677642128958567, guid: c9c3bdab4f2711e4b90b9a29b098ac52, type: 3}
+    ID: Bookshelf_Full
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 2
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: c74052840e17f094e89633ed75a74e6f, type: 3}
+    Prefab: {fileID: 2478921769570953520, guid: b7791e6d2778de941966bb12feda6a28, type: 3}
+    ID: BrokenWall1
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: -1
+      Y: 0
+    BaseScale: 2
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 7f884b4511e57984299ada1271e050c8, type: 3}
+    Prefab: {fileID: 7848485567000095615, guid: 09cf6bad62a94234f9de2e61f2ab67c2, type: 3}
+    ID: BrokenWall2
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 2
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 873349b3ade8a8947b87ad8ef43351a1, type: 3}
+    Prefab: {fileID: 426417938067738131, guid: 5e0a36c523bd12546b793268bb50d14b, type: 3}
+    ID: CandelStickHolder
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 2
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: b8fd2aa24d3bc6d4fbc94a9f8c21e63b, type: 3}
+    Prefab: {fileID: 4289184076433004950, guid: c3e0ab9bd41f24044ad7bf9aa8ccfd0f, type: 3}
+    ID: Floor_Sand_lrg
+    Type: FloorDeco
+    UnWalkableCells: []
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 3a67a56821249d94995f564f99e3b914, type: 3}
+    Prefab: {fileID: 3781837286441948150, guid: f5da99226d95de848a9fb71bf933f9e6, type: 3}
+    ID: Floor_Sand_md
+    Type: FloorDeco
+    UnWalkableCells: []
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 4a1be8ca693933e4697c133d9260b32a, type: 3}
+    Prefab: {fileID: 4693539637329412412, guid: 4e9d7715682429143af803e5a046b4dc, type: 3}
+    ID: Floor_Sand_sml
+    Type: FloorDeco
+    UnWalkableCells: []
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: d93fee2b194a822418baa5106635aa00, type: 3}
+    Prefab: {fileID: 6456368970955018813, guid: ef2a6cc4216acd8429175f7a98a14155, type: 3}
+    ID: Pillar1
+    Type: Pillar
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 2
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: c5777e77b61abd5479a1d2cb18f5c1e0, type: 3}
+    Prefab: {fileID: 4331598812141055753, guid: cf9d320d0dbc85a4cac46b26b360d537, type: 3}
+    ID: Pillar2
+    Type: Pillar
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 2
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: f97e16813c1af6c44b20b42b24171be2, type: 3}
+    Prefab: {fileID: 4331598812141055753, guid: 013adba5b4897b94fbff0015cbe90a02, type: 3}
+    ID: Pillar2Lights
+    Type: Pillar
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 2
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 25fd3f843cb2b3d4dabe7458573a4b08, type: 3}
+    Prefab: {fileID: 8209750299485429920, guid: 4ad773d72522a5d498a26c1c2ae50287, type: 3}
+    ID: Plinth
+    Type: Pillar
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 3
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 20da715fd0a694148ab95a21bcf4aad0, type: 3}
+    Prefab: {fileID: 4821511146649030638, guid: 313c8c84147356c4d8f81bc75b1dcd6c, type: 3}
+    ID: RockColumn1
+    Type: Rock
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 2
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 7b468ae2c73f05343ab14e711932e985, type: 3}
+    Prefab: {fileID: 6427557477640298035, guid: fea6a083dfe3f5748b134c16f3d0dddc, type: 3}
+    ID: RockColumn2
+    Type: Rock
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 2
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 0f34a1ada03c8a746845eff7bcc40fd7, type: 3}
+    Prefab: {fileID: 5848604903689645739, guid: e17e8faee97c2b348aa0a123a3d7a80f, type: 3}
+    ID: RuneBlock
+    Type: Rock
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 2
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 0f17d5bbc127b164caccef1455c5f11b, type: 3}
+    Prefab: {fileID: 4272261150172337054, guid: aabd161ee5c4503448d872d1f9c8dd1e, type: 3}
+    ID: Skull_lrg
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: efe536f7ec05a19408acff1ae5336385, type: 3}
+    Prefab: {fileID: 9198306423869189238, guid: b5fbfe46b73b57041bb83ad02f99181b, type: 3}
+    ID: Skull_sml
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 2
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: e18a4057da4a995459782a09cc73bbc6, type: 3}
+    Prefab: {fileID: 227699760072788955, guid: 3490ce0c876bac74899bbd9294a7abbb, type: 3}
+    ID: SkullPodium
+    Type: Pillar
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 3
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: c412ccca5d5722a48a89238ef4747ed7, type: 3}
+    Prefab: {fileID: 8964854532570408781, guid: 0922961e67b67eb4dbb962067a44fd95, type: 3}
+    ID: WallPiece1
+    Type: Rock
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: eef81ea6c06733a45a04deb164e0dc4a, type: 3}
+    Prefab: {fileID: 1936498014672362694, guid: 2a23b5e46d1c8124ea0e2e63cf606e88, type: 3}
+    ID: WallPiece2
+    Type: Rock
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 2
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: ff0695c5d43d6fa4c842bb6a18edf9a9, type: 3}
+    Prefab: {fileID: 3744011603060495320, guid: 40452065c995e204385a24cc847585e6, type: 3}
+    ID: WallPiece3
+    Type: Rock
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: eb8b9d9f69eede44c9cdfaacc70f9d56, type: 3}
+    Prefab: {fileID: 686773838902494632, guid: 05c6362760e26f94db6c1214ca5e355f, type: 3}
+    ID: WallPiece4
+    Type: Rock
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 3
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 78715d2df6374c84a8e8653bf9ff0aaa, type: 3}
+    Prefab: {fileID: 9017308609033952198, guid: cf10965c0dbb34c43b7eb61969defe1e, type: 3}
+    ID: WallPiece5
+    Type: Rock
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 3
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 26b2b83dad7061d45be51ce92a1b3582, type: 3}
+    Prefab: {fileID: 5706619405523485602, guid: ae213662912a97f4da145f463b732d7d, type: 3}
+    ID: WallPiece6
+    Type: Rock
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 3
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 5f2563326611a564ba723cd1c3b0b9c3, type: 3}
+    Prefab: {fileID: 9022007297604866252, guid: 786ae965883f1b8479db873f6a52aa09, type: 3}
+    ID: WallPiece7
+    Type: Rock
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1.5
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 2b09777af6ef3924a93792d2b35c9fec, type: 3}
+    Prefab: {fileID: 8845547571810382612, guid: c3fc3f34f18bd924da6024472f2fee5b, type: 3}
+    ID: WallPiece8
+    Type: Rock
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 2
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 768c35f7d10b9864fb13c307ce882322, type: 3}
+    Prefab: {fileID: 7151277923415545543, guid: c7dcc27f9c4a7344cb320baf0bf3dc0d, type: 3}
+    ID: WallPiece9
+    Type: Rock
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 4
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: e7257a8b230dd9845a80e130392d5bfd, type: 3}
+    Prefab: {fileID: 8311053018169954588, guid: 9ee05bd1999530a4c9813bb7afc50958, type: 3}
+    ID: WallPiece10
+    Type: Rock
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 3
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 158c9bc675eadc540ae81d0ba2b0364d, type: 3}
+    Prefab: {fileID: 4710467598215021312, guid: 26717211d2e6ba14198ac0de68553629, type: 3}
+    ID: WallPiece11
+    Type: Rock
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 4
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: fa38a59649701bc4e8ddd829bb8f57df, type: 3}
+    Prefab: {fileID: 6074717024198729582, guid: 572172a18c6b69f43a7c6ad2bb5dcf35, type: 3}
+    ID: Arch1 1
+    Type: Wall
+    UnWalkableCells:
+    - X: 1
+      Y: 0
+    - X: -1
+      Y: 0
+    BaseScale: 2
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 86fb697f5eb22a1479a256799d5d4edf, type: 3}
+    Prefab: {fileID: 1908617670731872666, guid: fe65e9cac0977164fbbaf82d18cd8a9f, type: 3}
+    ID: Arch_Broken 1
+    Type: Wall
+    UnWalkableCells:
+    - X: -1
+      Y: 0
+    - X: 1
+      Y: 0
+    BaseScale: 2
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: c3f6456c764f4244da1a61af6f031910, type: 3}
+    Prefab: {fileID: 6457814697258796261, guid: aaf9ff17b47abd74798726517c66552c, type: 3}
+    ID: BevelCorner1 1
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: 1
+      Y: 0
+    - X: 0
+      Y: 1
+    BaseScale: 2
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 848c2f5a1a76d554dbdb3a5fdccd81b7, type: 3}
+    Prefab: {fileID: 8743873988347346033, guid: 93012c0597db9244c8261beda0e5c90e, type: 3}
+    ID: BevelCorner2 1
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: 1
+      Y: 0
+    - X: 0
+      Y: 1
+    BaseScale: 2
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 2444eaebe9084d84c9cbeaa37c154a63, type: 3}
+    Prefab: {fileID: 8120289789198453810, guid: ed964e84d7988a746a795977c95fb205, type: 3}
+    ID: Bridge_End 1
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 36f4b43eae7ba9147bc9b1c29c233319, type: 3}
+    Prefab: {fileID: 1728612727470094816, guid: 5233f3acb7f4ba2429041ac8ee2f8e24, type: 3}
+    ID: Bridge_Mid 1
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 55277f06b1655994e8b610922caf1730, type: 3}
+    Prefab: {fileID: 521703012896032970, guid: 476a0b4370fac9e45a28a0cc5c9c3b8a, type: 3}
+    ID: Bridge_Start 1
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 5117fd4908bd20a48a2f020021f0f99b, type: 3}
+    Prefab: {fileID: 1464124720818439103, guid: bf8246726d87ffb439002bca3067cef4, type: 3}
+    ID: BrokenWall1 1
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: 1
+      Y: 0
+    BaseScale: 2
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 0facdf73cdaa2c44dae349d2c393cd9a, type: 3}
+    Prefab: {fileID: 6781690004541857851, guid: 31fea9d54a8e4554e98a038a2b4272da, type: 3}
+    ID: BrokenWall2 1
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: -1
+      Y: 0
+    BaseScale: 2
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 7664e0abdcd83df4f90fd13e571e73b5, type: 3}
+    Prefab: {fileID: 1396196856215891161, guid: aad829d88e359cc4995e9bc405210737, type: 3}
+    ID: BrokenWall3 1
+    Type: FloorDeco
+    UnWalkableCells: []
+    BaseScale: 1
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 7265c8ce1275ffc4492bd8a1ee381cd9, type: 3}
+    Prefab: {fileID: 1514491024023881685, guid: c5022775c5231e14fbd06afca95fc558, type: 3}
+    ID: CrossSection 1
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: 0
+      Y: -1
+    - X: 1
+      Y: 0
+    - X: -1
+      Y: 0
+    - X: 0
+      Y: 1
+    BaseScale: 2
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 35df624677f0cb642b17bbf5c5e6085d, type: 3}
+    Prefab: {fileID: 6074717024198729582, guid: fdbedd18d1fbd4b45a5d3e4852814b51, type: 3}
+    ID: Doorway 1
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: 1
+      Y: 0
+    - X: -1
+      Y: 0
+    BaseScale: 2
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: f98d98743376aec4681830875e6638a3, type: 3}
+    Prefab: {fileID: 8511263317705967241, guid: e2131be4ff1bad9448cbb96693e417a2, type: 3}
+    ID: EmptyPitGrate 1
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: fcb9286645d75fe4694da04f7fa7a6e9, type: 3}
+    Prefab: {fileID: 4381849453665428890, guid: db2ffa3c962c95c49a9b37d722c3c494, type: 3}
+    ID: End1 1
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 2
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: a073efbeb726c454cbdb6dfa1a45b6af, type: 3}
+    Prefab: {fileID: 3179545599396059845, guid: e47689e748ae9654dbd26ca7d9c66cbb, type: 3}
+    ID: End2 1
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 2
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 25ea2ca0c1728e642a8c12e067250259, type: 3}
+    Prefab: {fileID: 5373017966900596031, guid: 3c0f21949f4821b4a9ea8a14f49e6ef6, type: 3}
+    ID: End3 1
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 2
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: e526fca253d55384fa9c3d38cda6a4e0, type: 3}
+    Prefab: {fileID: 7105168049431396591, guid: a9858bf3955fdc24099dec1c7e4687fa, type: 3}
+    ID: PrisonWall_Corner
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: 1
+      Y: 0
+    - X: 0
+      Y: 1
+    BaseScale: 2
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 737da29d23e80de4d9ccf9975b8c0a93, type: 3}
+    Prefab: {fileID: 7105168049431396591, guid: ae237a9083ac79544adfaf8e389c74b6, type: 3}
+    ID: PrisonWall_Corner 1
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: 0
+      Y: 1
+    - X: 1
+      Y: 0
+    BaseScale: 2
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 784b6023553f63d489425a0c26e37c4f, type: 3}
+    Prefab: {fileID: 9024976190991262516, guid: 0f29295db4a1db3469b12bc5c876e4e6, type: 3}
+    ID: PrisonWall_CrossSection 1
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: 0
+      Y: -1
+    - X: -1
+      Y: 0
+    - X: 1
+      Y: 0
+    - X: 0
+      Y: 1
+    BaseScale: 2
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 868eb72400b0c254cadf3e1d9637d5ac, type: 3}
+    Prefab: {fileID: 4741997850199819434, guid: ba7e7d43befa7bf4f8b19ee6a76ec491, type: 3}
+    ID: PrisonWall_Door 1
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: 1
+      Y: 0
+    - X: -1
+      Y: 0
+    BaseScale: 2
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 5559a59fec2d0044192580b33436e103, type: 3}
+    Prefab: {fileID: 1507924964187966256, guid: 2f0e9f616a44df649a14e629ceec211f, type: 3}
+    ID: PrisonWall_Straight 1
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: 1
+      Y: 0
+    - X: -1
+      Y: 0
+    BaseScale: 2
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 849251845c210254d898b7d106148377, type: 3}
+    Prefab: {fileID: 8794891066917137596, guid: e84774e5ae13b0e4dafaee22027877ca, type: 3}
+    ID: PrisonWall_TSection 1
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: -1
+      Y: 0
+    - X: 1
+      Y: 0
+    - X: 0
+      Y: 1
+    BaseScale: 2
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: a6390d71f0d1f894db71b6f882be464a, type: 3}
+    Prefab: {fileID: 2657844011053330280, guid: f0f65aeee37548940ab6f6ba80798994, type: 3}
+    ID: PrisonWallDestroyed_1 1
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 2
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 9a697ec04cc6b9b49b2714623581cb1d, type: 3}
+    Prefab: {fileID: 5301731150623856196, guid: 9eac74f243a6ff34cab99a297e3ebb60, type: 3}
+    ID: PrisonWallDestroyed_2 1
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 2
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 13e4f5d592390554f91c47650c4f5103, type: 3}
+    Prefab: {fileID: 4295153986960885776, guid: 40b500b9dd497a0489c8b0e897936ad3, type: 3}
+    ID: RoundCorner1 1
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: 1
+      Y: 0
+    - X: 0
+      Y: 1
+    BaseScale: 2
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 0c7ff8b01f4651b41a1e2353d4c23a3f, type: 3}
+    Prefab: {fileID: 5914116834233787245, guid: d392af3c77b424248ba6feb78d892c53, type: 3}
+    ID: RoundCorner2 1
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: 0
+      Y: 1
+    - X: 1
+      Y: 0
+    BaseScale: 2
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 57e1a119c8d806b4d958ad4fee61b81b, type: 3}
+    Prefab: {fileID: 994964127065163911, guid: 67d8ed640de0a44428da4a8fc193daf4, type: 3}
+    ID: SharpCorner1 1
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: 1
+      Y: 0
+    - X: 0
+      Y: 1
+    BaseScale: 2
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 068545303e3bd564186b3806936f9d50, type: 3}
+    Prefab: {fileID: 5354473623049103551, guid: d41aec98b5aa54a418bc371aadfb220b, type: 3}
+    ID: SharpCorner2 1
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: 0
+      Y: 1
+    - X: 1
+      Y: 0
+    BaseScale: 2
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 8ffadc7a29dd619489ccbef652d1a834, type: 3}
+    Prefab: {fileID: 1322213873589906102, guid: 5f239c439b840fe40a074bf56f21882d, type: 3}
+    ID: SoftCorner1 1
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: 1
+      Y: 0
+    - X: 0
+      Y: 1
+    BaseScale: 2
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 0ac4342ce4b2a56468d9d7b3c25dfa8a, type: 3}
+    Prefab: {fileID: 740102833079493010, guid: 19686ae6bcce9e04999bc07e0f2b49ab, type: 3}
+    ID: SoftCorner2 1
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: 0
+      Y: 1
+    - X: 1
+      Y: 0
+    BaseScale: 2
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: ff544475a3950f641b6aaec293e1a10c, type: 3}
+    Prefab: {fileID: 727760192343142460, guid: a7782983c144b3a45ab3cb8b1170a116, type: 3}
+    ID: TriSection 1
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: 1
+      Y: 0
+    - X: 0
+      Y: -1
+    - X: -1
+      Y: 0
+    BaseScale: 2
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: c84ff571cdf6698498cfb8ed7e13cded, type: 3}
+    Prefab: {fileID: 8904949606810556985, guid: ff06c80057c163f4693314f14caf6e5d, type: 3}
+    ID: Wall1 1
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: -1
+      Y: 0
+    - X: 1
+      Y: 0
+    BaseScale: 2
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 71a69cbc02076484192592153822b805, type: 3}
+    Prefab: {fileID: 6131164324824746584, guid: 97cffaff7ac4cfc42990e96bc98be152, type: 3}
+    ID: Wall2
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: 1
+      Y: 0
+    - X: -1
+      Y: 0
+    BaseScale: 2
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: b1fd63f4063fe194e886b1257882dd47, type: 3}
+    Prefab: {fileID: 8397289554811593586, guid: 2739c5658080d4a439eca7817ff68f89, type: 3}
+    ID: Wall3
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: -1
+      Y: 0
+    - X: 1
+      Y: 0
+    BaseScale: 2
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 262bc12e81e9791409313543de0656f6, type: 3}
+    Prefab: {fileID: 6746302633995419942, guid: fb7b538597a7d094bb3afb164cbf36c4, type: 3}
+    ID: Wall4
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: 1
+      Y: 0
+    - X: -1
+      Y: 0
+    BaseScale: 2
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 8ac3ebe91a440f042ac932444be58e4d, type: 3}
+    Prefab: {fileID: 7374372031366639442, guid: a1cced5f6755c4c45bdb15b9e06964df, type: 3}
+    ID: WallSmall1
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 2
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 6240753f952e611469888c8ba5cf65d0, type: 3}
+    Prefab: {fileID: 6806944558407577291, guid: 8c966796657d14a4ea3c1aaaa839c221, type: 3}
+    ID: WallSmall2
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 2
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 6567e9f1100fb1e498ae40689f7d02d7, type: 3}
+    Prefab: {fileID: 6806944558407577291, guid: 22dfd4d0236eff24aabf089a5620ec2c, type: 3}
+    ID: WallSmall2 1
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 2
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 7784a554f11ea054dba40f5b3d2839b0, type: 3}
+    Prefab: {fileID: 4217452366688163172, guid: 663a68f814e8c9d4ca9ec45d64a2b15c, type: 3}
+    ID: SM_Prop_Barrel_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.7
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 5dc27e8a3a9c6dd448e2fb82dc3c42bc, type: 3}
+    Prefab: {fileID: 4495165187134291808, guid: f44033dbcf653a94797705aacb828b57, type: 3}
+    ID: SM_Prop_Barrel_02
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.7
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: a9e8d267097cdc74eba7fb70f89f5c80, type: 3}
+    Prefab: {fileID: 4847724776106339796, guid: ac964c19f92ebf54996f243ef7f9fb77, type: 3}
+    ID: SM_Prop_Barrel_03
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.7
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: b7f0fcaaa82e0dd4fa328b02727a11dc, type: 3}
+    Prefab: {fileID: 4756494764549528406, guid: 03bc610334edea344a06d4e598d8d6b7, type: 3}
+    ID: SM_Prop_Barrel_Broken_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.7
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 2ceb957ef08cb564abe913fc7275c999, type: 3}
+    Prefab: {fileID: 1760253934069170012, guid: b79bf4240f46e204b8e72cdaec910791, type: 3}
+    ID: SM_Prop_Barrel_Broken_02
+    Type: FloorDeco
+    UnWalkableCells: []
+    BaseScale: 0.6
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 9999574918eaeb746a88275d3c1c22f1, type: 3}
+    Prefab: {fileID: 4789422756116444611, guid: 49292002e10fd594abd9596dd07e811a, type: 3}
+    ID: SM_Prop_Barrel_Large_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.15
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: e3a1f290bb6e97342b3616a1b53cab19, type: 3}
+    Prefab: {fileID: 126359976662617004, guid: aef6cab404d7ed740b95087c4bd2832f, type: 3}
+    ID: SM_Prop_Bed_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: 0
+      Y: 1
+    - X: 0
+      Y: -1
+    BaseScale: 0.7
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 454bfe978bea77c44919936e88dea7f7, type: 3}
+    Prefab: {fileID: 2809240756178844901, guid: 3e59d0d14bb35b248a3b23fcda7fbee3, type: 3}
+    ID: SM_Prop_Bed_02
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: -1
+      Y: 0
+    - X: 0
+      Y: -1
+    - X: 0
+      Y: 1
+    BaseScale: 0.7
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 8d7dd9bfe4a433f47bbee45cdfa7f570, type: 3}
+    Prefab: {fileID: 408054935394666490, guid: 35b9d0024269fed4d83ac24ef2a621f2, type: 3}
+    ID: SM_Prop_Bench_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.65
+    Scalable: 0
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: a0d26b04e15185b42bea80abe03e3fc5, type: 3}
+    Prefab: {fileID: 5794838322458971082, guid: e7758b7dc78f90c418b7af0af6aba1a7, type: 3}
+    ID: SM_Prop_Bolt_01
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 3.9160001
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 4f0baf5185896394ca333d5f01ea1c3b, type: 3}
+    Prefab: {fileID: 6194062213910606857, guid: 87e996e9b884b1b43ad6a95f435b2fa8, type: 3}
+    ID: SM_Prop_Bonfire_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.5
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: d9ff6c22b7a79e642bb0009ae78ed9d1, type: 3}
+    Prefab: {fileID: 2471533957061093901, guid: eaf60e13f0b2deb4e97016e9816ee47e, type: 3}
+    ID: SM_Prop_Bookcase_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.9
+    Scalable: 0
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 7e5f6c7294841c542a395f26cbea3684, type: 3}
+    Prefab: {fileID: 8605097882615695635, guid: d3a5c422000fbae41bba6548700c79f8, type: 3}
+    ID: SM_Prop_Bookcase_02
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.9
+    Scalable: 0
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 8890d990a78bc534e944685ee0224d08, type: 3}
+    Prefab: {fileID: 5343475694078215461, guid: a75d95c1d30c8be41b0c22d83ca0d36f, type: 3}
+    ID: SM_Prop_Bookcase_03
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.9
+    Scalable: 0
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: bb0a4bf946d784d468d2f764e5ad9289, type: 3}
+    Prefab: {fileID: 8765766130913529557, guid: 8bcec75778b6a69438ba3e707cee0e98, type: 3}
+    ID: SM_Prop_Brazier_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.8
+    Scalable: 0
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: af475564cbe65e048af148b937271bdf, type: 3}
+    Prefab: {fileID: 8249356301591267669, guid: f2541fb78f4c4794ea45dbb377a0fe14, type: 3}
+    ID: SM_Prop_Brick_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 32ffd0040cbb2374cbf58ebfcd492db9, type: 3}
+    Prefab: {fileID: 2552746472809605374, guid: 17f0a8064c61f0a4d871387ae2ee3a5d, type: 3}
+    ID: SM_Prop_Brick_02
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 6981789869acfb2428f3d58b134c4158, type: 3}
+    Prefab: {fileID: 1972012245828162234, guid: 9b7baca29ce4e4b49843beb4d50c215a, type: 3}
+    ID: SM_Prop_Bricks_01
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: -1
+      Y: 0
+    - X: 1
+      Y: 0
+    BaseScale: 0.8
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: b7325abd79b29f24e87ece9fa5c19af4, type: 3}
+    Prefab: {fileID: 6637574438089300528, guid: d9e1a6f2d81171c4685ef86021d2e1e9, type: 3}
+    ID: SM_Prop_Bricks_02
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.8
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 25c3f3b74bedc5b4a936dc6d8f9de14e, type: 3}
+    Prefab: {fileID: 3217530896874472783, guid: f2892187d85364e4caa1174c397633cc, type: 3}
+    ID: SM_Prop_Bricks_03
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: -1
+      Y: 0
+    - X: 1
+      Y: 0
+    BaseScale: 0.8
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 411fc62d42ce64043ba223d7f765f4aa, type: 3}
+    Prefab: {fileID: 3859016412631326134, guid: a228d768ac7ee9042a7996a61213b770, type: 3}
+    ID: SM_Prop_Bricks_04
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.6
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 5947707a63bcad748a2882441120aa11, type: 3}
+    Prefab: {fileID: 2157588006805100806, guid: d53dd1a2bb840ee40bc5fa1dce2a2381, type: 3}
+    ID: SM_Prop_Candle_01
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: e839d58b12c19584eb4d8511085796f1, type: 3}
+    Prefab: {fileID: 7016554037218219677, guid: c5d8ca0f40eeb014b903e4bda10ffc1c, type: 3}
+    ID: SM_Prop_Candle_02
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 128e75506b16add4f8fa22aec492d84a, type: 3}
+    Prefab: {fileID: 3793261982483602202, guid: ea2a1720ec6853546af1e5a9337ceac8, type: 3}
+    ID: SM_Prop_Candle_Chandelier_01
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: b49357e0729b93446b5697cf7299b8f8, type: 3}
+    Prefab: {fileID: 3625178069076617940, guid: b458baa3d1298314c9be8f0112dfad6a, type: 3}
+    ID: SM_Prop_Candle_Chandelier_01_Particle
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 934de1e0f4d55d24c9b0e18ea50ae629, type: 3}
+    Prefab: {fileID: 6593654146102336185, guid: 9b4c7da1eaaf8ce4f9e86b403540a130, type: 3}
+    ID: SM_Prop_Candle_Chandelier_02
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 54f3b84d7880b704cbf9622288accfa7, type: 3}
+    Prefab: {fileID: 1901629883187024044, guid: a7e1dce948f28414081819cda9f71ef4, type: 3}
+    ID: SM_Prop_Candle_Chandelier_02_Broken
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: bedaf376357deca4da531858ae0955c6, type: 3}
+    Prefab: {fileID: 7743503410330174035, guid: 4acdc20c9bdc41c4abfbcec19b783687, type: 3}
+    ID: SM_Prop_Candle_Chandelier_02_Particle
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 0d1f3190554a95a45a4826b39c06c08e, type: 3}
+    Prefab: {fileID: 8584092941859004235, guid: 4d85cb069da2cbf4597c3fa2f311d299, type: 3}
+    ID: SM_Prop_Candle_Flame_01
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 50dd055edbea3e84986d0ff7e4bb9fb5, type: 3}
+    Prefab: {fileID: 3064668629872961740, guid: 77b381629ae83f54d87d3764d58e6a11, type: 3}
+    ID: SM_Prop_Candle_Stand_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.8
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: c75fac5532825d749b664893079b8954, type: 3}
+    Prefab: {fileID: 4387983643157339340, guid: c7d0003c0632f014b83630e8f10ee7ca, type: 3}
+    ID: SM_Prop_Candle_Stand_01_Particle
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 50b317568eeff5343b589f894095e246, type: 3}
+    Prefab: {fileID: 3417535418212717001, guid: 3fc05789d4a3dc640b204fb7e1ba6b57, type: 3}
+    ID: SM_Prop_Candles_01
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 6cff9e403b533c044871cb0576b65dec, type: 3}
+    Prefab: {fileID: 647549281673466837, guid: c5108fc49da7bda4c95f0d65c82c3528, type: 3}
+    ID: SM_Prop_Candles_01_Particle
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 79edb65467fc81249ba7e9748351adc0, type: 3}
+    Prefab: {fileID: 1524502174393997688, guid: c78e64bbf1d7b63428d52b55db80d084, type: 3}
+    ID: SM_Prop_Candles_02
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 67d3d22074352664493610ae89f642ad, type: 3}
+    Prefab: {fileID: 5329876345818073496, guid: 425e82645d8b8f547b3aedd44964610a, type: 3}
+    ID: SM_Prop_Candles_02_Particle
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1.376
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 7b79bbdb0e223ee4ebf6fff6191e16a9, type: 3}
+    Prefab: {fileID: 339801330315525036, guid: 7e52f2350b15b2347a1a2f1f8a306e7f, type: 3}
+    ID: SM_Prop_Candles_03
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 838c03f5d2ae99d44aa02c088effae17, type: 3}
+    Prefab: {fileID: 4524669601989187744, guid: a7ace07845c7cac40ae3f6dbc46f351e, type: 3}
+    ID: SM_Prop_Candles_03_Particle
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 92f9d7ba5dc2e2448b5d131e851ab798, type: 3}
+    Prefab: {fileID: 2161394930307203314, guid: f40b149a7c92e9d43bdc3dc4b3aa1b62, type: 3}
+    ID: SM_Prop_Candles_04
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: d93295b06aba5ad4aa0dad922af7102a, type: 3}
+    Prefab: {fileID: 3897582486713987720, guid: 35d0353841fcd7447b455054178df494, type: 3}
+    ID: SM_Prop_Candles_04_Particle
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 5246bf73ff9d8ad4d8310d7d5c06887d, type: 3}
+    Prefab: {fileID: 545245431526827, guid: 2d6ba1661d81a9443950f6d7fd730649, type: 3}
+    ID: SM_Prop_Cauldron_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.6
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: dae15543109313947841880d97c42973, type: 3}
+    Prefab: {fileID: 7887461867186442337, guid: 5f43f7049aa5a374cbc18042e28ee225, type: 3}
+    ID: SM_Prop_Chain_01
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: ca16b12358c809741b2c5392b688c72d, type: 3}
+    Prefab: {fileID: 6502756218185591974, guid: f3ba03b9eb8fd23499c71332d1f883c0, type: 3}
+    ID: SM_Prop_Chain_02
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: b7d6c9fbe0cd88142bbf215fbf5fe01a, type: 3}
+    Prefab: {fileID: 371453301737783154, guid: 276636811b070aa4b9d4c027d2c8a83c, type: 3}
+    ID: SM_Prop_Chain_03
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 27cfc775d935fa5449614996e5afce48, type: 3}
+    Prefab: {fileID: 4325267233629851055, guid: 72184e332ed97a4469a921edee3c932d, type: 3}
+    ID: SM_Prop_Chain_04
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 272c9ac9327ac1a44ac34f2db83f1b1a, type: 3}
+    Prefab: {fileID: 7315494787175494260, guid: 6f124c1e2328c2d4d9594263e0f726a3, type: 3}
+    ID: SM_Prop_Chain_05
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 6389eddc8a5ce1b4990c55809e8afc81, type: 3}
+    Prefab: {fileID: 7099391668934007667, guid: 8a4ce0c8e8852bb41920287529e9c0f6, type: 3}
+    ID: SM_Prop_Chain_06
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 451468b4e6b9740468f9fcaad721e316, type: 3}
+    Prefab: {fileID: 1764250665989375996, guid: 94b61e2306f871a46b28a5a803665253, type: 3}
+    ID: SM_Prop_Chain_07
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 37e4e5e68e05e9e4fa9cf0e592bbeca8, type: 3}
+    Prefab: {fileID: 4491689919455736328, guid: 464b5f3bfe5763e40b16386172adef20, type: 3}
+    ID: SM_Prop_Chain_08
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 27d38afc5e18a154bbe92dbe1c478777, type: 3}
+    Prefab: {fileID: 1033777080718165424, guid: 81b5420d51298d64f96fbf774fa4800c, type: 3}
+    ID: SM_Prop_Chest_01
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: b47ca737fd41f6d4488dde6a10f4e5be, type: 3}
+    Prefab: {fileID: 8662431523106084254, guid: 7072657964a8f254a83c0b647abc0c3e, type: 3}
+    ID: SM_Prop_Chest_02
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: d7f88e5ae77c5624a86ce7dae5845404, type: 3}
+    Prefab: {fileID: 448324159959066960, guid: ab82be03b6aa5414bb5a4c3e11179993, type: 3}
+    ID: SM_Prop_Chest_03
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: a305fcac28b52b348b79ebf11ad248b7, type: 3}
+    Prefab: {fileID: 5684417560149550087, guid: a8cb843b1f68eac4488e109fca99232e, type: 3}
+    ID: SM_Prop_Chest_04
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: d134603b86885b34fa0bf766bba9cca9, type: 3}
+    Prefab: {fileID: 698559297341752116, guid: 81b5d6f0edc34c942af8539c5ab95382, type: 3}
+    ID: SM_Prop_Chest_Wood_01
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: bc4ddb2cd0a2efa48ae67d3028e5824d, type: 3}
+    Prefab: {fileID: 6843024931184586815, guid: beb2c69e65bf4db4fb7c89b562b49266, type: 3}
+    ID: SM_Prop_Coffin_01
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: -1
+    - X: 0
+      Y: 1
+    - X: 0
+      Y: 0
+    BaseScale: 0.8
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 68cd3c770a92997479b26a66524784f0, type: 3}
+    Prefab: {fileID: 8247336199724105318, guid: 0ee9b3a182790f049b92968dd5953833, type: 3}
+    ID: SM_Prop_Crate_Metal_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.6
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 60e9b5ee852f70145a55640ef7808665, type: 3}
+    Prefab: {fileID: 798338795538737795, guid: 52a29297ded7a6e49a26f4ddbd1ac58b, type: 3}
+    ID: SM_Prop_Crate_Metal_02
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.67
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 7a0041e684b0b2542b3a182b147d3fcc, type: 3}
+    Prefab: {fileID: 2345360657176091347, guid: a2973ed7e6006a840950be3babc6dc6a, type: 3}
+    ID: SM_Prop_Crate_Metal_03
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.6
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 3124760a01eb7e44bb38c7db5dfe3c93, type: 3}
+    Prefab: {fileID: 437149418459880399, guid: e88388f8afcc1a3469d7de1d21564f93, type: 3}
+    ID: SM_Prop_Crate_Metal_Open_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.6
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 22bf2ec3b94c0eb46b485c777a0ccd4d, type: 3}
+    Prefab: {fileID: 6021673941874344475, guid: 8c3f795a45e709f4c9d55b0c92ead298, type: 3}
+    ID: SM_Prop_Crate_Ornate_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.6
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 8567a2a66574ba24d9e7afa9d215d67e, type: 3}
+    Prefab: {fileID: 8271860210092489524, guid: aec194a04e04d35479739e0f1783712e, type: 3}
+    ID: SM_Prop_Crate_Rocks_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 0aba0072e6744e14cb84ca91391f434f, type: 3}
+    Prefab: {fileID: 2183320401984091642, guid: f30485db1b23da04f85f125eb34df847, type: 3}
+    ID: SM_Prop_Crate_Wood_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.67
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: e504ca5af00e7f14c84fd804ca8de481, type: 3}
+    Prefab: {fileID: 7524351122889043207, guid: cac738485820b9c42b5e8c36af4080b9, type: 3}
+    ID: SM_Prop_Crate_Wood_02
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.67
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: ab9fc8e657b3ced428de3530e7df0a58, type: 3}
+    Prefab: {fileID: 2193559780855404213, guid: cba3a1d633057d347aae698d77314bb1, type: 3}
+    ID: SM_Prop_Crate_Wood_03
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.6
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: a02fad29900c24b4ea49ba955dc3a8ee, type: 3}
+    Prefab: {fileID: 1195633497488569871, guid: 8c8f494b93ce3204483fa6ab9bb1e55d, type: 3}
+    ID: SM_Prop_Crate_Wood_04
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.6
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: e4b3cdcb6a7bf2f478a3cc3685d6df6a, type: 3}
+    Prefab: {fileID: 5080175818422069410, guid: 2bb5e584681f18140b76a9351aad54c4, type: 3}
+    ID: SM_Prop_Crate_Wood_05
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.5
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: e0ed24b7eeffddf4f807a06c73991ab4, type: 3}
+    Prefab: {fileID: 4788302569763139660, guid: 36a0824158197ae4596af89a95409058, type: 3}
+    ID: SM_Prop_Door_Metal_01
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: -1
+      Y: 0
+    BaseScale: 0.85
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 14d9c091785117e4fa772c1b5f4899c8, type: 3}
+    Prefab: {fileID: 5792707433636422066, guid: b85238a87f2275b45b85db871ce154c9, type: 3}
+    ID: SM_Prop_Door_Metal_02
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: -1
+      Y: 0
+    BaseScale: 0.85
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 817edb48fa2877646b5cc9959de73a28, type: 3}
+    Prefab: {fileID: 558953421640036531, guid: fb4f82a6bc33dd242b4985f955749587, type: 3}
+    ID: SM_Prop_Fireplace_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.8
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 780f5e2f81ea72b47ab88284d0c3e628, type: 3}
+    Prefab: {fileID: 3884281172032962684, guid: 57969b45841aedc4eb3ca70ed1b2e9a7, type: 3}
+    ID: SM_Prop_Forge_FirePit_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.4
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: daa48bd156f9141438f76dcf2e526a38, type: 3}
+    Prefab: {fileID: 8193535837599632953, guid: 12b2db4613205004bb654f025c0ea51a, type: 3}
+    ID: SM_Prop_Forge_Ventilation_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.7
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: b9837ff8875b2924388a0ef7bb73b1dd, type: 3}
+    Prefab: {fileID: 9195865282985650983, guid: ab987bcfc0e1aa24894cc136b81b3490, type: 3}
+    ID: SM_Prop_Forge_Ventilation_Pipe_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.5
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 3907809d0e62e984191178f12c4c0edb, type: 3}
+    Prefab: {fileID: 6324871677509518524, guid: 4b32304768b528644b8187fec1bb8d4f, type: 3}
+    ID: SM_Prop_Gem_01
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 9cbcd461e9031bb4a9e6ebcf0f03ff30, type: 3}
+    Prefab: {fileID: 8470674853516987265, guid: c91ab44e1c69d6a49b78c5d0ac63cb80, type: 3}
+    ID: SM_Prop_Gem_02
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 51aed8c42b6f500448ad898b86ab4d7d, type: 3}
+    Prefab: {fileID: 168995039551624236, guid: bf9560e856697b642a317aa767f82b31, type: 3}
+    ID: SM_Prop_Gem_03
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: db7d072ab3d03714da2b6d3a6eeae866, type: 3}
+    Prefab: {fileID: 4003077022580352683, guid: 6d84cb286ad4f554f84477647447d2c2, type: 3}
+    ID: SM_Prop_Gem_04
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 8b360d125e1fce64fa89fcecdeb51a43, type: 3}
+    Prefab: {fileID: 6130335301116445758, guid: 905ce5f24a5d9164498d6a553b667bae, type: 3}
+    ID: SM_Prop_Gem_05
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 5762b3ac39609074395fbcedb1dc6018, type: 3}
+    Prefab: {fileID: 2920940349671027170, guid: 8294e1b0958c93940a993e9f1fdcc4eb, type: 3}
+    ID: SM_Prop_Goblin_Branch_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.8
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 2d3c2b7a7e47aa647aae8f73f73382ec, type: 3}
+    Prefab: {fileID: 7630470406493950660, guid: 59c10529468645f479cb554c8c8eb479, type: 3}
+    ID: SM_Prop_Goblin_Branch_02
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.8
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 5fce0ae626bd65543a086051dd80eca1, type: 3}
+    Prefab: {fileID: 2119271927331368130, guid: 10cfb288984eea0469c70684b0fd6f44, type: 3}
+    ID: SM_Prop_Goblin_Branch_03
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.8
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: a6090555d98001543a7227c4ca4209e8, type: 3}
+    Prefab: {fileID: 4784096678069741037, guid: cec0fc6ef1b084845bfee4e626d38f53, type: 3}
+    ID: SM_Prop_Goblin_Drum_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.8
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 329290f40244650468c054dfba58b571, type: 3}
+    Prefab: {fileID: 4561888611684731369, guid: 32af5239c0e4ecc4abda8e4d6d28bccc, type: 3}
+    ID: SM_Prop_Goblin_Fence_01
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: -1
+      Y: 0
+    - X: 1
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 338059afb81904845b97932ed6d971b9, type: 3}
+    Prefab: {fileID: 4111457329084665159, guid: 782d6bc64a2131c4bae1828d130b4836, type: 3}
+    ID: SM_Prop_Goblin_Fence_02
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: 1
+      Y: 0
+    - X: -1
+      Y: 0
+    BaseScale: 1
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: efff62ff4cdb0fb4ebc8c2214c9ad8ab, type: 3}
+    Prefab: {fileID: 4458940630521558746, guid: 2cd6264815eafee4aac020c308020a23, type: 3}
+    ID: SM_Prop_Goblin_Meat_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.6
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 803e0204af97eba4f9450018702359e7, type: 3}
+    Prefab: {fileID: 625598329449195731, guid: 071eaee16ea00ce4687184c953445677, type: 3}
+    ID: SM_Prop_Goblin_Rotisserie_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.5
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 82117c2e0b040fa4ab4a309bf787c76c, type: 3}
+    Prefab: {fileID: 1433886621320996228, guid: 449f043e9506a8649bae4262d6330ab8, type: 3}
+    ID: SM_Prop_Goblin_Rotisserie_Meat_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.5
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: b065f8acd5921f6498c87388d762251e, type: 3}
+    Prefab: {fileID: 1016687629058999399, guid: 3cb0a93234db19044b576ca087dd83ef, type: 3}
+    ID: SM_Prop_Goblin_Spikes_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.4
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 4427f28b50da91247b616647d4ad60ac, type: 3}
+    Prefab: {fileID: 7173682293842641385, guid: 87de4ddbc20a9014d9c7068e5810fe9a, type: 3}
+    ID: SM_Prop_Goblin_Spikes_02
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.4
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: aba8f5c9a89ca7a488c033abdbe10c2a, type: 3}
+    Prefab: {fileID: 4766094776043062524, guid: 90eb1cd5d3fd3cc428ce2edaef4f9cc2, type: 3}
+    ID: SM_Prop_Goblin_Spikes_03
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.5
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: d35a6a58a9f04a94d9c6066e3260c3bb, type: 3}
+    Prefab: {fileID: 4697161385423315942, guid: cb2ad487c51b00c43ab31476ddbd9f2f, type: 3}
+    ID: SM_Prop_Goblin_Spikes_04
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.5
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 1a93a83fed688d340bec9a95b08aca5f, type: 3}
+    Prefab: {fileID: 7847755637444638362, guid: 89d85318b6a467b4ab72704a3b374dc3, type: 3}
+    ID: SM_Prop_Goblin_Tent_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 1
+      Y: 1
+    - X: 1
+      Y: 0
+    - X: -1
+      Y: 1
+    - X: -1
+      Y: 0
+    - X: 0
+      Y: -1
+    BaseScale: 0.7
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 6cff5f0fcf02b4e4dbf394131571b047, type: 3}
+    Prefab: {fileID: 424136893273422555, guid: d8925f7627f1f1147b34e1c1ac4154d5, type: 3}
+    ID: SM_Prop_Goblin_Tent_02
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: -1
+      Y: 1
+    - X: -1
+      Y: 0
+    - X: 1
+      Y: 0
+    - X: 1
+      Y: 1
+    BaseScale: 0.6
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: c7720f805a8a84b40af74d947fd27fce, type: 3}
+    Prefab: {fileID: 3842194771512718709, guid: 2aa9e667155b84744ac02c4b929449bb, type: 3}
+    ID: SM_Prop_Goblin_Tent_03
+    Type: Prob
+    UnWalkableCells:
+    - X: -1
+      Y: -1
+    - X: 1
+      Y: -1
+    - X: -1
+      Y: 1
+    - X: 1
+      Y: 1
+    BaseScale: 0.9
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 1acdb6a4b64653f42ae10cafda2ac384, type: 3}
+    Prefab: {fileID: 9089856734087205333, guid: 3774ff6eb9c06a84881ae4d2d8057edc, type: 3}
+    ID: SM_Prop_Goblin_Tower_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 1
+      Y: -1
+    - X: -1
+      Y: 1
+    - X: 1
+      Y: 1
+    - X: -1
+      Y: -1
+    BaseScale: 1.4
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 3da9838762b20b34bbd855bf90b04264, type: 3}
+    Prefab: {fileID: 5907225550055296146, guid: dbb218be5cf1da74190aa7f0e8e86899, type: 3}
+    ID: SM_Prop_Jewel_01
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: c805302d71ac35143b97326455069728, type: 3}
+    Prefab: {fileID: 866554803642947880, guid: 2cd0a82db69e24f4cb4d979ce6589bed, type: 3}
+    ID: SM_Prop_Jewel_02
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 34260d89c9b4eae4694f23a39bdda081, type: 3}
+    Prefab: {fileID: 447814499133931585, guid: 98e22c79980aaca4185efc2cc4ff3e50, type: 3}
+    ID: SM_Prop_Jewel_03
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: b2989f7ffd4ba534ab37ba45fde019b4, type: 3}
+    Prefab: {fileID: 5469791947672848559, guid: e68e74e74bbd6744d9c59e42182772cd, type: 3}
+    ID: SM_Prop_Jewel_04
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 4ef3bee1170f4bc4c801fd3037cde244, type: 3}
+    Prefab: {fileID: 581593767186714728, guid: e1590aa7ed1105f479344939f6ac8ac3, type: 3}
+    ID: SM_Prop_Jewel_05
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: e1167081f5606f94d9b4d00cde04d56f, type: 3}
+    Prefab: {fileID: 6148288320112555138, guid: d1226999da89cf146982848c0296a43c, type: 3}
+    ID: SM_Prop_Jewel_06
+    Type: Excluded
+    UnWalkableCells: []
+    BaseScale: 6.0000005
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: f29bf89843705ac4da1d96f79d3c2525, type: 3}
+    Prefab: {fileID: 7627203196849971396, guid: de51306c5b4e3fe4fa87be10c118ea26, type: 3}
+    ID: SM_Prop_Jewel_07
+    Type: Excluded
+    UnWalkableCells: []
+    BaseScale: 6.0000005
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 5df31cfcb3120a44db2bb4d27a67462f, type: 3}
+    Prefab: {fileID: 5952815232723162482, guid: 804fb5dac6d8f2345b4101514c5280e2, type: 3}
+    ID: SM_Prop_Ladder_01
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 35d07df27abc01240b5347fdb47a9204, type: 3}
+    Prefab: {fileID: 5988737387937814314, guid: 2a24cffaffd877b4d8b65a944ff99949, type: 3}
+    ID: SM_Prop_Lantern_01
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: ad4f803e47cdd4c41a32e396604ccc04, type: 3}
+    Prefab: {fileID: 6170907880723661067, guid: 228057f10bc371e4c8e20611f5520af6, type: 3}
+    ID: SM_Prop_Lantern_02
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 3.9160001
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: a1cdc6334fc0c0c4cb92500c940b524e, type: 3}
+    Prefab: {fileID: 6331560848172275690, guid: ef00edcca6157204ba806c253ce4a7ce, type: 3}
+    ID: SM_Prop_Log_Spike_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: e1549d63864a4c546b158ed577a33f24, type: 3}
+    Prefab: {fileID: 5337456465258972480, guid: 3906eb5870c0f964b89d7c74fbd703c6, type: 3}
+    ID: SM_Prop_Log_Spike_02
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 19fcc318b05820a44ae8fbc0dc4a6779, type: 3}
+    Prefab: {fileID: 33601661899718561, guid: e68f6df59e6eaf14da9fe6801605d2ee, type: 3}
+    ID: SM_Prop_Log_Spike_03
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: f3bdc92fb865b45458415618be44a4a1, type: 3}
+    Prefab: {fileID: 3873017664297480043, guid: e046255724b2759479b45f6c65d6c1bd, type: 3}
+    ID: SM_Prop_Log_Spike_04
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: d09342ae4156b774a9a6e53860d6829e, type: 3}
+    Prefab: {fileID: 395570466303107675, guid: c525591924dbdaa479ccb63cc7b89bd2, type: 3}
+    ID: SM_Prop_Log_Spike_05
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 2bff56e356aabe0409f241905e3e3311, type: 3}
+    Prefab: {fileID: 8174883253419433726, guid: 1dfeadd57efc1684e8358d977d685b48, type: 3}
+    ID: SM_Prop_Log_Spike_06
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 96f5a5a902f911a41a2bd22c6792a45c, type: 3}
+    Prefab: {fileID: 2849979598743894506, guid: 9e2ca5897ff42404fb2a6d6db29c21fa, type: 3}
+    ID: SM_Prop_Log_Spike_07
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: a5563a3cc48f3694ea5d2b56c5429609, type: 3}
+    Prefab: {fileID: 8135993859008879696, guid: 000d02708012d6c4198d8c649d6390e1, type: 3}
+    ID: SM_Prop_Log_Spike_08
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: baa924401ac23714e95a9ac23f8a23ea, type: 3}
+    Prefab: {fileID: 8702305950886547195, guid: 4b40182cd584f3a4797b08dda0a9b2ba, type: 3}
+    ID: SM_Prop_Log_Spike_09
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 80093157486c7bf448827f27ec3f37b7, type: 3}
+    Prefab: {fileID: 1055826014279531278, guid: d23ac0c9f3f084343bd7d684983796b5, type: 3}
+    ID: SM_Prop_Log_Spike_Large_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.5
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: eff06351a34a67a42a91b4b4d635c3a3, type: 3}
+    Prefab: {fileID: 8537293357813114016, guid: fbe001ab96ace74468a90d79b67faf27, type: 3}
+    ID: SM_Prop_Log_Spike_Large_02
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.5
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 700e40f327f921449a89f4124b39d528, type: 3}
+    Prefab: {fileID: 8338229576227606012, guid: d95fd803a16414546aa5bd6a8b439888, type: 3}
+    ID: SM_Prop_Metal_Fence_01
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.8
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: d5c27ec1fac74384ebcd55a938aae4f9, type: 3}
+    Prefab: {fileID: 7336893283498087303, guid: c0c4a97ad94464d4c96266ced2b74d64, type: 3}
+    ID: SM_Prop_Metal_Fence_Post_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.5
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 8112f597fd5567b4f9bcbecc150c0532, type: 3}
+    Prefab: {fileID: 5594246830339598268, guid: 94c6efa5e27ca4f4f9f94251c1f5dc8f, type: 3}
+    ID: SM_Prop_Metal_Fence_Weak_01
+    Type: Wall
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.8
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: bf2045e343c2a05428b8b2efd9054cbd, type: 3}
+    Prefab: {fileID: 8710048287800352019, guid: 7a283e71ad39f374d84bae36b8d89b8b, type: 3}
+    ID: SM_Prop_Minecart_01
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 50a67cafbad91cd4ea33d5964b2be9ef, type: 3}
+    Prefab: {fileID: 6371716178187768688, guid: d2ed2fac6e6ae394e986b336bda7d402, type: 3}
+    ID: SM_Prop_Plank_01
+    Type: 
+    UnWalkableCells: []
+    BaseScale: 0.5
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 20e8421bd67bfcd44b133d38f85f57c3, type: 3}
+    Prefab: {fileID: 7254132668700771604, guid: 89a505828c5596141aaa8f4d9593d8e8, type: 3}
+    ID: SM_Prop_Plank_02
+    Type: FloorDeco
+    UnWalkableCells: []
+    BaseScale: 0.5
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: dbf35f70fcc9efe42b0d4a854a2e2f60, type: 3}
+    Prefab: {fileID: 7364313089853407418, guid: 7b8afbe7237fdc441a2008b62ef85b51, type: 3}
+    ID: SM_Prop_Rug_01
+    Type: FloorDeco
+    UnWalkableCells: []
+    BaseScale: 0.5
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: d9122fa76e5045d4bb3231f8f2cad2e9, type: 3}
+    Prefab: {fileID: 335507860704206201, guid: d56a8c32f915ea54280961bb70690dd7, type: 3}
+    ID: SM_Prop_Rug_02
+    Type: FloorDeco
+    UnWalkableCells: []
+    BaseScale: 0.5
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 225de2878789f074d8b5fe2a9b03df0f, type: 3}
+    Prefab: {fileID: 4024761431215347332, guid: d0ef2e156e906a540a5a9a08567ad4cc, type: 3}
+    ID: SM_Prop_Rug_03
+    Type: FloorDeco
+    UnWalkableCells: []
+    BaseScale: 0.5
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 8223d6b0076d29143b8bb52e507d7859, type: 3}
+    Prefab: {fileID: 709982526403252199, guid: 58929d8581d7f804cb8ce9e0beefda66, type: 3}
+    ID: SM_Prop_Skeleton_01
+    Type: Skeletton
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 0
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: ede5ba7f0306db946a2d09094aac8d35, type: 3}
+    Prefab: {fileID: 1938758579654229856, guid: 4f31ebe3339636049891338884c7d45a, type: 3}
+    ID: SM_Prop_Skeleton_Knight_Throne_01
+    Type: 
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 014452192c065a94db70c51a81d4889a, type: 3}
+    Prefab: {fileID: 6687153427890541953, guid: 3c5d5901e12e70d4facc189b12c9011b, type: 3}
+    ID: SM_Prop_Skeleton_Slave_Lying_01
+    Type: 
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: df1e2823ab19eb84cb2eef7972f49176, type: 3}
+    Prefab: {fileID: 7188186820916236160, guid: 45c05f556fb1dcb419475d65c36f8f7c, type: 3}
+    ID: SM_Prop_Skeleton_Slave_Shackles_01
+    Type: 
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 5b19980ca7e65a14da0b29c1488e7f0d, type: 3}
+    Prefab: {fileID: 55761914507327384, guid: cf95dd4b6e1e51a478bf3fbd5c810406, type: 3}
+    ID: SM_Prop_Skeleton_Slave_Shackles_02
+    Type: 
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: d62b7d4fe1bb4174aa439b1fd2b1479c, type: 3}
+    Prefab: {fileID: 3172344665767899085, guid: f92dee32fdb413644bf7ca6ef36c867d, type: 3}
+    ID: SM_Prop_Skeleton_Slave_Wall_Sitting_01
+    Type: 
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: e65f22a81e5e909448ae97ca539afd62, type: 3}
+    Prefab: {fileID: 4898637209165599799, guid: 0ef98931f047e6b4c870256d7107af93, type: 3}
+    ID: SM_Prop_Skeleton_Table_01
+    Type: 
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 1bf985b6e806e0f41b1e040e4351890a, type: 3}
+    Prefab: {fileID: 4933857380619610931, guid: d56a2e223bcad99408f66ee1bba86486, type: 3}
+    ID: SM_Prop_Skeleton_Table_02
+    Type: 
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: d5d0bab7d1c38e74d91d49304a14e8cf, type: 3}
+    Prefab: {fileID: 257019808928599371, guid: f4a68082d14e4124e8024ea14a809096, type: 3}
+    ID: SM_Prop_StoneChair_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.7
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 1cd7674e6e44841428b8609362165cbb, type: 3}
+    Prefab: {fileID: 7597036049471516051, guid: bf0563e348c00774eb6760d0213fd7a1, type: 3}
+    ID: SM_Prop_StoneTable_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: 1
+      Y: 0
+    BaseScale: 0.7
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: eab8b0c3afd0fb345817a9884256d63c, type: 3}
+    Prefab: {fileID: 2648071941565590559, guid: 97734fc0ccd77c248a589b254f795f8a, type: 3}
+    ID: SM_Prop_StoneTable_Broken_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: 1
+      Y: 0
+    - X: -1
+      Y: 0
+    BaseScale: 0.8
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 33455f678c3598046985fad7829e2af5, type: 3}
+    Prefab: {fileID: 2625754726625544242, guid: 20f5795e32ef12f47957a2fc152ba2ae, type: 3}
+    ID: SM_Prop_Stool_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.8
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: b873fecb3f077724585b276ccb215e7f, type: 3}
+    Prefab: {fileID: 4286244133122999959, guid: 3e3a93cd3085f93438560f3c4131ab4a, type: 3}
+    ID: SM_Prop_Stool_02
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.7
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 009be16b7e6eb6641960be2947c1b3c7, type: 3}
+    Prefab: {fileID: 5176810009437493785, guid: 0dd6590dea34d47468cfd0163e29daa0, type: 3}
+    ID: SM_Prop_Stool_03
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.8
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 3c9a98d66ac4df742a54700be05ba80f, type: 3}
+    Prefab: {fileID: 6833054356610420763, guid: 7c124e4342314e345b4ddb6de6f911f4, type: 3}
+    ID: SM_Prop_Table_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: 1
+      Y: 0
+    - X: -1
+      Y: 0
+    BaseScale: 0.8
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 4317dbb520169024aac68f0420136193, type: 3}
+    Prefab: {fileID: 729428588975846255, guid: 22aecd5207e42764d879512916b1825c, type: 3}
+    ID: SM_Prop_Table_Round_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.8
+    Scalable: 0
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: b9cdaa882cb71fa4f9b7c27efb11614d, type: 3}
+    Prefab: {fileID: 1617773427917883154, guid: 74e7a9a58f756e94194f7c15513adfb0, type: 3}
+    ID: SM_Prop_Table_Round_02
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 0
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: f386cd8fb2c52774183f4ddbcd7d354e, type: 3}
+    Prefab: {fileID: 2616916152664896213, guid: 8c6e99af33848ed4b8bfb16220e05318, type: 3}
+    ID: SM_Prop_Table_Round_Broken_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.8
+    Scalable: 0
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: e504b01f8b6d1cb4ead9ab4025f1cdba, type: 3}
+    Prefab: {fileID: 2502724498986842427, guid: 07bea258e754761489d9e08aeced99c3, type: 3}
+    ID: SM_Prop_Tech_Chamber_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.5
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: c6a886a3a00e93f4b8007c473b2d19a4, type: 3}
+    Prefab: {fileID: 3123611488236627416, guid: c6309e0dfd776b54dafac93d1c178c72, type: 3}
+    ID: SM_Prop_Tech_Chamber_Broken_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.5
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: b3e1c5b27676e4447a6d08981512b6cc, type: 3}
+    Prefab: {fileID: 5740755314310974213, guid: 3bcc00e55add96741a72e3643b21199e, type: 3}
+    ID: SM_Prop_Tech_Chamber_Skeleton_01
+    Type: Skeletton
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: ff30467d2bf29cb459b3dcf6d979e10a, type: 3}
+    Prefab: {fileID: 6968329249986348736, guid: a0f3f3b52bebf25448854f94d74bb7bf, type: 3}
+    ID: SM_Prop_Tech_Cog_01
+    Type: FloorDeco
+    UnWalkableCells: []
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 2160e1e7894c38d4d93e72fd23f969c6, type: 3}
+    Prefab: {fileID: 4852776682157392632, guid: 234ce98ba636e7d4aaa92b855d46c0c1, type: 3}
+    ID: SM_Prop_Tech_Cog_02
+    Type: FloorDeco
+    UnWalkableCells: []
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: ef5ab7e9dda544644805443aad540bf6, type: 3}
+    Prefab: {fileID: 4082810419404130513, guid: b8f6769af4d649a458da93e3b272dbcc, type: 3}
+    ID: SM_Prop_Tech_Cog_03
+    Type: FloorDeco
+    UnWalkableCells: []
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: fe98cbf0878680641a9cff9d05fcb0c9, type: 3}
+    Prefab: {fileID: 2478237741352182731, guid: cec5970b1062a33418512892ae9472b4, type: 3}
+    ID: SM_Prop_Tech_Cog_04
+    Type: FloorDeco
+    UnWalkableCells: []
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: a4887779a99388140add32d977756bc4, type: 3}
+    Prefab: {fileID: 549147460514166097, guid: f8b529186363ef14fa4561dfaa66c04a, type: 3}
+    ID: SM_Prop_Tech_Conveyor_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: 1
+      Y: 0
+    - X: -1
+      Y: 0
+    BaseScale: 1
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 171fddd4625e8264a9013916e4ce15ef, type: 3}
+    Prefab: {fileID: 2606270784468059294, guid: 1ee8b053b09201c449431542c8f376b3, type: 3}
+    ID: SM_Prop_Tech_Crystal_01
+    Type: Hub
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 67f745d081485b24f8c583b868018632, type: 3}
+    Prefab: {fileID: 494634205823082209, guid: 9beb7bfd5f639f54cb3ae86a71fbe9ce, type: 3}
+    ID: SM_Prop_Tech_Engine_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.2
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 49870fbcd0824c54480473262abd7f0e, type: 3}
+    Prefab: {fileID: 5487539355730707613, guid: 654fcbefa56ecb740ab5b1b0f5cc726e, type: 3}
+    ID: SM_Prop_Tech_Lever_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1.3
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 07bdc15800b232643adfd779557eaad0, type: 3}
+    Prefab: {fileID: 330009384011266013, guid: b13b268cf8f6cca49bbd8edb86701e07, type: 3}
+    ID: SM_Prop_Tech_Pipe_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: 0
+      Y: -1
+    - X: 0
+      Y: 1
+    BaseScale: 1
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 4547e7af80a50534d95b8619f4e0ae05, type: 3}
+    Prefab: {fileID: 8391169015789808384, guid: 3aa8760ea2c2bd5479ed441d1f65f912, type: 3}
+    ID: SM_Prop_Tech_Pipe_02
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: -1
+      Y: 1
+    - X: 0
+      Y: 1
+    BaseScale: 1
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: c5a751a77af7e0b4ca1f61ff252097b6, type: 3}
+    Prefab: {fileID: 4711509662191867158, guid: f6e4f9856ae076549acc99a18263c8ba, type: 3}
+    ID: SM_Prop_Tech_Pole_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: fdc536b0c5811364f9f7f27973eba804, type: 3}
+    Prefab: {fileID: 6198019920139128979, guid: fccd72e48facf0f46834103c8eb6e7da, type: 3}
+    ID: SM_Prop_Tech_Poles_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.7
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: cdca4ed850dac4d4680f7fac360c5ce3, type: 3}
+    Prefab: {fileID: 8713521134674313183, guid: 800de739310ff684dba571344565c981, type: 3}
+    ID: SM_Prop_Tech_SwitchBoard_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.8
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 5966a9598f9b87741afab0eb1b09d45e, type: 3}
+    Prefab: {fileID: 2970361877516909440, guid: 75bcb561421a1224d9b16bcd95bd1b71, type: 3}
+    ID: SM_Prop_Tech_Turbine_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.8
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 0f22d25fa5e3a154c991ef314e85aa3d, type: 3}
+    Prefab: {fileID: 4441242838046996506, guid: 4f2fb1b28dbacf34498b1ccd709bea77, type: 3}
+    ID: SM_Prop_Torch_Ornate_01
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 895c4cc2626c0df4abc6a551f40131c5, type: 3}
+    Prefab: {fileID: 3263341575627778580, guid: 7643a535b7fbd974f9d5b1e09f8bd727, type: 3}
+    ID: SM_Prop_Torch_Ornate_02
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 6c331f71eca51b747aab96fdef7aed36, type: 3}
+    Prefab: {fileID: 984057865033425426, guid: dbd663a963edc02478041a8d5998cc09, type: 3}
+    ID: SM_Prop_TorchStick_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 5ca4eb91e3c72bf46837c2fea378ef5a, type: 3}
+    Prefab: {fileID: 368857368195015912, guid: c741c5a4b8f07df46bbb6699d14b0e00, type: 3}
+    ID: SM_Prop_Toture_Cage_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.7
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: bff5f63e154fb2a499ea99eba7609180, type: 3}
+    Prefab: {fileID: 205454295230143286, guid: 0ed7e1e4e877cce4a8cf73071b3bcf54, type: 3}
+    ID: SM_Prop_Toture_IronMaiden_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.6
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 6f742e545a5296742963e4a5080c1918, type: 3}
+    Prefab: {fileID: 3687046920012941269, guid: 4439eb79a549ed945abb9e9a8c215f5a, type: 3}
+    ID: SM_Prop_Toture_Stocks_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.8
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: a18ec5155c2da744b9f28e571930406a, type: 3}
+    Prefab: {fileID: 861272951134010696, guid: fe1ad91a4dab7e14886422ad4115eb20, type: 3}
+    ID: SM_Prop_Toture_StretchTable_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.4
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 6bbf752062e3fae4292654abd21a79f0, type: 3}
+    Prefab: {fileID: 2344357305903057300, guid: 153120c33be582842841072f5d59897a, type: 3}
+    ID: SM_Prop_Trap_Grinder_01
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: f734c1d134238744a9c38ef47c09833e, type: 3}
+    Prefab: {fileID: 5962866180762625183, guid: b9bc4338c9e5eb44eb778f18730c7c8a, type: 3}
+    ID: SM_Prop_Trap_Pit_01
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: caa29bbb5af943947933df9d1586e750, type: 3}
+    Prefab: {fileID: 9156143528199738322, guid: 3e434c972f6f97f42a068dd1b95b04f0, type: 3}
+    ID: SM_Prop_Trap_Spikes_01
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 10135900552b59049a17882a5c2560af, type: 3}
+    Prefab: {fileID: 672357944199525136, guid: e533da9b14c67fd46be4a376447eb605, type: 3}
+    ID: SM_Prop_Trap_Wallslab_01
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: b51366b86be3a384e9a9168dbc0499ad, type: 3}
+    Prefab: {fileID: 5827721783179379886, guid: bd6adbb144c56a84a8bd2995a6d3a228, type: 3}
+    ID: SM_Prop_Trap_Wallslab_Spikes_01
+    Type: Excluded
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.2
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 0ed9468ff61fdbc429c71c2abe3d94dd, type: 3}
+    Prefab: {fileID: 5439215581888398909, guid: 8c1a8440715851e41a34a084e9c4fe72, type: 3}
+    ID: SM_Prop_Vase_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 3635b58b1f261804ca5c8b25551ce7dc, type: 3}
+    Prefab: {fileID: 4799970403413348416, guid: 0e15d16b0898e1e46a88ee9c01db777d, type: 3}
+    ID: SM_Prop_Vase_02
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 65b90ec55507a3f4d802834a89e2960d, type: 3}
+    Prefab: {fileID: 4496048623159316891, guid: 26107fff1bec35a47ae9e5620e68b8a4, type: 3}
+    ID: SM_Prop_Vase_03
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 63fe52b2a1da9814cb4cfa47345252be, type: 3}
+    Prefab: {fileID: 4207456614586906585, guid: b2730f68ae3994f41b6f9654c1aaf34e, type: 3}
+    ID: SM_Prop_Vase_04
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: c276f2b860634924390a65006dcb71ca, type: 3}
+    Prefab: {fileID: 4594207159156617073, guid: 958b23333cab5574197a074b0c786452, type: 3}
+    ID: SM_Prop_Vase_05
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 2724d8cf46bae0946ba4e1d4d2da4d1f, type: 3}
+    Prefab: {fileID: 2952479324860906594, guid: 5e005a62676af424bbe9cb35d4b89b4b, type: 3}
+    ID: SM_Prop_Vase_06
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: b90e5dad3ec36b443ae5342cdf9b2c44, type: 3}
+    Prefab: {fileID: 6081067488348631020, guid: 126bbd84d6c67ba4697abb27f90f2ee4, type: 3}
+    ID: SM_Prop_Vase_07
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 0a65e01eb91a9124e80100295b3b6973, type: 3}
+    Prefab: {fileID: 5596992456651830204, guid: 9ed2fb61e58492a4ca1c87dfda043e92, type: 3}
+    ID: SM_Prop_Vase_08
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 2c3948a5e757686489aa9f9fb5eb3be8, type: 3}
+    Prefab: {fileID: 409975215243954464, guid: 73100bd340e0bdc4ea8c592ca4e0cba6, type: 3}
+    ID: SM_Prop_Vase_09
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: f45f203d775729844af7c3d46dc4186f, type: 3}
+    Prefab: {fileID: 6675192858305025785, guid: d446d9eac1b9e954ca8c465d34b3e987, type: 3}
+    ID: SM_Prop_Vase_Broken_01
+    Type: FloorDeco
+    UnWalkableCells: []
+    BaseScale: 1.5
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 0d3abad2196f66f43b4a6bdfdc00dbfd, type: 3}
+    Prefab: {fileID: 7679915385983051628, guid: 74524c7e3897d504a8b6688c3687054e, type: 3}
+    ID: SM_Prop_Vase_Broken_02
+    Type: FloorDeco
+    UnWalkableCells: []
+    BaseScale: 1.5
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 74bbde402358d97408bc30259ae284d7, type: 3}
+    Prefab: {fileID: 2038623086617649529, guid: 01c8830a40ec5cf4abcc82827aef3a1a, type: 3}
+    ID: SM_Prop_Vase_Broken_03
+    Type: FloorDeco
+    UnWalkableCells: []
+    BaseScale: 1.8
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: f67123f2f38e59c4782bc80eb751ccee, type: 3}
+    Prefab: {fileID: 4667829195780329421, guid: 0ded561a4d0378646ab5f1aea5d44cdd, type: 3}
+    ID: SM_Prop_Vase_Group_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.8
+    Scalable: 0
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 0b0568cb76db08147947c41929829f10, type: 3}
+    Prefab: {fileID: 6321730212830755129, guid: 6f4d89e26843f0643842e17ac869e0df, type: 3}
+    ID: SM_Prop_Vase_Shard_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 2
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: f4d3971cb8656de4aa13dabb4add66a8, type: 3}
+    Prefab: {fileID: 4274463086144837974, guid: b79581623d6660a4695679b3c5ed29c9, type: 3}
+    ID: SM_Prop_Vase_Shard_02
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 2
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 608e18a953c569e44b29532184579296, type: 3}
+    Prefab: {fileID: 1623686663258661824, guid: 8431b2e6274ef3448aaedca40a5b7bb4, type: 3}
+    ID: SM_Prop_Vase_Shard_03
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 2
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 4de9cb5c17e0c404ba59836cda5f5afe, type: 3}
+    Prefab: {fileID: 771405449167039601, guid: 44120d1dcfd389b41a9cc89378646068, type: 3}
+    ID: SM_Prop_Vase_Shard_04
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 2
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 8020cff629b5cf241a91f97575fd28ae, type: 3}
+    Prefab: {fileID: 9204947405582434851, guid: 21b5f35428db8064db9be5baf6a9aab6, type: 3}
+    ID: SM_Prop_Wall_Banner_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: a788d9f323e8497409dabe9af0e47b8b, type: 3}
+    Prefab: {fileID: 1310319702377467697, guid: 0dbc4f0dd4a77ed4a8676e3642febcfb, type: 3}
+    ID: SM_Prop_Wall_Banner_02
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: f89d7b69209b0c04889f9c9d0be1f6c9, type: 3}
+    Prefab: {fileID: 7163748568763398702, guid: 8da131480cd696646b0323c86aef30b8, type: 3}
+    ID: SM_Prop_Wall_Banner_03
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 5a4ded04aab568f409420332a8107724, type: 3}
+    Prefab: {fileID: 2749426606367109595, guid: 0fafbaac98b00474699acc3e0736feb2, type: 3}
+    ID: SM_Prop_Wall_Banner_04
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 92d7a1f1ce8eee34c8d5df39597354e0, type: 3}
+    Prefab: {fileID: 8592166214623426385, guid: f2bee67512c89dd48ade2c15ccb096b5, type: 3}
+    ID: SM_Prop_Wall_Banner_05
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 00f8fc49e2d5f894f853fcfa957ab05d, type: 3}
+    Prefab: {fileID: 8976596336226405395, guid: 408d7298c45197d45affca2098c94129, type: 3}
+    ID: SM_Prop_Wall_Banner_06
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 1
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 0e0df23b76c5c164c9609ce1927b7dcf, type: 3}
+    Prefab: {fileID: 5863177214339640429, guid: 5168963c825fdec4ba3ef99f0e9edd18, type: 3}
+    ID: SM_Prop_WeaponRack_01
+    Type: Prob
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: 1
+      Y: 0
+    - X: -1
+      Y: 0
+    BaseScale: 1
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 20b4d4e2d006edd4ba741e5fd6be857b, type: 3}
+    Prefab: {fileID: 5798637128033875766, guid: 53e93482d51b11743bc5c3797154569c, type: 3}
+    ID: SM_Prop_Weight_01
+    Type: Prob
+    UnWalkableCells: []
+    BaseScale: 0.5
+    Scalable: 1
+    FreeRotation: 1
+  - Texture: {fileID: 2800000, guid: 181f7c0b468036c438c504c83be05ea6, type: 3}
+    Prefab: {fileID: 8114858027254807521, guid: 6d582f982cb71e94a8298c612eefa250, type: 3}
+    ID: Portal_Circle_A
+    Type: Hub
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    - X: -1
+      Y: 0
+    - X: 1
+      Y: 0
+    BaseScale: 1
+    Scalable: 0
+    FreeRotation: 0
+  - Texture: {fileID: 2800000, guid: 49c9db82763cd694f8e7e5b387993782, type: 3}
+    Prefab: {fileID: 3081488588485720246, guid: 618495e553d3b5a4f97c28c0adebdb5d, type: 3}
+    ID: CraftingTable
+    Type: Hub
+    UnWalkableCells:
+    - X: 0
+      Y: 0
+    BaseScale: 0.55
+    Scalable: 0
+    FreeRotation: 1

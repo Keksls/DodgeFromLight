@@ -1,0 +1,22 @@
+{
+  "ProcessOffsetTime": 1,
+  "Port": 5555,
+  "WelcomeMessage": "Bienvenu dans le monde de Slyvek, <b>%name%</b> !",
+  "LockConsole": false,
+  "PersistancePath": "[current]\\Data",
+  "DatabaseFolder": "[current]\\Databases",
+  "BlackListFilePath": "[current]\\Blacklist.json",
+  "AccountLenghtMin": 1,
+  "FightStartDuration": 2,
+  "FightTurnDuration": 45,
+  "CompressionMethode": 0,
+  "MaxGroupsByMap": 20,
+  "MaxMonstersByGroup": 6,
+  "MinGroupsByMap": 10,
+  "MinMonstersByGroup": 3,
+  "FightMapWidth": 18,
+  "FightMapHeight": 18,
+  "SerializationMethode": 0,
+  "DatabaseNbSaveToKeep": 10,
+  "DatabaseSaveInterval": 5
+}
