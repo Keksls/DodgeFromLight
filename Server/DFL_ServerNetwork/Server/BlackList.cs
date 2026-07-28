@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 
 namespace DFLServer
 {
@@ -41,7 +42,7 @@ namespace DFLServer
             string IP = ((IPEndPoint)client.Client.RemoteEndPoint).Address.ToString();
             Writer.Write("[" + IP + "] Checking blacklist... (" + DateTime.Now.ToString() + ")", ConsoleColor.DarkRed);
 
-            if(IsLocalAddress(IP))
+            if (IsLocalAddress(IP))
             {
                 Writer.Write("[" + IP + "] Local IP, it's OK.", ConsoleColor.Green);
                 return false;
@@ -70,10 +71,17 @@ namespace DFLServer
 
         public static bool IsBlackListed_AbuseIPDB(string IP)
         {
-            WebClient client = new WebClient();
-            string findedString = IP + "</span></b> was found in our database!";
-            string rep = client.DownloadString("https://www.abuseipdb.com/check/" + IP);
-            return rep.Contains(findedString);
+            try
+            {
+                WebClient client = new WebClient();
+                string findedString = IP + "</span></b> was found in our database!";
+                string rep = client.DownloadString("https://www.abuseipdb.com/check/" + IP);
+                return rep.Contains(findedString);
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
         }
 
         public static void BlackList(TcpClient client)
