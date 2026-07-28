@@ -1,5 +1,4 @@
-﻿using DFLCommonNetwork.GameEngine;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 public class Scoute : Ennemy
 {

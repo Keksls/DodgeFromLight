@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: ee6bbf292af9ffd4898d8804ded7f53d
 ModelImporter:
-  serializedVersion: 22102
+  serializedVersion: 24200
   internalIDToNameTable:
   - first:
       1: 100000
@@ -628,8 +628,6 @@ ModelImporter:
     optimizeGameObjects: 0
     removeConstantScaleCurves: 0
     motionNodeName: 
-    rigImportErrors: 
-    rigImportWarnings: 
     animationImportErrors: 
     animationImportWarnings: 
     animationRetargetingWarnings: 
@@ -652,6 +650,7 @@ ModelImporter:
     addColliders: 0
     useSRGBMaterialColor: 1
     sortHierarchyByName: 1
+    importPhysicalCameras: 1
     importVisibility: 1
     importBlendShapes: 1
     importCameras: 1
@@ -669,6 +668,9 @@ ModelImporter:
     maxBonesPerVertex: 4
     minBoneWeight: 0.001
     optimizeBones: 1
+    generateMeshLods: 0
+    meshLodGenerationFlags: 0
+    maximumMeshLod: -1
     meshOptimizationFlags: -1
     indexFormat: 0
     secondaryUVAngleDistortion: 8
@@ -688,26 +690,7 @@ ModelImporter:
     legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
     blendShapeNormalImportMode: 1
     normalSmoothingSource: 0
-  referencedClips:
-  - 0a063ad0e6a654e4589fcdc770f87031
-  - 5b14832b0a4ba0e498d9a3402aed794c
-  - fbc1c9b8bddf0ab458a8adacc8e92b57
-  - 37c825b752f2cdc44b01126b18bf26e1
-  - 6214bee641ee57f40bfafcb8edc6452a
-  - a34b04d3882c41f49959c37d3c09cc0c
-  - 2f57eb4370520a945966f4799fa99bbd
-  - 91fd465f57003004e9fa9020fb7c55bd
-  - 97f37dec2e0d3684d97fab159cacceb9
-  - 955377efaa546e64c91a5a67b702ac11
-  - 8511443a8e3962b49ae2867d7df51c84
-  - c13cf04fef8ab69469ce10c315627a16
-  - 8ad5904a07308c54e8b949658afd1850
-  - b7df1792a8e2faf4997843dd3e1a38b8
-  - 4211534e862af2d448c67a61ae78cb95
-  - a30538372c428d2448ca52b0acd261e4
-  - 2b9346a4cf7d4d540bb84a5f5f8888f3
-  - ebbe64ca01dc2cc40a648368765739fd
-  - e18d8f8e0419f39478b74a4e8a498c10
+  referencedClips: []
   importAnimation: 1
   humanDescription:
     serializedVersion: 3
@@ -732,6 +715,7 @@ ModelImporter:
   avatarSetup: 0
   addHumanoidExtraRootOnlyWhenUsingAvatar: 0
   importBlendShapeDeformPercent: 0
+  remapMaterialsIfMaterialImportModeIsNone: 1
   additionalBone: 0
   userData: 
   assetBundleName: 

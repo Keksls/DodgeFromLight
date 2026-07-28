@@ -5,7 +5,6 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using DFLCommonNetwork.GameEngine;
 
 public class InGameUI : MonoBehaviour
 {
@@ -23,29 +22,7 @@ public class InGameUI : MonoBehaviour
     public Color GearNormalColor;
     public Color GearPressedColor;
     public GameObject PauseMenu;
-    public Toggle HideScoresForSession;
-
     public List<GameObject> InGameUIElements;
-
-    public GameObject ScorePlayerPreview;
-    public Camera ScoreCamera;
-    public LobbyPlayer_Controller first;
-    public LobbyPlayer_Controller second;
-    public LobbyPlayer_Controller third;
-
-    public TextMeshProUGUI ScoreTxtRun;
-    public TextMeshProUGUI MapName;
-    public TextMeshProUGUI Author;
-    public TextMeshProUGUI NbLikes;
-    public TextMeshProUGUI NbDislikes;
-    public Transform ScoreList;
-    public GameObject ScoreItemPrefabFirst;
-    public GameObject ScoreItemPrefabSecond;
-    public GameObject ScoreItemPrefabThird;
-    public GameObject ScoreItemPrefab;
-    public GameObject LeaderBoard;
-    public GameObject VotePanel;
-    public GameObject NextMapButton;
 
     public float HideCursorDuration = 5f;
     public float MouseMovementThreshold = 0.1f;
@@ -113,160 +90,16 @@ public class InGameUI : MonoBehaviour
             gameObject.SetActive(false);
     }
 
-    public void Like()
-    {
-        Vote(VoteType.Like);
-    }
-
-    public void Dislike()
-    {
-        Vote(VoteType.Dislike);
-    }
-
-    public void SuperLike()
-    {
-        Vote(VoteType.GoldenLike);
-    }
-
-    public void HideScore()
-    {
-        ScorePlayerPreview.SetActive(false);
-        first.gameObject.SetActive(false);
-        second.gameObject.SetActive(false);
-        third.gameObject.SetActive(false);
-        LeaderBoard.SetActive(false);
-    }
-
-    public void ShowScores(List<Score> scores, bool alreadyVoted)
-    {
-        LeaderBoard.SetActive(true);
-        // clear leaderboard
-        foreach (Transform t in ScoreList)
-            Destroy(t.gameObject);
-        // add scores items
-        int i = 1;
-        foreach (Score score in scores)
-        {
-            GameObject line = null;
-            if (i == 1)
-                line = Instantiate(ScoreItemPrefabFirst);
-            else if (i == 2)
-                line = Instantiate(ScoreItemPrefabSecond);
-            else if (i == 3)
-                line = Instantiate(ScoreItemPrefabThird);
-            else
-                line = Instantiate(ScoreItemPrefab);
-            line.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = "# " + i;
-            line.transform.GetChild(1).GetComponent<TextMeshProUGUI>().text = score.UserName;
-            line.transform.GetChild(2).GetComponent<TextMeshProUGUI>().text = TimeSpan.FromMilliseconds(score.Time).ToString().Replace("00:", "").Trim('0');
-            line.transform.GetChild(3).GetComponent<TextMeshProUGUI>().text = score.Turns.ToString();
-            line.transform.SetParent(ScoreList, false);
-            i++;
-        }
-
-        first.gameObject.SetActive(false);
-        second.gameObject.SetActive(false);
-        third.gameObject.SetActive(false);
-        if (scores.Count > 0)
-        {
-            DodgeFromLight.EnvironmentController.SetEnvironment(DodgeFromLight.EnvironmentController.GetBuildinEnvironment(BuildInEnvironments.Default));
-            ScorePlayerPreview.SetActive(true);
-            // draw first
-            first.gameObject.SetActive(false);
-            DFLClient.GetLiteHero(scores[0].UserID, (success, hero, errorMessage) =>
-            {
-                if (success)
-                {
-                    first.gameObject.SetActive(true);
-                    first.Character.SetSave(hero);
-                    first.RefreshOrnament(hero);
-                    first.StartForceOrnamentEnabled();
-                    first.Character.SetLayerOnPart(SkinType.Pet, LayerMask.NameToLayer("ScoreLayer"));
-                    first.gameObject.SetLayer(LayerMask.NameToLayer("ScoreLayer"));
-                    first.transform.LookAtY(ScoreCamera.transform);
-                    first.OrnamentContainer.forward = -ScoreCamera.transform.forward;
-                    first.Animator.Play("Win");
-                }
-            });
-            if (scores.Count > 1)
-            {
-                second.gameObject.SetActive(false);
-                DFLClient.GetLiteHero(scores[1].UserID, (success, hero, errorMessage) =>
-                {
-                    if (success)
-                    {
-                        second.gameObject.SetActive(true);
-                        second.Character.SetSave(hero);
-                        second.RefreshOrnament(hero);
-                        second.StartForceOrnamentEnabled();
-                        second.Character.SetLayerOnPart(SkinType.Pet, LayerMask.NameToLayer("ScoreLayer"));
-                        second.gameObject.SetLayer(LayerMask.NameToLayer("ScoreLayer"));
-                        second.transform.LookAtY(ScoreCamera.transform);
-                        second.OrnamentContainer.forward = -ScoreCamera.transform.forward;
-                        second.Animator.Play("Win");
-                    }
-                });
-            }
-            if (scores.Count > 2)
-            {
-                third.gameObject.SetActive(false);
-                DFLClient.GetLiteHero(scores[2].UserID, (success, hero, errorMessage) =>
-                {
-                    if (success)
-                    {
-                        third.gameObject.SetActive(true);
-                        third.Character.SetSave(hero);
-                        third.RefreshOrnament(hero);
-                        third.StartForceOrnamentEnabled();
-                        third.Character.SetLayerOnPart(SkinType.Pet, LayerMask.NameToLayer("ScoreLayer"));
-                        third.gameObject.SetLayer(LayerMask.NameToLayer("ScoreLayer"));
-                        third.transform.LookAtY(ScoreCamera.transform);
-                        third.OrnamentContainer.forward = -ScoreCamera.transform.forward;
-                        third.Animator.Play("Win");
-                    }
-                });
-            }
-        }
-
-        if (alreadyVoted)
-        {
-            NextMapButton.SetActive(true);
-            VotePanel.SetActive(false);
-        }
-        else
-        {
-            NextMapButton.SetActive(false);
-            VotePanel.SetActive(true);
-        }
-
-        HideScoresForSession.isOn = DodgeFromLight.CurrentRules.DontShowScore;
-
-        ScoreTxtRun.text = new TimeSpan(DodgeFromLight.GameManager.StopWatch.ElapsedTicks).ToString().Replace("00:", "") + " (" + DodgeFromLight.GameManager.NbTurn + ")";
-        MapName.text = DodgeFromLight.CurrentMap.Map.Name;
-        NbLikes.text = DodgeFromLight.CurrentMap.Map.Likes.ToString();
-        NbDislikes.text = DodgeFromLight.CurrentMap.Map.Dislikes.ToString();
-        Author.text = "Map created by <b>" + DodgeFromLight.CurrentMap.Map.Author + "</b>";
-    }
-
+    /// <summary>
+    /// Advances to the next local map.
+    /// </summary>
     public void NextMap()
     {
+        // Continue the active local ruleset without leaderboard or voting gates.
         if (DodgeFromLight.CurrentRules.Tutorial)
             return;
         ClosePauseMenu();
-        HideScore();
         DodgeFromLight.GameManager.NextMap();
-    }
-
-    private void Vote(VoteType type)
-    {
-        DodgeFromLight.UI_WorkerNotifier.Show("Voting...");
-        DFLClient.Vote(DodgeFromLight.CurrentRules.DiscoveryMode ? DodgeFromLight.CurrentRules.DiscoveryMapID : DodgeFromLight.CurrentRules.GetCurrentGridID(), DFLClient.CurrentUser.ID, type, (success) =>
-        {
-            if (!success)
-                DodgeFromLight.UI_Notifications.Notify("Vote failed.");
-            DodgeFromLight.UI_WorkerNotifier.Hide();
-            NextMap();
-        });
     }
 
     private void Update()
@@ -370,13 +203,12 @@ public class InGameUI : MonoBehaviour
         }
     }
 
-    public void chkHideScoreForSession()
-    {
-        DodgeFromLight.CurrentRules.DontShowScore = HideScoresForSession.isOn;
-    }
-
+    /// <summary>
+    /// Leaves the current local play session.
+    /// </summary>
     public void Exit()
     {
+        // Return playtests to the editor and normal sessions to the main menu.
         PoolManager.Instance.PushBackAllPool(PoolName.POCell);
         DodgeFromLight.GameManager.ExitPause();
         PauseMenu.SetActive(false);
@@ -387,12 +219,16 @@ public class InGameUI : MonoBehaviour
         else
         {
             PlayerPrefs.DeleteKey("ForceGrid");
-            StartCoroutine(Exit_routine((DodgeFromLight.CurrentRules.Tutorial && !DodgeFromLight.TutorialController.HasFinishTutorial()) ? "MainMenu" : "Lobby"));
+            StartCoroutine(Exit_routine("MainMenu"));
         }
     }
 
-    IEnumerator Exit_routine(string sceneName)
+    /// <summary>
+    /// Releases the active gameplay manager before loading the requested local scene.
+    /// </summary>
+    private IEnumerator Exit_routine(string sceneName)
     {
+        // Defer destruction by one frame so current UI callbacks can finish safely.
         yield return null;
         Destroy(DodgeFromLight.GameManager.gameObject);
         Destroy(DodgeFromLight.GameManager);

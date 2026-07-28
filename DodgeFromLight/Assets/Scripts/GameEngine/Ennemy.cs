@@ -1,4 +1,3 @@
-using DFLCommonNetwork.GameEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -16,8 +15,6 @@ public abstract class Ennemy : Entity
     public CellPos StartCell;
     public Orientation StartOrientation;
     public List<CellPos> WayPoints;
-    public HashSet<AwakeningType> ExcludedAwakening;
-    public Dictionary<AwakeningType, Awakening> Awakenings;
     public int NbPMUsed = 0;
     public string Arg;
     public bool DisplaySelfPO = false;
@@ -27,50 +24,11 @@ public abstract class Ennemy : Entity
     public override void Awake()
     {
         base.Awake();
-        ExcludedAwakening = new HashSet<AwakeningType>();
-        Awakenings = new Dictionary<AwakeningType, Awakening>();
         invertWayPoints = false;
         currentWayPointIndex = 0;
         CurrentPO = new List<CellPos>();
         CurrentUnreachablePO = new List<CellPos>();
         NbPMUsed = 0;
-    }
-
-    /// <summary>
-    /// Add an awakening to this ennemy
-    /// </summary>
-    /// <param name="type">awakening to add</param>
-    public bool AddAwakening(AwakeningType type)
-    {
-        if (Awakenings.ContainsKey(type))
-            return false;
-        Awakenings.Add(type, Awakening.GetAwakening(type));
-        GetAwakening(type).DoEffect(this);
-        GetAwakening(type).RefreshEffect();
-        return true;
-    }
-
-    /// <summary>
-    /// Get Awakening on this ennemy
-    /// </summary>
-    /// <param name="type">type of the aawakening to  get</param>
-    /// <returns>awakening if ennemy has it</returns>
-    public Awakening GetAwakening(AwakeningType type)
-    {
-        if (Awakenings.ContainsKey(type))
-            return Awakenings[type];
-        else
-            return null;
-    }
-
-    /// <summary>
-    /// Remove an awakening for this ennemy
-    /// </summary>
-    /// <param name="type">awakening to remove</param>
-    /// <returns>true if removed</returns>
-    public bool RemoveAwakening(AwakeningType type)
-    {
-        return Awakenings.Remove(type);
     }
 
     /// <summary>
@@ -99,18 +57,6 @@ public abstract class Ennemy : Entity
             PlaceOnCell(cell, true);
             SetOrientation(Patrol.FirstOrientation);
         }
-    }
-
-    internal override void Events_TurnStart()
-    {
-        // refresh all awakening effects
-        foreach (Awakening awakening in Awakenings.Values)
-        {
-            awakening.RefreshEffect();
-            awakening.DoEffect(this);
-        }
-
-        base.Events_TurnStart();
     }
 
     internal override void Events_TurnEnd()
@@ -413,7 +359,7 @@ public abstract class Ennemy : Entity
                 offset = offset / offset.magnitude * step;
                 Vector2 current = new Vector2(start.x, start.y);
 
-                // tant qu'on n'a pas atteint la cellule ciblée
+                // tant qu'on n'a pas atteint la cellule ciblÃ©e
                 while ((int)Math.Round(current.x) != cell.X || (int)Math.Round(current.y) != cell.Y)
                 {
                     current += offset;

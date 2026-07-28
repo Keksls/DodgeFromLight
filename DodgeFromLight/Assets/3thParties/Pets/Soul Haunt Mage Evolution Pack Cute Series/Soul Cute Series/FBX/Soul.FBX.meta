@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: ef5210dc7c68592419f623e891afb881
 ModelImporter:
-  serializedVersion: 22102
+  serializedVersion: 24200
   internalIDToNameTable: []
   externalObjects: {}
   materials:
@@ -16,8 +16,6 @@ ModelImporter:
     optimizeGameObjects: 0
     removeConstantScaleCurves: 0
     motionNodeName: 
-    rigImportErrors: 
-    rigImportWarnings: 
     animationImportErrors: 
     animationImportWarnings: 
     animationRetargetingWarnings: 
@@ -40,6 +38,7 @@ ModelImporter:
     addColliders: 0
     useSRGBMaterialColor: 1
     sortHierarchyByName: 1
+    importPhysicalCameras: 1
     importVisibility: 1
     importBlendShapes: 1
     importCameras: 1
@@ -57,6 +56,9 @@ ModelImporter:
     maxBonesPerVertex: 4
     minBoneWeight: 0.001
     optimizeBones: 1
+    generateMeshLods: 0
+    meshLodGenerationFlags: 0
+    maximumMeshLod: -1
     meshOptimizationFlags: -1
     indexFormat: 0
     secondaryUVAngleDistortion: 8
@@ -76,22 +78,7 @@ ModelImporter:
     legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
     blendShapeNormalImportMode: 1
     normalSmoothingSource: 0
-  referencedClips:
-  - 0551c5922f11499468cc345e6ed347bd
-  - b8f580fdbc2ec5040b206a5647ca25cf
-  - fef3831417e710c499183e5ec553a90a
-  - b305addbfe67be14498ebe490dcfa264
-  - 5ce7004c30bdea448ab3f62b2253e6fd
-  - 4fc98605fad73104cada3325ed19f7eb
-  - 069e1fc67586fa040a3b50f520f87cd4
-  - bab101c404caecd4ebd691ae198c6a23
-  - 1ae48af521dc77f4baaa1fc8a97342f0
-  - af0ad623171de7a46bf0ffe4d8476c1f
-  - 55b08fb89425faf409acd7258ea13dc5
-  - 24c5c7459fad17b45a6d010c1daa9734
-  - 472aa2a0988a79f46b90d8034f893aa7
-  - bf128ab46c8f12d42b08b5f1c3d1a87c
-  - d00f4e304544ecb47ba51080b0de98c2
+  referencedClips: []
   importAnimation: 1
   humanDescription:
     serializedVersion: 3
@@ -116,6 +103,7 @@ ModelImporter:
   avatarSetup: 0
   addHumanoidExtraRootOnlyWhenUsingAvatar: 1
   importBlendShapeDeformPercent: 0
+  remapMaterialsIfMaterialImportModeIsNone: 1
   additionalBone: 0
   userData: 
   assetBundleName: 

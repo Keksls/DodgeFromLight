@@ -1,10 +1,8 @@
-using DFLCommonNetwork.GameEngine;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class Grid
 {
-    public bool LobbyMap { get; set; }
     public Cell[,] Cells { get; set; }
     public int Width { get { return Cells.GetLength(0); } }
     public int Height { get { return Cells.GetLength(1); } }
@@ -184,7 +182,7 @@ public class Grid
     /// <param name="cell">the current cell</param>
     /// <param name="orientation">orientation to move on</param>
     /// <returns></returns>
-    public Cell GetNextCell(DFLCommonNetwork.GameEngine.CellPos cell, Orientation orientation, int PM, bool ignoreEnnemy = false, bool checkPlatforms = false)
+    public Cell GetNextCell(CellPos cell, Orientation orientation, int PM, bool ignoreEnnemy = false, bool checkPlatforms = false)
     {
         int x = cell.X;
         int y = cell.Y;
@@ -277,7 +275,7 @@ public class Grid
     /// <param name="a">cell a (start)</param>
     /// <param name="b">cell b (target)</param>
     /// <returns></returns>
-    public Orientation GetOrientation(DFLCommonNetwork.GameEngine.CellPos a, DFLCommonNetwork.GameEngine.CellPos b)
+    public Orientation GetOrientation(CellPos a, CellPos b)
     {
         if (a.X < b.X)
             return Orientation.Right;
@@ -318,7 +316,7 @@ public class Grid
     /// </summary>
     /// <param name="cell">cell to check</param>
     /// <returns></returns>
-    public bool IsThereEnnemyOnCell(DFLCommonNetwork.GameEngine.CellPos cell)
+    public bool IsThereEnnemyOnCell(CellPos cell)
     {
         int x = cell.X;
         int y = cell.Y;
@@ -330,10 +328,10 @@ public class Grid
             en = ((Ennemy)Cells[x, y].EntityOnCell);
             if (en.CurrentTA == 0 || en.Patrol.NbCells == 0)
                 return true;
-            List<DFLCommonNetwork.GameEngine.CellPos> ennemyCells = en.Patrol.SimulateNextCells(en.CurrentTA, en.Orientation);
+            List<CellPos> ennemyCells = en.Patrol.SimulateNextCells(en.CurrentTA, en.Orientation);
             if (ennemyCells.Count > 0)
             {
-                foreach (DFLCommonNetwork.GameEngine.CellPos c in ennemyCells)
+                foreach (CellPos c in ennemyCells)
                 {
                     if (c.X == x && c.Y == y)
                         return true;
@@ -378,7 +376,7 @@ public class Grid
                 break;
 
             // check if cell is empty
-            if (IsThereEnnemyOnCell(new DFLCommonNetwork.GameEngine.CellPos(x, y)))
+            if (IsThereEnnemyOnCell(new CellPos(x, y)))
                 return true;
         }
 
@@ -539,7 +537,7 @@ public class Grid
     /// </summary>
     /// <param name="pos">cell pos</param>
     /// <returns></returns>
-    public bool CellExist(DFLCommonNetwork.GameEngine.CellPos pos)
+    public bool CellExist(CellPos pos)
     {
         return CellExist(pos.X, pos.Y);
     }
@@ -573,7 +571,7 @@ public class Grid
     /// </summary>
     /// <param name="pos">cell pos</param>
     /// <returns></returns>
-    public Cell GetCell(DFLCommonNetwork.GameEngine.CellPos pos)
+    public Cell GetCell(CellPos pos)
     {
         return GetCell(pos.X, pos.Y);
     }
@@ -584,13 +582,13 @@ public class Grid
     /// <param name="type">type of the ennemy</param>
     /// <param name="pos">start pos of the ennemy</param>
     /// <returns></returns>
-    public SerializableEnnemy AddEnnemy(EnnemyType type, DFLCommonNetwork.GameEngine.CellPos pos)
+    public SerializableEnnemy AddEnnemy(EnnemyType type, CellPos pos)
     {
         SerializableEnnemy ennemy = new SerializableEnnemy()
         {
             StartPos = pos,
             Type = type,
-            WayPoints = new List<DFLCommonNetwork.GameEngine.CellPos>(),
+            WayPoints = new List<CellPos>(),
             StartOrientation = Orientation.Up
         };
         switch (type)
@@ -650,20 +648,20 @@ public class Grid
         return ennemy;
     }
 
-    public SerializableMovingPlatform AddMovingPlatform(DFLCommonNetwork.GameEngine.CellPos cell)
+    public SerializableMovingPlatform AddMovingPlatform(CellPos cell)
     {
         SerializableMovingPlatform platform = new SerializableMovingPlatform()
         {
             StartOrientation = Orientation.Up,
             StartPos = cell,
             TA = 1,
-            WayPoints = new List<DFLCommonNetwork.GameEngine.CellPos>()
+            WayPoints = new List<CellPos>()
         };
         MovingPlatforms.Add(platform);
         return platform;
     }
 
-    public bool RemoveMovingPlatform(DFLCommonNetwork.GameEngine.CellPos pos)
+    public bool RemoveMovingPlatform(CellPos pos)
     {
         SerializableMovingPlatform latform = null;
         foreach (var se in MovingPlatforms)
@@ -681,7 +679,7 @@ public class Grid
     /// </summary>
     /// <param name="pos">start Pos of  the ennemy to remove</param>
     /// <returns>true if success</returns>
-    public bool RemoveEnnemy(DFLCommonNetwork.GameEngine.CellPos pos)
+    public bool RemoveEnnemy(CellPos pos)
     {
         SerializableEnnemy ennemy = null;
         foreach (var se in Ennemies)
@@ -731,7 +729,7 @@ public class Grid
     /// </summary>
     /// <param name="cell">cell to get ennemy on</param>
     /// <returns></returns>
-    public SerializableEnnemy GetEnnemyOnCell(DFLCommonNetwork.GameEngine.CellPos cell)
+    public SerializableEnnemy GetEnnemyOnCell(CellPos cell)
     {
         foreach (var ennemy in Ennemies)
         {
@@ -746,7 +744,7 @@ public class Grid
     /// </summary>
     /// <param name="cell">cell to get ennemy on</param>
     /// <returns></returns>
-    public bool SetEnnemyPO(DFLCommonNetwork.GameEngine.CellPos cell, int PO)
+    public bool SetEnnemyPO(CellPos cell, int PO)
     {
         foreach (var ennemy in Ennemies)
         {
@@ -764,7 +762,7 @@ public class Grid
     /// </summary>
     /// <param name="cell">cell to get ennemy on</param>
     /// <returns></returns>
-    public bool SetEnnemyTA(DFLCommonNetwork.GameEngine.CellPos cell, int TA)
+    public bool SetEnnemyTA(CellPos cell, int TA)
     {
         foreach (var ennemy in Ennemies)
         {
@@ -825,7 +823,7 @@ public class Grid
                         // get cell pos acording to element orientation
                         Vector3 pos = new Vector3(unwalkable.X, 0, unwalkable.Y);
                         pos = Quaternion.Euler(0, c.ElementOrientation, 0) * pos;
-                        DFLCommonNetwork.GameEngine.CellPos p = new DFLCommonNetwork.GameEngine.CellPos(c.X + Mathf.RoundToInt(pos.x), c.Y + Mathf.RoundToInt(pos.z));
+                        CellPos p = new CellPos(c.X + Mathf.RoundToInt(pos.x), c.Y + Mathf.RoundToInt(pos.z));
 
                         Cell cell = DodgeFromLight.CurrentMap.Grid.GetCell(p);
                         if (cell == null)
@@ -869,7 +867,7 @@ public class Grid
     /// <param name="cell">cell to get neighbor</param>
     /// <param name="orientation">neighbor direction</param>
     /// <returns>null if don't exist</returns>
-    public Cell GetNeighbor(DFLCommonNetwork.GameEngine.CellPos cell, Orientation orientation, int nbCells = 1)
+    public Cell GetNeighbor(CellPos cell, Orientation orientation, int nbCells = 1)
     {
         int x = cell.X;
         int y = cell.Y;
@@ -913,7 +911,7 @@ public class Grid
                 // get cell pos acording to element orientation
                 Vector3 pos = new Vector3(unwalkable.X, 0, unwalkable.Y);
                 pos = Quaternion.Euler(0, cell.ElementOrientation, 0) * pos;
-                DFLCommonNetwork.GameEngine.CellPos p = new DFLCommonNetwork.GameEngine.CellPos(cell.X + Mathf.RoundToInt(pos.x), cell.Y + Mathf.RoundToInt(pos.z));
+                CellPos p = new CellPos(cell.X + Mathf.RoundToInt(pos.x), cell.Y + Mathf.RoundToInt(pos.z));
 
                 Cell c = DodgeFromLight.CurrentMap.Grid.GetCell(p);
                 if (c != null)
@@ -934,9 +932,9 @@ public class Grid
     /// <param name="ignoreEnnemies">ignore ennemies on cells</param>
     /// <param name="ignoreElements">ignore deco elements on cells</param>
     /// <returns>pos of the farest cell</returns>
-    public DFLCommonNetwork.GameEngine.CellPos GetFarestCell(DFLCommonNetwork.GameEngine.CellPos startCell, Orientation orientation, int maxDist, InLineCellType Type)
+    public CellPos GetFarestCell(CellPos startCell, Orientation orientation, int maxDist, InLineCellType Type)
     {
-        DFLCommonNetwork.GameEngine.CellPos lastCell = startCell;
+        CellPos lastCell = startCell;
 
         switch (Type)
         {
@@ -953,7 +951,7 @@ public class Grid
                 return lastCell;
 
             case InLineCellType.Jump:
-                DFLCommonNetwork.GameEngine.CellPos lastGoodCell = lastCell;
+                CellPos lastGoodCell = lastCell;
                 for (int i = 0; i < maxDist; i++)
                 {
                     Cell cell = GetNeighbor(lastCell, orientation);
@@ -966,7 +964,7 @@ public class Grid
                 return lastGoodCell;
 
             case InLineCellType.Grapple:
-                List<DFLCommonNetwork.GameEngine.CellPos> Cells = new List<DFLCommonNetwork.GameEngine.CellPos>();
+                List<CellPos> Cells = new List<CellPos>();
                 for (int i = 0; i < maxDist; i++)
                 {
                     Cell cell = GetNeighbor(lastCell, orientation);

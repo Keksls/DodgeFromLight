@@ -13101,7 +13101,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1233975811618868744, guid: 14280cf11ff77fb49a57e881810a0ac3, type: 3}
       propertyPath: m_text
-      value: Return to Hub
+      value: Quit game
       objectReference: {fileID: 0}
     - target: {fileID: 1233975811618868744, guid: 14280cf11ff77fb49a57e881810a0ac3, type: 3}
       propertyPath: m_fontSize

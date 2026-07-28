@@ -19,7 +19,7 @@ public class UI_Reward : MonoBehaviour
     public void ShowPendingRewardsPanel()
     {
         RewardAnimator.Play("RewardSkinIdle");
-        List<RewardItem> rewards = DodgeFromLight.Databases.RewardData.GetPendingRewards(SaveManager.CurrentSave.XP);
+        List<RewardItem> rewards = DodgeFromLight.Databases.RewardData.GetPendingRewards(SaveManager.CurrentSave.Experience);
         if (rewards.Count > 0)
         {
             RewardItem reward = rewards[0];
@@ -32,7 +32,7 @@ public class UI_Reward : MonoBehaviour
 
     private void InitPendingPanel()
     {
-        List<RewardItem> rewards = DodgeFromLight.Databases.RewardData.GetPendingRewards(SaveManager.CurrentSave.XP);
+        List<RewardItem> rewards = DodgeFromLight.Databases.RewardData.GetPendingRewards(SaveManager.CurrentSave.Experience);
         if (rewards.Count > 0)
         {
             RewardPanel.SetActive(true);
@@ -75,7 +75,7 @@ public class UI_Reward : MonoBehaviour
     IEnumerator OpenReward(RewardItem reward)
     {
         bool saved = false;
-        DodgeFromLight.Databases.RewardData.AcceptReward(reward, (short)(SaveManager.CurrentSave.OnlineLastReward + 1), (success, errorMess) =>
+        DodgeFromLight.Databases.RewardData.AcceptReward(reward, (short)(SaveManager.CurrentSave.LastRewardLevel + 1), (success, errorMess) =>
         {
             if (!success)
                 DodgeFromLight.UI_Notifications.Notify(errorMess);
@@ -86,7 +86,7 @@ public class UI_Reward : MonoBehaviour
         while (!saved)
             yield return null;
         yield return new WaitForSeconds(2f);
-        if (DodgeFromLight.Databases.RewardData.HasRewards(SaveManager.CurrentSave.XP))
+        if (DodgeFromLight.Databases.RewardData.HasRewards(SaveManager.CurrentSave.Experience))
             InitPendingPanel();
     }
 }

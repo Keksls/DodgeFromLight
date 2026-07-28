@@ -1,4 +1,3 @@
-using DFLCommonNetwork.GameEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -9,7 +8,7 @@ public class PlayerCharacter : MonoBehaviour
     public List<PlayerSkinPartContainer> Containers;
     public PlayerSkinPartContainer LeftDaggerContainer;
     public Dictionary<SkinType, Transform> dicContainers;
-    public LitePlayerSave CurrentPlayerSave;
+    public PlayerSave CurrentPlayerSave;
     private Dictionary<SkinType, GameObject> currentSkins = new Dictionary<SkinType, GameObject>();
     private GameObject currentLeftDagger = null;
     private Dictionary<SkinType, int> currentSkinsID = new Dictionary<SkinType, int>();
@@ -59,15 +58,13 @@ public class PlayerCharacter : MonoBehaviour
         });
     }
 
-    public void SetSave(LitePlayerSave save)
-    {
-        CurrentPlayerSave = save;
-        ApplySkin();
-    }
-
+    /// <summary>
+    /// Applies a local player save to the rendered character.
+    /// </summary>
     public void SetSave(PlayerSave save)
     {
-        CurrentPlayerSave = new LitePlayerSave(save);
+        // Keep one local save model for gameplay, previews, and inventory rendering.
+        CurrentPlayerSave = save;
         ApplySkin();
     }
 
@@ -309,11 +306,4 @@ public class PlayerCharacter : MonoBehaviour
         FastGetCurrentSkin(SkinType.Eye).transform.localPosition = startPos;
     }
     #endregion
-}
-
-[Serializable]
-public class PlayerSkinPartContainer
-{
-    public SkinType Type;
-    public GameObject Container;
 }

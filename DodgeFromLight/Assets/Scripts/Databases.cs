@@ -61,8 +61,12 @@ public class Databases : MonoBehaviour
     //    }
     //}
 
-    void Awake()
+    /// <summary>
+    /// Initializes runtime databases and then loads local player progression.
+    /// </summary>
+    private void Awake()
     {
+        // Databases must be ready before the default local save grants cosmetics.
         DodgeFromLight.Databases = this;
 
         GearData.Initialize();
@@ -71,5 +75,6 @@ public class Databases : MonoBehaviour
         SkinsData.Initialize();
         RewardData.Initialize();
         WeaponData.Initialize();
+        SaveManager.Initialize();
     }
 }

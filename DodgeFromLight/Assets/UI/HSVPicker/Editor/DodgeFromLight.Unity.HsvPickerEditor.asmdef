@@ -1,0 +1,19 @@
+{
+    "name": "DodgeFromLight.Unity.HsvPickerEditor",
+    "rootNamespace": "HSVPicker.Editors",
+    "references": [
+        "DodgeFromLight.Unity",
+        "UnityEditor.UI"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

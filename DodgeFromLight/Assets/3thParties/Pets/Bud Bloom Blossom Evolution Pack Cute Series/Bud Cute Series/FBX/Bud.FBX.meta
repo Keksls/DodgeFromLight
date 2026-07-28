@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: 2e7e8143db108b04f946266b19cb2144
 ModelImporter:
-  serializedVersion: 22102
+  serializedVersion: 24200
   internalIDToNameTable:
   - first:
       1: 100000
@@ -235,8 +235,6 @@ ModelImporter:
     optimizeGameObjects: 0
     removeConstantScaleCurves: 0
     motionNodeName: 
-    rigImportErrors: 
-    rigImportWarnings: 
     animationImportErrors: 
     animationImportWarnings: 
     animationRetargetingWarnings: 
@@ -259,6 +257,7 @@ ModelImporter:
     addColliders: 0
     useSRGBMaterialColor: 1
     sortHierarchyByName: 1
+    importPhysicalCameras: 1
     importVisibility: 1
     importBlendShapes: 1
     importCameras: 1
@@ -276,6 +275,9 @@ ModelImporter:
     maxBonesPerVertex: 4
     minBoneWeight: 0.001
     optimizeBones: 1
+    generateMeshLods: 0
+    meshLodGenerationFlags: 0
+    maximumMeshLod: -1
     meshOptimizationFlags: -1
     indexFormat: 0
     secondaryUVAngleDistortion: 8
@@ -295,23 +297,7 @@ ModelImporter:
     legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
     blendShapeNormalImportMode: 1
     normalSmoothingSource: 0
-  referencedClips:
-  - 3f496bd0b11d1f045b72bb31ae2779ea
-  - 07980652bbdaf784cac2a4077661b712
-  - 146e821f6592ea84980427a7ae9acd04
-  - 4a7dc71a510f955408a5c3732b43a7bc
-  - 4fc504f5e054158458cdd2c02798cff3
-  - 1a280d0c0e953834f99e2be01c4560a6
-  - dade22600d3f0c042896a0f593f06cba
-  - 7ff41167d152e1b419456daad80bb749
-  - 10e671409bfc8ab40ac75a6febfb5a1e
-  - e6a4aa34c78bea04fa020f6ce07f836e
-  - 39c61fd40eb4809429072f06537273eb
-  - ad1afeafa2174a746a9e0984b2f13d37
-  - cb464926749ecf245a7e9a550245fcfd
-  - d701af9ffd8f3f1478f72bf91951c84e
-  - cbdc1a70a5915bc42bb36a57771b34b0
-  - d7fcc6ff5536ad5409fc045f5e485489
+  referencedClips: []
   importAnimation: 1
   humanDescription:
     serializedVersion: 3
@@ -336,6 +322,7 @@ ModelImporter:
   avatarSetup: 0
   addHumanoidExtraRootOnlyWhenUsingAvatar: 0
   importBlendShapeDeformPercent: 0
+  remapMaterialsIfMaterialImportModeIsNone: 1
   additionalBone: 0
   userData: 
   assetBundleName: 

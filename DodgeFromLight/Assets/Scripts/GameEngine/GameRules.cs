@@ -2,131 +2,153 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GameRules
+/// <summary>
+/// Defines the ordered local maps and traversal behavior for one play session.
+/// </summary>
+public sealed class GameRules
 {
     public bool Endless;
-    public bool DiscoveryMode;
-    public bool DontShowScore;
-    public string DiscoveryMapID;
-    public List<string> Grids { get; private set; }
-    public bool Tutorial;
     public bool Random;
-    public int NbGrids { get { return Grids.Count; } }
+    public bool Tutorial;
+    public List<string> Grids { get; private set; }
     public int CurrentGrid { get; private set; }
+    public int NbGrids => Grids.Count;
     public event Action OnEnd;
 
+    /// <summary>
+    /// Creates an empty finite local ruleset.
+    /// </summary>
     public GameRules()
+        : this(false, false, new List<string>())
     {
-        Grids = new List<string>();
-        Endless = false;
-        Random = false;
-        CurrentGrid = 0;
-        Tutorial = false;
+        // Delegate initialization to the complete constructor.
     }
 
+    /// <summary>
+    /// Creates an empty local ruleset with traversal options.
+    /// </summary>
     public GameRules(bool endless, bool random)
+        : this(endless, random, new List<string>())
     {
-        Grids = new List<string>();
-        Endless = endless;
-        Random = random;
-        CurrentGrid = 0;
-        Tutorial = false;
+        // Delegate initialization to the complete constructor.
     }
 
+    /// <summary>
+    /// Creates a local ruleset containing one map.
+    /// </summary>
     public GameRules(bool endless, bool random, string gridName)
+        : this(endless, random, new List<string> { gridName })
     {
-        Grids = new List<string>();
-        Grids.Add(gridName);
-        Endless = endless;
-        Random = random;
-        Tutorial = false;
-        CurrentGrid = 0;
+        // Keep the single-map entry point used by editor playtesting.
     }
 
+    /// <summary>
+    /// Creates a local ruleset containing an ordered map list.
+    /// </summary>
     public GameRules(bool endless, bool random, List<string> grids)
     {
-        Grids = grids;
+        // Copy the supplied list so session traversal cannot mutate caller state.
+        Grids = grids == null ? new List<string>() : new List<string>(grids);
         Endless = endless;
         Random = random;
-        CurrentGrid = 0;
         Tutorial = false;
+        CurrentGrid = 0;
     }
 
+    /// <summary>
+    /// Replaces the ordered local map list.
+    /// </summary>
     public GameRules SetGrids(List<string> grids)
     {
-        Grids = grids;
+        // Reset traversal when a new authored sequence is selected.
+        Grids = grids == null ? new List<string>() : new List<string>(grids);
         CurrentGrid = 0;
         return this;
     }
 
+    /// <summary>
+    /// Configures a finite ordered tutorial session.
+    /// </summary>
     public GameRules SetTutorial(List<string> gridFolders)
     {
-        Grids = gridFolders;
+        // Tutorial identifiers resolve inside the built-in StreamingAssets folder.
+        SetGrids(gridFolders);
         Random = false;
         Tutorial = true;
         Endless = false;
-        CurrentGrid = 0;
         return this;
     }
 
+    /// <summary>
+    /// Appends one local map identifier to the session.
+    /// </summary>
     public GameRules AddGrid(string grid)
     {
-        if (Grids == null)
-            Grids = new List<string>();
+        // Preserve authored order for deterministic runs and future speedrun timing.
         Grids.Add(grid);
         return this;
     }
 
-    public GameRules Discovery(string gridID)
-    {
-        DiscoveryMapID = gridID;
-        DiscoveryMode = true;
-        Endless = false;
-        Random = false;
-        Grids.Add("tmp_discovery");
-        return this;
-    }
-
+    /// <summary>
+    /// Advances to the next map according to the local traversal options.
+    /// </summary>
     public void NextGrid()
     {
-        CurrentGrid++;
-        if (!Endless && CurrentGrid == NbGrids)
-            OnEnd?.Invoke();
-        else
+        // End finite sessions or wrap and optionally randomize endless sessions.
+        if (NbGrids == 0)
         {
-            if (Endless)
-                CurrentGrid %= NbGrids;
-            if (Random)
-                CurrentGrid = UnityEngine.Random.Range(0, NbGrids);
+            OnEnd?.Invoke();
+            return;
         }
+
+        CurrentGrid++;
+        if (!Endless && CurrentGrid >= NbGrids)
+        {
+            CurrentGrid = NbGrids - 1;
+            OnEnd?.Invoke();
+            return;
+        }
+
+        if (Endless)
+            CurrentGrid %= NbGrids;
+        if (Random)
+            CurrentGrid = UnityEngine.Random.Range(0, NbGrids);
     }
 
+    /// <summary>
+    /// Gets the stable identifier of the active map.
+    /// </summary>
     public string GetCurrentGridID()
     {
+        // Return the selected authored identifier without network indirection.
         return Grids[CurrentGrid];
     }
 
-    public void GetCurrentFullMap(Action<FullMap> Callback)
+    /// <summary>
+    /// Loads the active built-in tutorial or locally authored map.
+    /// </summary>
+    public void GetCurrentFullMap(Action<FullMap> callback)
     {
-        if (Tutorial)
-            Callback?.Invoke(GridManager.GetFullMap(Application.streamingAssetsPath + @"\Tutorial\" + Grids[CurrentGrid]));
-        else
+        // Resolve tutorial content in place and local content through the workspace.
+        if (NbGrids == 0)
         {
-            // get map before play it
-            DodgeFromLight.UI_WorkerNotifier?.Show("Getting map...");
-            DFLClient.DownloadMap(DiscoveryMode ? DiscoveryMapID : Grids[CurrentGrid], GridManager.Folder, (res) =>
-            {
-                if (res.Error)
-                {
-                    DodgeFromLight.UI_Notifications?.Notify("Error getting map");
-                    Callback?.Invoke(null);
-                }
-                else
-                {
-                    Callback?.Invoke(GridManager.GetFullMap());
-                }
-                DodgeFromLight.UI_WorkerNotifier?.Hide();
-            }); ;
+            callback?.Invoke(null);
+            return;
         }
+
+        if (Tutorial)
+        {
+            var tutorialFolder = System.IO.Path.Combine(
+                Application.streamingAssetsPath,
+                "Tutorial",
+                GetCurrentGridID());
+            callback?.Invoke(GridManager.GetFullMap(tutorialFolder));
+            return;
+        }
+
+        DodgeFromLight.UI_WorkerNotifier?.Show("Loading local map...");
+        var opened = LocalMapRepository.Open(GetCurrentGridID());
+        callback?.Invoke(opened ? GridManager.GetFullMap() : null);
+        DodgeFromLight.UI_WorkerNotifier?.Hide();
     }
 }

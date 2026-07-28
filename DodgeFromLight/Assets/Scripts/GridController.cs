@@ -1,4 +1,3 @@
-using DFLCommonNetwork.GameEngine;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -102,14 +101,18 @@ public class GridController : MonoBehaviour
         return null;
     }
 
-    public void DrawGrid(Grid grid, bool IsLobby = false)
+    /// <summary>
+    /// Draws the complete local puzzle grid and its enclosing walls.
+    /// </summary>
+    public void DrawGrid(Grid grid)
     {
+        // Rebuild runtime lookup tables for the active authored grid.
         cellsElements = new Dictionary<string, GameObject>();
         cellsGO = new Dictionary<string, GameObject>();
         for (int x = 0; x < grid.Width; x++)
             for (int y = 0; y < grid.Height; y++)
             {
-                DrawCell(x, y, grid, IsLobby);
+                DrawCell(x, y, grid);
             }
 
         // draw out walls
@@ -154,15 +157,19 @@ public class GridController : MonoBehaviour
         return cellGo;
     }
 
-    public GameObject DrawCell(int x, int y, Grid grid, bool IsLobby)
+    /// <summary>
+    /// Draws one authored puzzle cell and returns its root object.
+    /// </summary>
+    public GameObject DrawCell(int x, int y, Grid grid)
     {
+        // Select the visual and mechanic prefab entirely from local grid data.
         GameObject cellGo = null;
-        if (grid.IsStart(grid.Cells[x, y]) && !grid.LobbyMap)
+        if (grid.IsStart(grid.Cells[x, y]))
         {
             cellGo = Instantiate(StartCellPrefab);
             cellGo.isStatic = true;
         }
-        else if (grid.IsEnd(grid.Cells[x, y]) && !grid.LobbyMap)
+        else if (grid.IsEnd(grid.Cells[x, y]))
         {
             cellGo = Instantiate(EndCellPrefab);
             cellGo.isStatic = true;
@@ -308,12 +315,6 @@ public class GridController : MonoBehaviour
                 elementGo.transform.SetParent(cellGo.transform);
                 cellsElements.Add(cellGo.name, elementGo);
 
-                if (IsLobby)
-                {
-                    ClickableMapObject clickable = elementGo.GetComponentInChildren<ClickableMapObject>();
-                    if (clickable != null)
-                        clickable.Cell = c.GetCellPos();
-                }
             }
         }
 
@@ -383,7 +384,7 @@ public class GridController : MonoBehaviour
             Destroy(gearsGO[cell.ToString()]);
             gearsGO.Remove(cell.ToString());
         }
-        DrawCell(cell.X, cell.Y, grid, false);
+        DrawCell(cell.X, cell.Y, grid);
     }
 
     public bool IsNeighborWalkable(Grid grid, Cell cell, Orientation orientation)

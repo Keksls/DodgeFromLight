@@ -13,20 +13,6 @@ public static class GridManager
     }
 
     /// <summary>
-    /// copy default hub grid to current grid folder
-    /// </summary>
-    public static void InitDefaultHub()
-    {
-        CleanFolder();
-        string hubPath = GetGridPath();
-        if (!File.Exists(hubPath))
-        {
-            string gridPath = Application.streamingAssetsPath + @"\Hub\DefaultHub.json";
-            File.Copy(gridPath, hubPath, true);
-        }
-    }
-
-    /// <summary>
     /// clean current grid folder
     /// </summary>
     public static void CleanFolder()

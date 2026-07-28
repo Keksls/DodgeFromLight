@@ -7,8 +7,6 @@ using Newtonsoft.Json;
 
 public class MainMenuController : MonoBehaviour
 {
-    public UI_Loggin LogginPanel;
-    public UI_WorkerNotifier UI_WorkerNotifier;
     public EnvironmentController environmentController;
     public GameObject fog;
     public GameObject foam;
@@ -21,56 +19,30 @@ public class MainMenuController : MonoBehaviour
 
     private void Awake()
     {
+        // Configure local menu availability without waiting for an online session.
         MapButton.interactable = false;
         MapButton.gameObject.GetComponent<CursorSetter>().enabled = false;
         VersionText.text = "v " + Application.version;
-        LogginPanel.gameObject.SetActive(false);
     }
 
+    /// <summary>
+    /// Starts the local player flow.
+    /// </summary>
     public void Play()
     {
-        StartCoroutine(Play_routine("Main", "Attack"));
+        // Keep legacy button bindings routed through the local entry point.
+        Player();
     }
 
-    void Start()
+    /// <summary>
+    /// Initializes the menu environment and local feature availability.
+    /// </summary>
+    private void Start()
     {
+        // The menu no longer checks connectivity or presents an account screen.
         EnvironmentSettings env = JsonConvert.DeserializeObject<EnvironmentSettings>(Resources.Load<TextAsset>("MainMenuEnvironment").text);
         DodgeFromLight.EnvironmentController.SetEnvironment(env);
         DodgeFromLight.EnvironmentController.SetFogSettings(env, fog, foam);
-        UI_WorkerNotifier.Show("Checking online status...");
-        DFLClient.CheckIfOnline((status) =>
-        {
-            UI_WorkerNotifier.Hide();
-            if (status == OnlineState.Online)
-            {
-                if (DFLClient.LoginState != LoginState.LoggedIn)
-                {
-                    LogginPanel.gameObject.SetActive(true);
-                    LogginPanel.ShowConnectionPanel();
-                }
-                else
-                {
-                    // already connected ?? wtf
-                    LogginPanel.gameObject.SetActive(true);
-                    LogginPanel.ShowConnectionPanel();
-                }
-            }
-            else
-            {
-                // no internet
-                UI_WorkerNotifier.Show("No internet connection...");
-            }
-        });
-
-        LogginPanel.OnConnect = (success) =>
-        {
-            if (success)
-            {
-                Player();
-                LogginPanel.gameObject.SetActive(false);
-            }
-        };
-
 
         if (DodgeFromLight.TutorialController.HasFinishTutorial())
         {
@@ -86,14 +58,22 @@ public class MainMenuController : MonoBehaviour
         }
     }
 
-    void Update()
+    /// <summary>
+    /// Handles the development fullscreen shortcut.
+    /// </summary>
+    private void Update()
     {
+        // Preserve the established local fullscreen toggle.
         if (Input.GetKeyDown(KeyCode.F))
             Screen.fullScreen = !Screen.fullScreen;
     }
 
-    IEnumerator Play_routine(string sceneName, string animationName, bool cleanGameManager = true)
+    /// <summary>
+    /// Plays the menu transition before loading a local scene.
+    /// </summary>
+    private IEnumerator Play_routine(string sceneName, string animationName, bool cleanGameManager = true)
     {
+        // Hide menu controls while the character transition animation runs.
         foreach (var animator in Animators)
             animator.Play(animationName);
 
@@ -113,29 +93,59 @@ public class MainMenuController : MonoBehaviour
         DodgeFromLight.SceneTransitions.LoadScene(sceneName);
     }
 
+    /// <summary>
+    /// Opens the local map editor.
+    /// </summary>
     public void Map()
     {
+        // The editor uses the last local workspace or creates a fresh map.
         StartCoroutine(Play_routine("MapCreator", "Walk"));
     }
 
+    /// <summary>
+    /// Opens the campaign scene when it becomes available.
+    /// </summary>
     public void Campaign()
     {
+        // Keep the existing scene route for future campaign work.
         StartCoroutine(Play_routine("Campaign", "Attack"));
     }
 
+    /// <summary>
+    /// Starts the tutorial or the most recently saved local map.
+    /// </summary>
     public void Player()
     {
-        string sceneName = "Lobby";
+        // Route new players through onboarding and returning players through local content.
+        string sceneName;
         if (!DodgeFromLight.TutorialController.HasFinishTutorial())
         {
             sceneName = "Main";
             DodgeFromLight.CurrentRules = new GameRules().SetTutorial(DodgeFromLight.TutorialController.GetRemaningMapsFolders());
         }
+        else
+        {
+            var map = LocalMapRepository.GetMostRecent();
+            if (map == null)
+            {
+                sceneName = "MapCreator";
+            }
+            else
+            {
+                sceneName = "Main";
+                DodgeFromLight.CurrentRules = new GameRules(false, false, map.ID);
+            }
+        }
+
         StartCoroutine(Play_routine(sceneName, "Attack", false));
     }
 
+    /// <summary>
+    /// Exits the application.
+    /// </summary>
     public void Exit()
     {
+        // Delegate shutdown to the Unity runtime.
         Application.Quit();
     }
 }

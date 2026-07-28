@@ -1,4 +1,3 @@
-using DFLCommonNetwork.GameEngine;
 using Newtonsoft.Json;
 using System;
 using System.Collections;
@@ -42,18 +41,18 @@ public class PlayerPreparation : MonoBehaviour
         if (generateFullyUnlockedSave)
         {
             backedData.Initialize();
-            PlayerSave save = SaveManager.GetDefaulSave();
+            PlayerSave save = SaveManager.GetDefaultSave();
             foreach (SkinType type in Enum.GetValues(typeof(SkinType)))
             {
                 if (type == SkinType.Ornament)
-                    save.Unlocked[(byte)SkinType.Ornament] = DodgeFromLight.Databases.OrnamentData.GetAllOrnamentsID();
+                    save.Unlocked[SkinType.Ornament] = DodgeFromLight.Databases.OrnamentData.GetAllOrnamentsID();
                 else
                 {
                     int nbSkins = backedData.Skins.Where(s => s.Type == type).ToList().Count;
                     List<short> skins = new List<short>();
                     for (short i = 0; i < nbSkins; i++)
                         skins.Add(i);
-                    save.Unlocked[(byte)type] = skins;
+                    save.Unlocked[type] = skins;
 
                 }
             }

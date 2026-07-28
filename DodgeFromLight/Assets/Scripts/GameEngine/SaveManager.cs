@@ -1,97 +1,195 @@
-using DFLCommonNetwork.GameEngine;
 using System;
-using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using Newtonsoft.Json;
+using UnityEngine;
 
+/// <summary>
+/// Owns the local player save and its disk persistence.
+/// </summary>
 public static class SaveManager
 {
-    public static PlayerSave CurrentSave { get; private set; }
-    private static bool initialized = false;
-    public static bool SaveGetted { get; set; }
+    private const string SaveFileName = "player-save.json";
+    private static bool initialized;
 
+    public static PlayerSave CurrentSave { get; private set; }
+
+    /// <summary>
+    /// Loads the local player save once per application session.
+    /// </summary>
     public static void Initialize()
     {
+        // Fall back to a complete default save when no valid disk data exists.
         if (initialized)
             return;
+
         initialized = true;
-        SaveGetted = false;
-        CurrentSave = GetDefaulSave();
-        OrderSkins(DodgeFromLight.Databases.RewardData);
-        if (DFLClient.OnlineState == OnlineState.Online && DFLClient.LoginState == LoginState.LoggedIn)
-            Events_UserLogin();
-        else
-        {
-            Events.UserLogin -= Events_UserLogin;
-            Events.UserLogin += Events_UserLogin;
-        }
-    }
-
-    public static void SetSave(PlayerSave ps)
-    {
-        CurrentSave = ps;
-        SaveGetted = true;
-        OrderSkins(DodgeFromLight.Databases.RewardData);
+        CurrentSave = Load() ?? GetDefaultSave();
+        CurrentSave.Normalize();
+        OrderSkins();
+        Save();
         Events.Fire_SaveGetted();
     }
 
-    public static PlayerSave GetDefaulSave()
+    /// <summary>
+    /// Creates the default progression granted to a new local player.
+    /// </summary>
+    public static PlayerSave GetDefaultSave()
     {
-        var rewards = DodgeFromLight.Databases.RewardData.GetTutorialRewards();
-        CurrentSave = CreateDefaultSave();
-        foreach (var reward in rewards)
+        // Grant the former tutorial bundle locally instead of requesting it from a server.
+        var save = CreateDefaultSave();
+        if (DodgeFromLight.Databases != null &&
+            DodgeFromLight.Databases.RewardData != null)
         {
-            Unlock(reward.SkinType, (short)reward.SkinID);
-            SetCurrentPart(reward.SkinType, (short)reward.SkinID);
+            foreach (var reward in DodgeFromLight.Databases.RewardData.GetTutorialRewards())
+                save.Unlock(reward.SkinType, (short)reward.SkinID);
+
+            foreach (var reward in DodgeFromLight.Databases.RewardData.GetTutorialRewards())
+                save.SetCurrentPart(reward.SkinType, (short)reward.SkinID);
+
+            save.Experience = DodgeFromLight.Databases.RewardData.GetTutorialXP();
         }
-        CurrentSave.XP = DodgeFromLight.Databases.RewardData.GetTutorialXP();
-        CurrentSave.OnlineLastReward = 6;
-        CurrentSave.SetCurrentPart(SkinType.Ornament, 0);
-        return CurrentSave;
-    }
 
-    private static void Events_UserLogin()
-    {
-        CurrentSave = DFLClient.CurrentUser.PlayerSave;
-        SaveGetted = true;
-        OrderSkins(DodgeFromLight.Databases.RewardData);
-        Events.Fire_SaveGetted();
-    }
-
-    private static void OrderSkins(RewardData reward)
-    {
-        Array types = Enum.GetValues(typeof(SkinType));
-        foreach (SkinType type in types)
-            if (CurrentSave.Unlocked.ContainsKey((byte)type))
-                CurrentSave.Unlocked[(byte)type] = CurrentSave.Unlocked[(byte)type].OrderBy(id => reward.GetRarity(type, id)).ToList();
-    }
-
-    public static PlayerSave CreateDefaultSave()
-    {
-        int OnHead = UnityEngine.Random.Range(0, 3);
-        Array types = Enum.GetValues(typeof(SkinType));
-        PlayerSave save = new PlayerSave();
-        foreach (SkinType type in types)
-        {
-            save.Unlocked.Add((byte)type, new List<short>());
-            save.Equiped.Add((byte)type, -1);
-        }
-        CurrentSave = save;
+        save.LastRewardLevel = 6;
+        save.SetCurrentPart(SkinType.Ornament, 0);
         return save;
     }
 
-    public static void Unlock(SkinType type, short ID)
+    /// <summary>
+    /// Creates an empty save with every cosmetic slot initialized.
+    /// </summary>
+    public static PlayerSave CreateDefaultSave()
     {
-        if (!CurrentSave.Unlocked[(byte)type].Contains(ID))
-            CurrentSave.Unlocked[(byte)type].Add(ID);
+        // PlayerSave owns collection normalization, so creation has one source of truth.
+        return new PlayerSave();
     }
 
-    public static bool IsUnlocked(SkinType type, short ID)
+    /// <summary>
+    /// Unlocks a cosmetic and persists the updated inventory.
+    /// </summary>
+    public static void Unlock(SkinType type, short id)
     {
-        return CurrentSave.Unlocked[(byte)type].Contains(ID);
+        // Ignore duplicate unlocks while still keeping disk state current.
+        EnsureInitialized();
+        CurrentSave.Unlock(type, id);
+        Save();
+        Events.Fire_SaveUpdated();
     }
 
+    /// <summary>
+    /// Determines whether the local player owns a cosmetic.
+    /// </summary>
+    public static bool IsUnlocked(SkinType type, short id)
+    {
+        // Delegate ownership checks to the normalized save model.
+        EnsureInitialized();
+        return CurrentSave.IsUnlocked(type, id);
+    }
+
+    /// <summary>
+    /// Equips or clears a cosmetic and persists the selection.
+    /// </summary>
     public static void SetCurrentPart(SkinType type, short id)
     {
-        CurrentSave.Equiped[(byte)type] = id;
+        // Cosmetic changes are local and immediately durable.
+        EnsureInitialized();
+        CurrentSave.SetCurrentPart(type, id);
+        Save();
+        Events.Fire_SaveUpdated();
+    }
+
+    /// <summary>
+    /// Adds experience to the local progression.
+    /// </summary>
+    public static void AddExperience(int amount)
+    {
+        // Prevent negative rewards from reducing progression accidentally.
+        EnsureInitialized();
+        CurrentSave.Experience += Math.Max(0, amount);
+        Save();
+        Events.Fire_WinXP(amount);
+        Events.Fire_SaveUpdated();
+    }
+
+    /// <summary>
+    /// Persists the current local save to the platform data folder.
+    /// </summary>
+    public static void Save()
+    {
+        // Write through a temporary file to avoid truncating the active save on interruption.
+        if (CurrentSave == null)
+            return;
+
+        var savePath = GetSavePath();
+        var temporaryPath = savePath + ".tmp";
+        Directory.CreateDirectory(Path.GetDirectoryName(savePath));
+        File.WriteAllText(
+            temporaryPath,
+            JsonConvert.SerializeObject(CurrentSave, Formatting.Indented));
+        File.Copy(temporaryPath, savePath, true);
+        File.Delete(temporaryPath);
+    }
+
+    /// <summary>
+    /// Loads and validates the save stored on disk.
+    /// </summary>
+    private static PlayerSave Load()
+    {
+        // Invalid or interrupted saves fall back safely without blocking startup.
+        var savePath = GetSavePath();
+        if (!File.Exists(savePath))
+            return null;
+
+        try
+        {
+            var save = JsonConvert.DeserializeObject<PlayerSave>(
+                File.ReadAllText(savePath));
+            save?.Normalize();
+            return save;
+        }
+        catch (Exception exception)
+        {
+            Debug.LogWarning("Unable to load local player save: " + exception.Message);
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Orders owned cosmetics by rarity for stable inventory presentation.
+    /// </summary>
+    private static void OrderSkins()
+    {
+        // Skip presentation ordering until the runtime databases are available.
+        var rewardData = DodgeFromLight.Databases?.RewardData;
+        if (rewardData == null)
+            return;
+
+        foreach (SkinType type in Enum.GetValues(typeof(SkinType)))
+        {
+            var ordered = CurrentSave
+                .GetUnlocked(type)
+                .OrderBy(id => rewardData.GetRarity(type, id))
+                .ToList();
+            CurrentSave.Unlocked[type] = ordered;
+        }
+    }
+
+    /// <summary>
+    /// Ensures callers can use the save manager before explicit bootstrap.
+    /// </summary>
+    private static void EnsureInitialized()
+    {
+        // Preserve the existing static access pattern while centralizing initialization.
+        if (!initialized)
+            Initialize();
+    }
+
+    /// <summary>
+    /// Resolves the platform-specific local save path.
+    /// </summary>
+    private static string GetSavePath()
+    {
+        // Application.persistentDataPath is compatible with later Steam Cloud syncing.
+        return Path.Combine(Application.persistentDataPath, SaveFileName);
     }
 }

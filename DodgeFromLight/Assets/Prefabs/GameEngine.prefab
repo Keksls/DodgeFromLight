@@ -116,11 +116,6 @@ MonoBehaviour:
   AutoStartGame: 1
   Paused: 0
   EntitiesMovementDuration: 0.185
-  VFXAwakeningCollector: {fileID: 7700044970738376155, guid: cb7cc33951ea2ab4887624016372964c, type: 3}
-  VFXAwakeningConcentrate: {fileID: 4604637669054121197, guid: 84810dd0b8c528b4c9c8a83b0eb0eef5, type: 3}
-  VFXAwakeningDetermined: {fileID: 6432545916852256509, guid: 67d2ab17901e3ef408d96a14057a6b7f, type: 3}
-  VFXAwakeningHurry: {fileID: 439631174241418002, guid: a96a5e000994f914282d9d7c20c6ecce, type: 3}
-  VFXAwakeningSplit: {fileID: 8467867249584265953, guid: c40ebb992fcde7145bf06c027105f3cf, type: 3}
   GearPickupVFX: {fileID: 100000, guid: cfa8dbaede8b6c547b168d5ef4e6f2d4, type: 3}
   CheckboxSaveVFX: {fileID: 100006, guid: 8b00f41c682e819468a7d2e23e920dea, type: 3}
   GearBombeVFXPrefab: {fileID: 1892078723244562, guid: d532f04f4c9bb8047bff004114e5afd2, type: 3}

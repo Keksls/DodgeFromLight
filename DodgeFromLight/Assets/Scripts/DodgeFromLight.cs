@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using System.Linq;
 using Random = UnityEngine.Random;
-using UnityEngine.SceneManagement;
-using DFLCommonNetwork.GameEngine;
 
 public static class DodgeFromLight
 {
@@ -43,8 +40,6 @@ public static class DodgeFromLight
         MovingPlatforms = new List<MovingPlatform>();
         CurrentMap = null;
 
-        Events.EnnemiesSpawned -= Events_EnnemiesSpawned;
-        Events.EnnemiesSpawned += Events_EnnemiesSpawned;
         Events.StartMap -= Events_StartMap;
         Events.StartMap += Events_StartMap;
     }
@@ -122,67 +117,6 @@ public static class DodgeFromLight
                 GearType.Grapple};
                 GearType type = gears[Random.Range(0, gears.Length)];
                 gearCell.SetGear(type);
-            }
-        }
-    }
-
-    private static void Events_EnnemiesSpawned()
-    {
-        if (SceneManager.GetActiveScene().name != "Main")
-            return;
-
-        AwakeningType[] Awakenings = Enum.GetValues(typeof(AwakeningType)).Cast<AwakeningType>().ToArray();
-
-        foreach (Ennemy ennemy in Ennemies)
-        {
-            // switch ennemy if all awakening are expluded
-            if (Awakenings.Count() <= ennemy.ExcludedAwakening.Count())
-                continue;
-
-            // randomely add awakening
-            if (Random.Range(0, 100) < 0f)
-            {
-                // get random awakening type
-                HashSet<AwakeningType> awaks = new HashSet<AwakeningType>(Awakenings);
-                foreach (AwakeningType t in ennemy.ExcludedAwakening)
-                    awaks.Remove(t);
-                AwakeningType type = awaks.ToList()[Random.Range(0, awaks.Count)];
-
-                // add awakening to ennemy
-                ennemy.AddAwakening(type);
-            }
-        }
-
-        // add awakening VFX to ennemies
-        foreach (Ennemy ennemy in Ennemies)
-        {
-            foreach (AwakeningType awakening in ennemy.Awakenings.Keys)
-            {
-                GameObject vfxPrefab = null;
-                switch (awakening)
-                {
-                    case AwakeningType.Collector:
-                        vfxPrefab = GameManager.VFXAwakeningCollector;
-                        break;
-                    case AwakeningType.Concentrate:
-                        vfxPrefab = GameManager.VFXAwakeningConcentrate;
-                        break;
-                    case AwakeningType.Determined:
-                        vfxPrefab = GameManager.VFXAwakeningDetermined;
-                        break;
-                    case AwakeningType.Hurry:
-                        vfxPrefab = GameManager.VFXAwakeningHurry;
-                        break;
-                    case AwakeningType.Split:
-                        vfxPrefab = GameManager.VFXAwakeningSplit;
-                        break;
-                }
-                if (vfxPrefab != null)
-                {
-                    GameObject vfx = GameManager.Instantiate(vfxPrefab);
-                    vfx.transform.SetParent(ennemy.transform);
-                    vfx.transform.localPosition = Vector3.zero;
-                }
             }
         }
     }

@@ -15,9 +15,13 @@ public class UI_MainMenu : MonoBehaviour
         Hide(false);
     }
 
+    /// <summary>
+    /// Toggles the local settings menu and captures input rebinding.
+    /// </summary>
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape) && EscToOpen && !UI_Console.IsTyping)
+        // Chat focus no longer participates because the network console was removed.
+        if (Input.GetKeyDown(KeyCode.Escape) && EscToOpen)
         {
             if (opened)
                 Hide(true);

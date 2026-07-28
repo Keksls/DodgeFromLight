@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "capturedOn": "2026-07-28",
+  "sourceRoot": "DodgeFromLight/Assets/StreamingAssets",
+  "sourceCount": 30,
+  "uniqueMapIdCount": 26,
+  "entries": [
+    { "source": "Level 23", "mapId": "879af8a6d6544bc0b88544680d84852b", "title": "Level 23", "width": 6, "height": 8, "gridSha256": "f723c04c43ac82247b4ed5dbe8a0808accfdc17f194c177d07dd098c353eb966", "metadataSha256": "ae60c3b42d304d1ec41a3972a3806555edb8e7a6773bddabad26e367336cd096", "previewSha256": "517f71a102b2641f8b382ff5ce3687e412d5ddd41e8c7c902c1b42d27bc2c85a" },
+    { "source": "Level 24", "mapId": "4ebeb14f924e439a8347f06e3335b08c", "title": "Level 24", "width": 6, "height": 8, "gridSha256": "ffc1854eb4684b4b9e6a9f393a171a194956ee023ba728b7d6f86fa5c6d33b00", "metadataSha256": "5cb5bdd9d1175bf9182ebf0dbc7e6f56c7fdc4cb7078d5fa88c908d74f42f593", "previewSha256": "af94c969f13e8cc4b7f39e4d2098ac378b7cc7fef8a27e2806dd3fe13b9a7abe" },
+    { "source": "Level 25", "mapId": "a2dcf5f37c7a41ac97f4eb1805f9c2e7", "title": "Level 25 ", "width": 6, "height": 8, "gridSha256": "51d5ba813e2690d9e36ee5a691b52095a7cc5df8d110a54f04b473419a258da8", "metadataSha256": "1c21e79bace4af5788c7e7675affdf322f69af1a6fd8080ca028c8e9505052ae", "previewSha256": "39a1225b37bca4ce92a761b21350c2e966331b9b7f1cf0760c02a298634edbfa" },
+    { "source": "Level 26", "mapId": "4e4195111f114f2b9942c854df7e5e52", "title": "Level 26", "width": 6, "height": 8, "gridSha256": "cf9f84c3e98a12e672a5be53eee83a1270a8bfd2913cce1a2985ad222a7d819a", "metadataSha256": "62e52ba4c6cdd40976377a6e7696657437a9d8af10ce536e7d8e2d47173bc17a", "previewSha256": "ea3226eb70a301ed28f6f560c4c86e4e6251be68c50ad0d0e09f12345e5d37d2" },
+    { "source": "Tutorial/Level 1", "mapId": "7c7b9f6048c342378f4bc52a51bf26f3", "title": "Level 1", "width": 5, "height": 6, "gridSha256": "ac7f1bceead376a1d8fe2d038e72218e2d228bb0c5fd46ec5a70215fc61e3113", "metadataSha256": "7c3ed7c8aa68e02d504d86959cdde8e595929e92b04f31d330811ae48a7fb571", "previewSha256": "df1329d6cc2b5465c9ae275a936bb8f5f4cf2d942b975d9b76c7db2b824f8a67" },
+    { "source": "Tutorial/Level 10", "mapId": "bb08b672165f4c3f8d50c32853cd4650", "title": "Level 10", "width": 5, "height": 6, "gridSha256": "3f40cdb031c8e495efeaf1126bf0a82729b8f07007ca1adb77e90efa3e8b667e", "metadataSha256": "7bd4346b419f9fa5f9997e9635777e1566f7809192665167876cea3d55d5683b", "previewSha256": "f6f5f4a11612684ffa56d0b449e6b22d7a496c8622b8519651305de3084420a5" },
+    { "source": "Tutorial/Level 11", "mapId": "e792dc241e67486c958a08f8b63137e6", "title": "Level 11", "width": 5, "height": 6, "gridSha256": "3f3618d4416fb8cf7e0793a86657d7a8a5ad6a24bd73a5bc95e5521373f8f0bf", "metadataSha256": "73241c0deac7915ee3248bcbdbb1974aefe268973de3b796867168ee1140d1c2", "previewSha256": "80a55e407cdc178c46b25dbe86a136b04b630797f1bbb4c7b9670c0dd558d681" },
+    { "source": "Tutorial/Level 12", "mapId": "4c6a13c5317846f6bae85800eb2cf89c", "title": "Level 12", "width": 5, "height": 6, "gridSha256": "2043d1f61e5f4fe890b7e4db944adccf0b6ff0e0c75fb313f4bfe49d981082f6", "metadataSha256": "3d9f773de7b3dc687cdac77358970912845ecccee245033041292695dab0b087", "previewSha256": "0d4c1073130d2a28c1a36d1e8ed2b06ee5bb09c1e6351f5fd75d522bdaf7aae6" },
+    { "source": "Tutorial/Level 13", "mapId": "6837ba56420543b583819c1e41387da7", "title": "Level 13", "width": 5, "height": 6, "gridSha256": "93cdbab42140746c9b863a9889385b61ae2659cfc7e79d4d35e46e450ca6b875", "metadataSha256": "bf5301a281f55923de8a807100d60d512073a954b35025086e1a85790e4a7598", "previewSha256": "e594a95dc61c2134856e4b9b992fc3c533a341b0228851a88ec3537f3167db2f" },
+    { "source": "Tutorial/Level 14", "mapId": "cd8826727f924c459d2b1a3cf4cad7c6", "title": "Level 14", "width": 5, "height": 6, "gridSha256": "fcb912939fda88f9fe9f148fe0168f0da03bbb83eeea9eb4541e1ef62531f720", "metadataSha256": "1d144bd69f816cad4fa8b38c38d4ba4979c71f716fd131af8a6e3ba245831b8a", "previewSha256": "859f7dab3df01d71c09069297f79f11de6f2f13c87f498ca5d5f6f29a3a30469" },
+    { "source": "Tutorial/Level 15", "mapId": "77dcadd50c844db98500fa40a0e32abe", "title": "Level 15", "width": 5, "height": 6, "gridSha256": "7a38c901eea02cb738d047ada039061759a821218e6ed3fb6b348ae7a6c00d83", "metadataSha256": "81cb2eb8d4aaba0e12391dc2d6c66714ac2a9dbdb2ffaa47dfdad37f13a3f561", "previewSha256": "2c428872008f55253808b04825c4ace7d82a1ec0367d65aa440bb0b71dcb4b2c" },
+    { "source": "Tutorial/Level 16", "mapId": "fde40f9f87df48fd95b6de7c1c773c9b", "title": "Level 16", "width": 5, "height": 6, "gridSha256": "219f2a503a099d11b58973a922055610ce8464f81fae998e5e9b60cca596ed83", "metadataSha256": "d67af56d97e7fc2e2e8db629d5d341408f8a49e7f4a54563bd3bb036d6e32f4e", "previewSha256": "0ef5cf967e6c1731467b6d5ebdbd8e7370247047ae8d7e5d09930bbba134159f" },
+    { "source": "Tutorial/Level 17", "mapId": "28c7f5c3cd9f4199b125856d6e35f2d7", "title": "Level 17", "width": 5, "height": 6, "gridSha256": "d9d644bde276a6c4c413e7f16f9a0c3d88008bb89c713ae489c9670394a12bde", "metadataSha256": "1a2aaa3df2cc7bc88ebce0c9c2ee87dc58f34e80fda0f86c12a68bd07358536a", "previewSha256": "0beb020127d391ada4a6ceb3abd34fd63b236bc65d37742bb851c8f5380cec9d" },
+    { "source": "Tutorial/Level 18", "mapId": "0fa163ebab3c49fc8bbeddb97c815b56", "title": "Level 18", "width": 5, "height": 6, "gridSha256": "ebcbaf6df11bcdecbb0f01c47ce03ce1fb19bc5d49dfeb9daabf66abf2888e08", "metadataSha256": "868d948b2a3bc1093b93f5339ece01e4183667ee4e56ec42e1188e5612e9011e", "previewSha256": "2ff0558811cb2a2bfc7b394aee02aa2b610c0f0ed241377e0405c2b839e65685" },
+    { "source": "Tutorial/Level 19", "mapId": "443cbeee1a2344409a05204dd669bf83", "title": "Level 19", "width": 5, "height": 6, "gridSha256": "6227f80d5119032e5f04c349e616853120616e793e54f110fb1d9f876ca2fb3a", "metadataSha256": "c1d27e5ea6ad4711e81e5492917170ac04a3a45f6f6726be47961409b94cfb5e", "previewSha256": "40711f9a04c98c381344765f4b0465da715c963d66d559e137c74c4d4340ebfb" },
+    { "source": "Tutorial/Level 2", "mapId": "de389d1d1c084df0b845c7e1741246a3", "title": "Level 2", "width": 5, "height": 6, "gridSha256": "acfac9e448c69f9882acbf64ae61e39bced13ef2eeca5430c261e5211ad0cb6a", "metadataSha256": "9588ba3bf7e0967b1d569a3095c0353dd36682dfcedcbeae798b35f2551fc5e2", "previewSha256": "4e34e4d9dffa4b9f61d3bd628366c3abff58953c99323bb70a8dca2da937f3cf" },
+    { "source": "Tutorial/Level 20", "mapId": "4fb0422412674fde93a60709a8c6d5ca", "title": "Level 20", "width": 5, "height": 6, "gridSha256": "129b81ad238247929a2957ed73d25d1b391d7d2eb57d55ac8e6cae70c011f042", "metadataSha256": "ef3facefe06f7b79dfda14e5674044adbf26e9245bc8dc10bc40bc54c425dad9", "previewSha256": "7d2b95317b840918a1e6c9e2f604dfa6994f133ee82af1284ab6f10dccd1ae00" },
+    { "source": "Tutorial/Level 21", "mapId": "d2f63173160f47069f7e6f63101344c6", "title": "Level 21", "width": 5, "height": 6, "gridSha256": "cd1ce8477bc7043ee04f52d2ed8e720a93eafe931e6e41b72d5bab60be9bacb1", "metadataSha256": "527999952f89e0da0ef6bd6f7439b87457fe7503f2a9b25a638fd67eb0462ea0", "previewSha256": "ab7c21c229c903db4094a6e2d48bea8b6e98603be738a095627b60a8cf00afdd" },
+    { "source": "Tutorial/Level 22", "mapId": "b7f30362c0d8457dbc241f99f4f3d022", "title": "Level 22", "width": 5, "height": 6, "gridSha256": "9bd8e76f6a3470efa6ceb62a5fc2754c7ebe7c0e7cdced7abe78cc0260f7d18d", "metadataSha256": "c5b65695040aed7d1c30b8d9c777eee9c531df538a18ae3edf1198a12f7d9014", "previewSha256": "c686ae9ed0c9d800c877a4271ff771048df28bec5a512972641a1858c35342d0" },
+    { "source": "Tutorial/Level 23", "mapId": "879af8a6d6544bc0b88544680d84852b", "title": "Level 23", "width": 6, "height": 8, "gridSha256": "ec7d38afa449e4239c060914145a58a6c36c94c5b1a53421772493cb12f4af0d", "metadataSha256": "ae60c3b42d304d1ec41a3972a3806555edb8e7a6773bddabad26e367336cd096", "previewSha256": "517f71a102b2641f8b382ff5ce3687e412d5ddd41e8c7c902c1b42d27bc2c85a" },
+    { "source": "Tutorial/Level 24", "mapId": "4ebeb14f924e439a8347f06e3335b08c", "title": "Level 24", "width": 6, "height": 8, "gridSha256": "3b3d633dd8ad1c9d725edafe8733d62ecd30e05dd3af9f4fc84c2c66c08fcdc4", "metadataSha256": "5cb5bdd9d1175bf9182ebf0dbc7e6f56c7fdc4cb7078d5fa88c908d74f42f593", "previewSha256": "af94c969f13e8cc4b7f39e4d2098ac378b7cc7fef8a27e2806dd3fe13b9a7abe" },
+    { "source": "Tutorial/Level 25", "mapId": "a2dcf5f37c7a41ac97f4eb1805f9c2e7", "title": "Level 25 ", "width": 6, "height": 8, "gridSha256": "986b39cbbb720c43f50526a0af2b3b4f81e32187f779383b2059c22b18ff18cf", "metadataSha256": "1c21e79bace4af5788c7e7675affdf322f69af1a6fd8080ca028c8e9505052ae", "previewSha256": "39a1225b37bca4ce92a761b21350c2e966331b9b7f1cf0760c02a298634edbfa" },
+    { "source": "Tutorial/Level 26", "mapId": "4e4195111f114f2b9942c854df7e5e52", "title": "Level 26", "width": 6, "height": 8, "gridSha256": "1e230b5e4bdf4a8b2aff6b6a47ee7f03a25f1322521c3c2c184d258fd65ec632", "metadataSha256": "62e52ba4c6cdd40976377a6e7696657437a9d8af10ce536e7d8e2d47173bc17a", "previewSha256": "ea3226eb70a301ed28f6f560c4c86e4e6251be68c50ad0d0e09f12345e5d37d2" },
+    { "source": "Tutorial/Level 3", "mapId": "dee411b5281d45fc9d8aca23f75fa28b", "title": "Level 3", "width": 5, "height": 6, "gridSha256": "6b5dfcc6b9a551070a03c782e93161e6e17183bc5bd750f904f84168f37574d6", "metadataSha256": "bdebd6bba9be1c8f24407faecd380b35afb94d5fef0c1d1db1b750cffda2fec1", "previewSha256": "9653950bd9d1450cb4a811a6667382e811ec2459a5244c636c59b2c1cba261ac" },
+    { "source": "Tutorial/Level 4", "mapId": "672f1a7fb1b140a2aeac24c4adf841c1", "title": "Level 4", "width": 5, "height": 6, "gridSha256": "a2541932a790a850114cbe25e46bd477d61b302d233853f61a46a773bc45ab33", "metadataSha256": "99c9fc51886351f3636ae41de5de81102b385241b94d203633f2cf2a93341a7b", "previewSha256": "990517e17e164613339a9238738b977472bc77cf66c1840c65c6025989573db7" },
+    { "source": "Tutorial/Level 5", "mapId": "a2401d49f35d400e9d83fa6c0bcf7012", "title": "Level 5", "width": 5, "height": 6, "gridSha256": "47f40c291a40dda89ef421bb38d7548d2246d16f06c9ba0caac75088b74baf27", "metadataSha256": "0526cd77bd59b10fcc2707b030a4fa4fdb877ae5462e82a464d1f0347e8043a7", "previewSha256": "0e855c022e1efa5ae122ff98667b849306f3e1997cd7a6a75286dac69b358039" },
+    { "source": "Tutorial/Level 6", "mapId": "6c7f6a5dcf9a4800a358737dd8d29e4c", "title": "Level 6", "width": 5, "height": 6, "gridSha256": "82089283c97066aea706c55879fa3df8957eb596650a33e939f60b49f1c79d10", "metadataSha256": "8b458f998b9ac12c3be94c3d1c9a86e1b3a832c2b53f38cd23ae45bdf62e18d3", "previewSha256": "87c196699a55e683df5a3eae11f46b7e54e74fab672ba5eae5b15670e364946f" },
+    { "source": "Tutorial/Level 7", "mapId": "b9a317266a4d46cba94d92fe83eedbbb", "title": "Level 7", "width": 5, "height": 6, "gridSha256": "7cd85cb37f5212bc5dab7e5d2aa02d397dc0d8c4cf22a35fa3ca34cf77182355", "metadataSha256": "b961b8e2c4c4b4ec5e10213043126b547230b5be0824ffc0e02fcd985a802fe6", "previewSha256": "a82565b36e77ca95a1e0e893090a3394c3ef25b59e1e34dffa3f1e9031f2b8f6" },
+    { "source": "Tutorial/Level 8", "mapId": "8749424e6be64c769d0c9fe333d1d8f1", "title": "Level 8", "width": 5, "height": 6, "gridSha256": "aaf1f606f11c1302feedc17d9627eb3c9da4924e1f9d2a658399e3914def603f", "metadataSha256": "00da4649fb407af8aaa6d4a81b991f72965b6172e59cb3f6e7af9fc6aa60c169", "previewSha256": "7fe216db1de336b01591ef5f2b4b79c1c4c80df8ef0b9ff99183a3affc93b54c" },
+    { "source": "Tutorial/Level 9", "mapId": "66c947e4043a42eaa293219b6689d896", "title": "Level 9", "width": 5, "height": 6, "gridSha256": "83ed69c4363b83b5264483328e1b20c128cb758f88912c941ca9cffac89dcff4", "metadataSha256": "7386d5f417413a89804de64f574b44c97cb1cdf46656ef49065c38c574ae235e", "previewSha256": "45679a40111a65681fb03fc6ab15a20b2d1e93a2c30d0931b061aa80069b80c6" }
+  ],
+  "duplicateGroups": [
+    {
+      "mapId": "879af8a6d6544bc0b88544680d84852b",
+      "sources": ["Level 23", "Tutorial/Level 23"],
+      "logicalGameplaySha256": "b140fbf5932e63ad32c1a32bf85ae0a938fef7df13793e0909f3e5e538f8a436",
+      "rootEnvironmentSha256": "efdf2f3ba998446a5907239397e3a4a63431601d55a01b4fc5a58f43c80508ea",
+      "tutorialEnvironmentSha256": "deb07cb553d6385f937016a72ec11753f002b02aa08391fef79b7459b3baceb2",
+      "metadataEqual": true,
+      "previewEqual": true
+    },
+    {
+      "mapId": "4ebeb14f924e439a8347f06e3335b08c",
+      "sources": ["Level 24", "Tutorial/Level 24"],
+      "logicalGameplaySha256": "dae96b2e08c576fe5538663eaf58e095645c818f8c4cd862ffc6a24d258316f0",
+      "rootEnvironmentSha256": "efdf2f3ba998446a5907239397e3a4a63431601d55a01b4fc5a58f43c80508ea",
+      "tutorialEnvironmentSha256": "deb07cb553d6385f937016a72ec11753f002b02aa08391fef79b7459b3baceb2",
+      "metadataEqual": true,
+      "previewEqual": true
+    },
+    {
+      "mapId": "a2dcf5f37c7a41ac97f4eb1805f9c2e7",
+      "sources": ["Level 25", "Tutorial/Level 25"],
+      "logicalGameplaySha256": "11f480f010a5176240b284f5031d5b234e4943a5fffd7e91ea38962ad0298eb8",
+      "rootEnvironmentSha256": "efdf2f3ba998446a5907239397e3a4a63431601d55a01b4fc5a58f43c80508ea",
+      "tutorialEnvironmentSha256": "deb07cb553d6385f937016a72ec11753f002b02aa08391fef79b7459b3baceb2",
+      "metadataEqual": true,
+      "previewEqual": true
+    },
+    {
+      "mapId": "4e4195111f114f2b9942c854df7e5e52",
+      "sources": ["Level 26", "Tutorial/Level 26"],
+      "logicalGameplaySha256": "31b5e6840fa11bfedef649e73c50850d561066713c980d90c1d105e6a231483d",
+      "rootEnvironmentSha256": "efdf2f3ba998446a5907239397e3a4a63431601d55a01b4fc5a58f43c80508ea",
+      "tutorialEnvironmentSha256": "deb07cb553d6385f937016a72ec11753f002b02aa08391fef79b7459b3baceb2",
+      "metadataEqual": true,
+      "previewEqual": true
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: 797ce6dfa07722b449fc58a58b27db4d
 ModelImporter:
-  serializedVersion: 22102
+  serializedVersion: 24200
   internalIDToNameTable:
   - first:
       1: 100000
@@ -562,8 +562,6 @@ ModelImporter:
     optimizeGameObjects: 0
     removeConstantScaleCurves: 0
     motionNodeName: 
-    rigImportErrors: 
-    rigImportWarnings: 
     animationImportErrors: 
     animationImportWarnings: 
     animationRetargetingWarnings: 
@@ -586,6 +584,7 @@ ModelImporter:
     addColliders: 0
     useSRGBMaterialColor: 1
     sortHierarchyByName: 1
+    importPhysicalCameras: 1
     importVisibility: 1
     importBlendShapes: 1
     importCameras: 1
@@ -603,6 +602,9 @@ ModelImporter:
     maxBonesPerVertex: 4
     minBoneWeight: 0.001
     optimizeBones: 1
+    generateMeshLods: 0
+    meshLodGenerationFlags: 0
+    maximumMeshLod: -1
     meshOptimizationFlags: -1
     indexFormat: 0
     secondaryUVAngleDistortion: 8
@@ -622,22 +624,7 @@ ModelImporter:
     legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
     blendShapeNormalImportMode: 1
     normalSmoothingSource: 0
-  referencedClips:
-  - 16b767a385449b74d821deeda21c1021
-  - 2f8e361002595b7458d2d2bef774adc6
-  - 7963fe47187a7e74ca9afb74daee6b6b
-  - f63bddf4f5c2a6a4eb7569d8f7cfb91c
-  - 33257f4fa2a2e63478a510c193368f27
-  - f7ac38cdb15673e4bb3087990ef9dc42
-  - b19a15e30fcf6c84b99be2d8515c6dfe
-  - 27c523a40e3b8e54f8e38a6a064221c8
-  - 2a8db8698852e3041828005d9c90525c
-  - 6a82ff9c38ce4854b8c03d662335a01d
-  - 6855d2bf3b7e07f40bcf37f2bfce24c2
-  - d9da34afcce88fd44910d37498401611
-  - 3c3113530774c404cb11c272bfba797b
-  - f187a7de8fc187b4faa7bb4ba3275509
-  - e270b34c0d21af942b74806377b43c8d
+  referencedClips: []
   importAnimation: 1
   humanDescription:
     serializedVersion: 3
@@ -662,6 +649,7 @@ ModelImporter:
   avatarSetup: 0
   addHumanoidExtraRootOnlyWhenUsingAvatar: 0
   importBlendShapeDeformPercent: 0
+  remapMaterialsIfMaterialImportModeIsNone: 1
   additionalBone: 0
   userData: 
   assetBundleName: 

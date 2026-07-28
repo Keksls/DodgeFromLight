@@ -1,5 +1,4 @@
-﻿using DFLCommonNetwork.GameEngine;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class Keeper : Ennemy
@@ -11,8 +10,6 @@ public class Keeper : Ennemy
         Type = EnnemyType.Keeper;
         //Events.PlayerEndChangeCell += Events_PlayerEndChangeCell;
         Events_PlayerEndChangeCell(null, null);
-        ExcludedAwakening.Add(AwakeningType.Concentrate);
-        ExcludedAwakening.Add(AwakeningType.Hurry);
         if (TABase == 0)
             TABase = -9999;
         if (PO == 0)

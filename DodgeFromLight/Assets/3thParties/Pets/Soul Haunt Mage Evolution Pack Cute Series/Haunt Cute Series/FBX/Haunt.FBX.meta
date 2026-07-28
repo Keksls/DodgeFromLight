@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: 55b859da4e9e32742a786699c3c0e0e0
 ModelImporter:
-  serializedVersion: 22102
+  serializedVersion: 24200
   internalIDToNameTable: []
   externalObjects: {}
   materials:
@@ -16,8 +16,6 @@ ModelImporter:
     optimizeGameObjects: 0
     removeConstantScaleCurves: 0
     motionNodeName: 
-    rigImportErrors: 
-    rigImportWarnings: 
     animationImportErrors: 
     animationImportWarnings: 
     animationRetargetingWarnings: 
@@ -40,6 +38,7 @@ ModelImporter:
     addColliders: 0
     useSRGBMaterialColor: 1
     sortHierarchyByName: 1
+    importPhysicalCameras: 1
     importVisibility: 1
     importBlendShapes: 1
     importCameras: 1
@@ -57,6 +56,9 @@ ModelImporter:
     maxBonesPerVertex: 4
     minBoneWeight: 0.001
     optimizeBones: 1
+    generateMeshLods: 0
+    meshLodGenerationFlags: 0
+    maximumMeshLod: -1
     meshOptimizationFlags: -1
     indexFormat: 0
     secondaryUVAngleDistortion: 8
@@ -76,25 +78,7 @@ ModelImporter:
     legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
     blendShapeNormalImportMode: 1
     normalSmoothingSource: 0
-  referencedClips:
-  - 859139bb50de5ce48a4db67d27780239
-  - 9a1c50bcf84d7ff4e89a582cbe935b22
-  - 6cb6a5712332a284fa53a4b8434bf150
-  - c13969e4f3d6ff74687f8a75a2834a03
-  - 1435d055bc0030847bf6f2e55bef80f4
-  - 7f889acc472444045b6ce917591d0529
-  - 65de8c78a7d22e744a23f949bfe8b875
-  - 6127c6fc3db8447488c2605c3e5fcf34
-  - 20f526e350c728d4b99fd0563afb6d6a
-  - 81cb7c44868ace247bf2074de1fb3bf9
-  - 8e1bc063637b12d47bcfc794d5cfd0bf
-  - e659372eec5923840ac29a692c6d16f7
-  - e80077f4b8f77c0499a5330760943414
-  - 65c2dc9b03b06554aae23e1334ac51fe
-  - 47bac3fc014ffcc40a8508fbf4c792d6
-  - dcfbdead984d5d7429a991c1b87b08cb
-  - b14b89dfbabca4e4f81f6f3ab3c41bfd
-  - 2aba151078daecf488440274284fa5cd
+  referencedClips: []
   importAnimation: 1
   humanDescription:
     serializedVersion: 3
@@ -119,6 +103,7 @@ ModelImporter:
   avatarSetup: 0
   addHumanoidExtraRootOnlyWhenUsingAvatar: 1
   importBlendShapeDeformPercent: 0
+  remapMaterialsIfMaterialImportModeIsNone: 1
   additionalBone: 0
   userData: 
   assetBundleName: 

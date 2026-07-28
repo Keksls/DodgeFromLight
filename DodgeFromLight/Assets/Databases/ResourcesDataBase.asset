@@ -2486,7 +2486,7 @@ MonoBehaviour:
   - Texture: {fileID: 2800000, guid: 171fddd4625e8264a9013916e4ce15ef, type: 3}
     Prefab: {fileID: 2606270784468059294, guid: 1ee8b053b09201c449431542c8f376b3, type: 3}
     ID: SM_Prop_Tech_Crystal_01
-    Type: Hub
+    Type: Props
     UnWalkableCells:
     - X: 0
       Y: 0
@@ -2950,7 +2950,7 @@ MonoBehaviour:
   - Texture: {fileID: 2800000, guid: 181f7c0b468036c438c504c83be05ea6, type: 3}
     Prefab: {fileID: 8114858027254807521, guid: 6d582f982cb71e94a8298c612eefa250, type: 3}
     ID: Portal_Circle_A
-    Type: Hub
+    Type: Props
     UnWalkableCells:
     - X: 0
       Y: 0
@@ -2964,7 +2964,7 @@ MonoBehaviour:
   - Texture: {fileID: 2800000, guid: 49c9db82763cd694f8e7e5b387993782, type: 3}
     Prefab: {fileID: 3081488588485720246, guid: 618495e553d3b5a4f97c28c0adebdb5d, type: 3}
     ID: CraftingTable
-    Type: Hub
+    Type: Props
     UnWalkableCells:
     - X: 0
       Y: 0

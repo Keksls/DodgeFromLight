@@ -1,0 +1,22 @@
+{
+    "name": "DodgeFromLight.Core.Tests",
+    "rootNamespace": "DodgeFromLight.Tests",
+    "references": [
+        "DodgeFromLight.Core",
+        "DodgeFromLight.Infrastructure.Maps"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

@@ -1,4 +1,3 @@
-using DFLCommonNetwork.GameEngine;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -180,19 +179,19 @@ public class RewardData : ScriptableObject
 
     public bool HasRewards(int XP)
     {
-        return SaveManager.CurrentSave.OnlineLastReward < GetLevel(XP);
+        return SaveManager.CurrentSave.LastRewardLevel < GetLevel(XP);
     }
 
     public int GetNbPendingRewards(int XP)
     {
-        return GetLevel(XP) - SaveManager.CurrentSave.OnlineLastReward;
+        return GetLevel(XP) - SaveManager.CurrentSave.LastRewardLevel;
     }
 
     public List<RewardItem> GetPendingRewards(int XP)
     {
         List<RewardItem> rewards = new List<RewardItem>();
         int lvl = GetLevel(XP);
-        for (int i = SaveManager.CurrentSave.OnlineLastReward; i < lvl; i++)
+        for (int i = SaveManager.CurrentSave.LastRewardLevel; i < lvl; i++)
         {
             rewards.Add(GetRewardForLevel(i));
         }
@@ -280,9 +279,13 @@ public class RewardData : ScriptableObject
         return rewards;
     }
 
+    /// <summary>
+    /// Applies a pending progression reward to the local player save.
+    /// </summary>
     public void AcceptReward(RewardItem reward, short index, Action<bool, string> Callback)
     {
-        SaveManager.CurrentSave.OnlineLastReward = index;
+        // Apply the reward directly to the durable local save.
+        SaveManager.CurrentSave.LastRewardLevel = index;
         SkinType type = SkinType.Ornament;
         switch (reward.Type)
         {
@@ -295,7 +298,7 @@ public class RewardData : ScriptableObject
                 break;
         }
         SaveManager.Unlock(type, (short)reward.SkinID);
-        DFLClient.UnlockSkin(type, reward.SkinID, index, Callback);
+        Callback?.Invoke(true, string.Empty);
     }
 }
 

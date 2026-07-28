@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections;
 using UnityEngine.SceneManagement;
-using DFLCommonNetwork.GameEngine;
 
 public class GameManager : MonoBehaviour
 {
@@ -19,12 +18,6 @@ public class GameManager : MonoBehaviour
     [Range(0.0001f, 1f)]
     public float EntitiesMovementDuration = 0.1f;
     public System.Diagnostics.Stopwatch StopWatch = new System.Diagnostics.Stopwatch();
-
-    public GameObject VFXAwakeningCollector;
-    public GameObject VFXAwakeningConcentrate;
-    public GameObject VFXAwakeningDetermined;
-    public GameObject VFXAwakeningHurry;
-    public GameObject VFXAwakeningSplit;
 
     public GameObject GearPickupVFX;
     public GameObject CheckboxSaveVFX;
@@ -495,7 +488,7 @@ public class GameManager : MonoBehaviour
         {
             if (map == null)
             {
-                DodgeFromLight.SceneTransitions.LoadScene("Lobby");
+                DodgeFromLight.SceneTransitions.LoadScene("MainMenu");
             }
             else
             {
@@ -620,155 +613,71 @@ public class GameManager : MonoBehaviour
         SetGrid(false);
     }
 
+    /// <summary>
+    /// Advances the active tutorial or local map sequence.
+    /// </summary>
     public void NextMap()
     {
-        if (DodgeFromLight.CurrentRules.DiscoveryMode)
+        // Tutorial progression remains separate from authored local-map traversal.
+        if (DodgeFromLight.CurrentRules.Tutorial)
         {
-            NextDiscoveryMap();
-        }
-        else
-        {
-            if (DodgeFromLight.CurrentRules.Tutorial)
-            {
-                DodgeFromLight.TutorialController.FinishCurrentMap();
-                if (DodgeFromLight.TutorialController.HasFinishTutorial())
-                    FinishTutorial();
-                else
-                {
-                    DodgeFromLight.CurrentRules.NextGrid();
-                    SetGrid();
-                }
-            }
+            DodgeFromLight.TutorialController.FinishCurrentMap();
+            if (DodgeFromLight.TutorialController.HasFinishTutorial())
+                FinishTutorial();
             else
             {
                 DodgeFromLight.CurrentRules.NextGrid();
                 SetGrid();
             }
+
+            return;
         }
+
+        if (!DodgeFromLight.CurrentRules.Endless &&
+            DodgeFromLight.CurrentRules.CurrentGrid + 1 >= DodgeFromLight.CurrentRules.NbGrids)
+        {
+            // Finite local sessions return to the main menu after their last map.
+            InGameUI.Exit();
+            return;
+        }
+
+        DodgeFromLight.CurrentRules.NextGrid();
+        SetGrid();
     }
 
+    /// <summary>
+    /// Leaves gameplay after the final tutorial map.
+    /// </summary>
     public void FinishTutorial()
     {
+        // Reuse the standard local-session exit path.
         InGameUI.Exit();
     }
 
+    /// <summary>
+    /// Finalizes local progression after the player reaches a map exit.
+    /// </summary>
     IEnumerator EndOfGrid()
     {
-        bool saveScore = LastCheckPointReached == null;
+        // Complete local progression without any remote score or vote request.
         LastCheckPointReached = null;
         StopWatch.Stop();
-        bool saving = false;
-        if (!DodgeFromLight.CurrentMap.Map.IsFinished() &&
-            !DodgeFromLight.CurrentRules.DiscoveryMode &&
-            !DodgeFromLight.CurrentRules.Tutorial &&
-            DodgeFromLight.CurrentMap.Map.State != MapState.Locked)
+        if (!DodgeFromLight.CurrentRules.Tutorial &&
+            DodgeFromLight.CurrentMap?.Map != null)
         {
-            DodgeFromLight.CurrentMap.Map.AlreadyFinished = 0;
-            // finish map the first time, must save it
-            saving = true;
-            DodgeFromLight.UI_WorkerNotifier.Show("Saving map avancement");
-            DFLClient.UpdateFinishState(DodgeFromLight.CurrentMap.Map.ID, DodgeFromLight.CurrentMap.Map.AlreadyFinished, (res) =>
+            bool firstCompletion = !DodgeFromLight.CurrentMap.Map.IsFinished();
+            DodgeFromLight.CurrentMap.Map.AlreadyFinished = 1;
+            DodgeFromLight.CurrentMap.Map.SetState(MapState.Playable);
+            LocalMapRepository.UpdateMetadata(DodgeFromLight.CurrentMap.Map);
+            if (firstCompletion)
             {
-                saving = false;
-                DodgeFromLight.UI_WorkerNotifier.Hide();
-                if (res.Error)
-                    DodgeFromLight.UI_Notifications.Notify("Fail : " + res.APIResponse);
-            });
-        }
-        while (saving)
-            yield return null;
-
-        if (DFLClient.OnlineState == OnlineState.Online && DFLClient.LoginState == LoginState.LoggedIn && DodgeFromLight.CurrentMap.Map.State == MapState.Locked && saveScore)
-        {
-            DodgeFromLight.UI_WorkerNotifier.Show("Saving Score");
-            string gridID = DodgeFromLight.CurrentRules.DiscoveryMode ? DodgeFromLight.CurrentRules.DiscoveryMapID : DodgeFromLight.CurrentRules.GetCurrentGridID();
-            DFLClient.AddScore(gridID, StopWatch.ElapsedMilliseconds, NbTurn, (success, errorMess, winXp) =>
-            {
-                if (!success)
-                    DodgeFromLight.UI_Notifications.Notify(errorMess);
-                else if (winXp)
-                    DFLClient.AddXP(DodgeFromLight.Databases.RewardData.XPForFirstFinishingMap, (success, errorMess) =>
-                    {
-                        if (!success)
-                            DodgeFromLight.UI_Notifications.Notify(errorMess);
-                    });
-
-                if (DodgeFromLight.CurrentRules.DiscoveryMode)
-                {
-                    DFLClient.HasVote(gridID, DFLClient.CurrentUser.ID, (res, voted) =>
-                    {
-                        DodgeFromLight.UI_WorkerNotifier.Show("Getting Score");
-                        DFLClient.GetScores(gridID, 10, (res, scores) =>
-                        {
-                            InGameUI.ShowScores(scores, voted);
-                            DodgeFromLight.UI_WorkerNotifier.Hide();
-                        });
-                    });
-                }
-                else
-                {
-                    if (!DodgeFromLight.CurrentRules.DontShowScore)
-                    {
-                        DFLClient.HasVote(gridID, DFLClient.CurrentUser.ID, (success, voted) =>
-                        {
-                            DodgeFromLight.UI_WorkerNotifier.Show("Getting Score");
-                            DFLClient.GetScores(gridID, 10, (success, scores) =>
-                            {
-                                if (!success)
-                                {
-                                    Debug.Log("fail getting scores");
-                                    NextMap();
-                                }
-                                else
-                                    InGameUI.ShowScores(scores, voted);
-                                DodgeFromLight.UI_WorkerNotifier.Hide();
-                            });
-                        });
-                    }
-                    else
-                    {
-                        DodgeFromLight.UI_WorkerNotifier.Hide();
-                        NextMap();
-                    }
-                }
-            });
-        }
-        else
-        {
-            NextMap();
-        }
-    }
-
-    private void NextDiscoveryMap()
-    {
-        StopWatch.Reset();
-        NbTurn = 0;
-        DodgeFromLight.UI_WorkerNotifier.Show("Getting Discovery Map...");
-        DFLClient.GetDiscoveryMapID((res, id) =>
-        {
-            if (!res.Error)
-            {
-                DodgeFromLight.UI_WorkerNotifier.Show("Downloading Map...");
-                string mapPath = GridManager.Folder;
-                DFLClient.DownloadMap(id, mapPath, (res) =>
-                {
-                    if (!res.Error)
-                    {
-                        DodgeFromLight.CurrentRules = new GameRules().Discovery(id);
-                        DodgeFromLight.CurrentRules.DiscoveryMode = true;
-                        SetGrid();
-                    }
-                    else
-                        DodgeFromLight.UI_Notifications.Notify("Error downloading map.");
-                    DodgeFromLight.UI_WorkerNotifier.Hide();
-                });
+                SaveManager.AddExperience(
+                    DodgeFromLight.Databases.RewardData.XPForFirstFinishingMap);
             }
-            else
-            {
-                DodgeFromLight.UI_Notifications.Notify("Error getting discovery map");
-                DodgeFromLight.UI_WorkerNotifier.Hide();
-            }
-        });
+        }
+
+        yield return null;
+        NextMap();
     }
 
     public void WinGame()

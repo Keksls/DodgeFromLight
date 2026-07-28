@@ -117,7 +117,6 @@ public class EditorMapCreator : MonoBehaviour
         //                grid.Cells[x, y].FloorID = "EmptyTile3";
         //            }
         //        }
-        //    GridManager.SaveMap(new FullMap(grid, new Map("maze", grid.Width, grid.Height) { State = MapState.InWork }), mazePrev.EncodeToPNG());
         //}
     }
 

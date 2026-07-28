@@ -1,5 +1,4 @@
-﻿using DFLCommonNetwork.GameEngine;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class Trap : Ennemy
@@ -15,8 +14,6 @@ public class Trap : Ennemy
         Type = EnnemyType.Trap;
         base.Awake();
         CantWalkOnMe = true;
-        ExcludedAwakening.Add(AwakeningType.Concentrate);
-        ExcludedAwakening.Add(AwakeningType.Hurry);
         if (TABase == 0)
             TABase = -9999;
         if (PO == 0)

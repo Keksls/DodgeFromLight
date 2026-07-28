@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
-using DFLCommonNetwork.GameEngine;
 using System.Linq;
 using UnityEngine.EventSystems;
 using System.Collections;
@@ -22,7 +21,6 @@ public class UI_MapCreator : MonoBehaviour
     public Material SelectedMaterial;
     public GameObject UnwalkableFeedbackPrefab;
     public TextMeshProUGUI MapName;
-    // Lobby map vars
     public GameObject EnnemiesPanel;
     public GameObject CellsMechanicsPanel;
     // selected cell vars
@@ -43,7 +41,6 @@ public class UI_MapCreator : MonoBehaviour
     private Dictionary<ToolType, GameObject> ToolsButtons = new Dictionary<ToolType, GameObject>();
     private Dictionary<string, GameObject> MapDecoButtons = new Dictionary<string, GameObject>();
     private Color CurrentToolButtonBaseColor = Color.white;
-    private bool isHub = false;
     private RotateAndScale currentRotateAndScale = null;
 
     private void Awake()
@@ -72,68 +69,31 @@ public class UI_MapCreator : MonoBehaviour
             panel.SetActive(false);
     }
 
+    /// <summary>
+    /// Opens the current local workspace or creates a new authored map.
+    /// </summary>
     private void Start()
     {
+        // Continue the last local edit when possible so quitting never loses discoverability.
         PlayButton.gameObject.SetActive(true);
-        DodgeFromLight.UI_WorkerNotifier.Show("Loading Map...");
-        isHub = false;
-        if (PlayerPrefs.HasKey("CreateMapName"))
+        DodgeFromLight.UI_WorkerNotifier.Show("Loading map...");
+        if (GridManager.GetGrid() != null && GridManager.GetMap() != null)
         {
-            string mapName = PlayerPrefs.GetString("CreateMapName");
-            int width = (int)PlayerPrefs.GetFloat("CreateMapWidth");
-            int height = (int)PlayerPrefs.GetFloat("CreateMapHeight");
-            DodgeFromLight.CurrentMap = new FullMap(new Grid(width, height), new Map(mapName, width, height));
-            DodgeFromLight.CurrentMap.Grid.Environment = DodgeFromLight.EnvironmentController.GetBuildinEnvironment(BuildInEnvironments.Default);
-            UpdateMap();
-            DodgeFromLight.UI_WorkerNotifier.Show("Creating map...");
-            StartCoroutine(SaveMap(() =>
-            {
-                LoadMap();
-                DodgeFromLight.UI_WorkerNotifier.Hide();
-            }));
-            PlayerPrefs.DeleteKey("CreateMapName");
-            PlayerPrefs.DeleteKey("CreateMapWidth");
-            PlayerPrefs.DeleteKey("CreateMapHeight");
+            LoadMap();
+            return;
         }
-        else if (PlayerPrefs.HasKey("EditingHub"))
-        {
-            isHub = PlayerPrefs.GetInt("EditingHub") == 1;
-            if (isHub) // editing Hub, let's download it
-            {
-                PlayButton.gameObject.SetActive(false);
-                DFLClient.DownloadHub(DFLClient.CurrentUser.ID, (res) =>
-                {
-                    if (res.Error) // error getting hub
-                    {
-                        DodgeFromLight.UI_Notifications.Notify("Fail getting hub data");
-                        Debug.Log(res.APIResponse);
-                        LoadScene("Lobby");
-                        return;
-                    }
 
-                    Map map = new Map(DFLClient.CurrentUser.Name + "'s Personal Hub", 0, 0);
-                    GridManager.SaveMap(map);
-                    LoadMap();
-                });
-            }
-            else // editing not hub, map already downloaded
-                LoadMap();
-            PlayerPrefs.DeleteKey("EditingHub");
-        }
-        else
-        {
-
-            DodgeFromLight.CurrentMap = new FullMap(new Grid(8, 8), new Map("test", 8, 8));
-            DodgeFromLight.CurrentMap.Grid.Environment = DodgeFromLight.EnvironmentController.GetBuildinEnvironment(BuildInEnvironments.Default);
-            UpdateMap();
-            DodgeFromLight.UI_WorkerNotifier.Show("Creating map...");
-            StartCoroutine(SaveMap(() =>
-            {
-                LoadMap();
-                DodgeFromLight.UI_WorkerNotifier.Hide();
-            }));
-        }
-        LoadScene("Lobby");
+        const int defaultSize = 8;
+        var metadata = new Map("Untitled Map", defaultSize, defaultSize);
+        metadata.SetAuthor(SaveManager.CurrentSave.DisplayName);
+        DodgeFromLight.CurrentMap = new FullMap(
+            new Grid(defaultSize, defaultSize),
+            metadata);
+        DodgeFromLight.CurrentMap.Grid.Environment =
+            DodgeFromLight.EnvironmentController.GetBuildinEnvironment(
+                BuildInEnvironments.Default);
+        UpdateMap();
+        StartCoroutine(SaveMap(LoadMap));
     }
 
     private void Update()
@@ -334,8 +294,6 @@ public class UI_MapCreator : MonoBehaviour
         var resData = DodgeFromLight.Databases.ResourcesData;
         foreach (string type in resData.Types)
         {
-            if (type == "Hub" && !DodgeFromLight.CurrentMap.Grid.LobbyMap)
-                continue;
             if (type != "Excluded" && !string.IsNullOrEmpty(type))
                 DrawDecor(DodgeFromLight.Databases.ResourcesData.GetDataForType(type), type);
         }
@@ -717,11 +675,11 @@ public class UI_MapCreator : MonoBehaviour
         if (selectedCell != null && cell.GetCellPos().Equals(selectedCell.GetCellPos()))
             return;
 
-        if (cell.Type == CellType.Walkable && string.IsNullOrEmpty(cell.ElementID) && !cell.HasElement && !DodgeFromLight.CurrentMap.Grid.LobbyMap)
+        if (cell.Type == CellType.Walkable && string.IsNullOrEmpty(cell.ElementID) && !cell.HasElement)
             GearsPanel.SetActive(true);
         else
             GearsPanel.SetActive(false);
-        if (cell != null && cell.EntityOnCell != null && cell.EntityOnCell is Ennemy && !DodgeFromLight.CurrentMap.Grid.LobbyMap)
+        if (cell != null && cell.EntityOnCell != null && cell.EntityOnCell is Ennemy)
             EnnemyPanel.SetActive(true);
         else
             EnnemyPanel.SetActive(false);
@@ -952,138 +910,98 @@ public class UI_MapCreator : MonoBehaviour
     #endregion
 
     #region Load, Save & Play
-    public IEnumerator LockMap()
-    {
-        while (true)
-        {
-            yield return new WaitForSeconds(90f);
-            DFLClient.WorkOnMap(DodgeFromLight.CurrentMap.Map.ID, (res, ok) =>
-            {
-                if (res.Error || !ok)
-                    Debug.Log(res.APIResponse);
-            });
-        }
-    }
-
+    /// <summary>
+    /// Prompts the author to save before leaving the editor.
+    /// </summary>
     public void Close()
     {
+        // Both exit paths are now entirely local and return to the main menu.
         DodgeFromLight.UI_Modal.SetTitle("Save before quit")
                 .SetButtonRight("Save and Quit", () =>
                 {
                     StartCoroutine(SaveMap(() =>
                     {
                         DodgeFromLight.GridController.ClearGrid();
-                        StartCoroutine(LoadScene("Lobby"));
+                        StartCoroutine(LoadScene("MainMenu"));
                     }));
                 })
                 .SetButtonLeft("Quit without saving", () =>
                 {
                     DodgeFromLight.GridController.ClearGrid();
-                    StartCoroutine(LoadScene("Lobby"));
+                    StartCoroutine(LoadScene("MainMenu"));
                 })
                 .Show("You are going to quit the current map. Do you want to save your unsaved work before ?");
     }
 
-    IEnumerator LoadScene(string SceneName)
+    /// <summary>
+    /// Clears editor runtime state and loads another local scene.
+    /// </summary>
+    private IEnumerator LoadScene(string sceneName)
     {
+        // No remote lock needs to be released for a local authored map.
         ClearFeedbacks();
         PoolManager.Instance.PushBackAllPool(PoolName.POCell);
         yield return null;
-        // unlock map if working on
-        DodgeFromLight.UI_WorkerNotifier.Show("Unlocking Map");
-        DFLClient.StopWorkingOnMap(DodgeFromLight.CurrentMap.Map.ID, (res, unlocked) =>
-        {
-            if (res.Error)
-                DodgeFromLight.UI_Notifications.Notify("Error unlocking map. Please wait 2 min to auto unlock.");
-            DodgeFromLight.UI_WorkerNotifier.Hide();
 
-            if (DodgeFromLight.GameManager != null)
-            {
-                Destroy(DodgeFromLight.GameManager.gameObject);
-                Destroy(DodgeFromLight.GameManager);
-                DodgeFromLight.GameManager = null;
-            }
-            DodgeFromLight.SceneTransitions.LoadScene(SceneName);
-        });
+        if (DodgeFromLight.GameManager != null)
+        {
+            Destroy(DodgeFromLight.GameManager.gameObject);
+            Destroy(DodgeFromLight.GameManager);
+            DodgeFromLight.GameManager = null;
+        }
+
+        DodgeFromLight.UI_WorkerNotifier.Hide();
+        DodgeFromLight.SceneTransitions.LoadScene(sceneName);
     }
 
+    /// <summary>
+    /// Loads the active local workspace into the map editor.
+    /// </summary>
     public void LoadMap()
     {
+        // Rebuild the authored grid and all editor panels from local disk data.
         UndoableActionsManager.Clear();
         DodgeFromLight.CurrentMap = GridManager.GetFullMap();
         UpdateMap();
         ValidateGrid();
         CameraOrbit.Instance.targetPos = new Vector3((float)DodgeFromLight.CurrentMap.Grid.Width * 0.5f, 1f, (float)DodgeFromLight.CurrentMap.Grid.Height * 0.5f);
         CameraOrbit.Instance.forceUpdate = true;
-        if (DodgeFromLight.CurrentMap.Grid.LobbyMap)
-        {
-            EnnemiesPanel.SetActive(false);
-            CellsMechanicsPanel.SetActive(false);
-        }
-        else
-        {
-            EnnemiesPanel.SetActive(true);
-            CellsMechanicsPanel.SetActive(true);
-        }
+        EnnemiesPanel.SetActive(true);
+        CellsMechanicsPanel.SetActive(true);
         MapName.text = DodgeFromLight.CurrentMap.Map.Name;
-        StartCoroutine(LockMap());
         SetTool(ToolType.Select);
         BindDecoTools();
         UnSelectCell();
         UI_EnvironmentSettings.BindEnvironment(DodgeFromLight.CurrentMap.Grid.GetEnvironment());
         DodgeFromLight.UI_WorkerNotifier.Hide();
-        DFLClient.SetState(PlayerState.InMapCreator);
     }
 
+    /// <summary>
+    /// Saves the current authored map and preview to the local map library.
+    /// </summary>
     public IEnumerator SaveMap(Action callback = null)
     {
+        // Capture the preview before serializing the same workspace used by playtests.
         Canvas.gameObject.SetActive(false);
         DodgeFromLight.UI_WorkerNotifier.Show("Saving Map");
         yield return StartCoroutine(ScreenShotItems((bytes) =>
         {
-            bool saveFinishState = DodgeFromLight.CurrentMap.Map.AlreadyFinished != 0;
             DodgeFromLight.CurrentMap.Map.AlreadyFinished = 0;
-            GridManager.SaveFullMap(DodgeFromLight.CurrentMap, bytes);
+            DodgeFromLight.CurrentMap.Map.SetState(MapState.Draft);
+            LocalMapRepository.Save(DodgeFromLight.CurrentMap, bytes);
             UpdateMap();
-
-            // Save Hub
-            if (isHub)
-            {
-                DodgeFromLight.UI_WorkerNotifier.Show("Updating Hub");
-                DFLClient.UploadHub((res) =>
-                {
-                    Canvas.gameObject.SetActive(true);
-                    if (res.Error)
-                        DodgeFromLight.UI_Notifications.Notify(res.APIResponse);
-                    DodgeFromLight.UI_WorkerNotifier.Hide();
-                });
-            }
-            else // Save Map
-            {
-                DodgeFromLight.UI_WorkerNotifier.Show("Updating Map");
-                DFLClient.UploadMap(DodgeFromLight.CurrentMap.Map.ID, (res) =>
-                {
-                    Canvas.gameObject.SetActive(true);
-                    if (res.Error)
-                        Debug.Log(res.APIResponse);
-                    if (saveFinishState)
-                    {
-                        DodgeFromLight.UI_WorkerNotifier.Show("Saving state");
-                        DFLClient.UpdateFinishState(DodgeFromLight.CurrentMap.Map.ID, DodgeFromLight.CurrentMap.Map.AlreadyFinished, (res) =>
-                        {
-                            DodgeFromLight.UI_WorkerNotifier.Hide();
-                        });
-                    }
-                    else
-                        DodgeFromLight.UI_WorkerNotifier.Hide();
-                });
-            }
+            Canvas.gameObject.SetActive(true);
+            DodgeFromLight.UI_WorkerNotifier.Hide();
             callback?.Invoke();
         }));
     }
 
-    IEnumerator ScreenShotItems(Action<byte[]> Callback)
+    /// <summary>
+    /// Captures a square preview of the authored map.
+    /// </summary>
+    private IEnumerator ScreenShotItems(Action<byte[]> callback)
     {
+        // Render from the dedicated orthographic preview camera.
         Camera cam = ScreenshotCamera;
         cam.gameObject.SetActive(true);
         int maxSize = Mathf.Max(DodgeFromLight.CurrentMap.Grid.Width, DodgeFromLight.CurrentMap.Grid.Height);
@@ -1110,59 +1028,24 @@ public class UI_MapCreator : MonoBehaviour
         Destroy(rt);
         byte[] bytes = screenShot.EncodeToPNG();
         cam.gameObject.SetActive(false);
-        Callback(bytes);
+        callback(bytes);
     }
 
+    /// <summary>
+    /// Saves and launches the current map as a local playtest.
+    /// </summary>
     public void PlayMap()
     {
-        DodgeFromLight.UI_WorkerNotifier.Show("Getting Map");
-        GridManager.CleanFolder();
-        DFLClient.DownloadMap(DodgeFromLight.CurrentMap.Map.ID, GridManager.Folder, (res) =>
+        // Mark the session so leaving gameplay returns directly to the editor.
+        StartCoroutine(SaveMap(() =>
         {
-            if (res.Error)
-                DodgeFromLight.UI_Notifications.Notify("error getting map");
-            else
-            {
-                DodgeFromLight.CurrentRules = new GameRules(true, false, DodgeFromLight.CurrentMap.Map.ID);
-                StartCoroutine(LoadScene("Main"));
-            }
-        });
-        DodgeFromLight.UI_WorkerNotifier.Hide();
+            PlayerPrefs.SetInt("ForceGrid", 1);
+            DodgeFromLight.CurrentRules = new GameRules(
+                false,
+                false,
+                DodgeFromLight.CurrentMap.Map.ID);
+            StartCoroutine(LoadScene("Main"));
+        }));
     }
     #endregion
-}
-
-public enum ToolType
-{
-    Cyclops = 0,
-    Gloutton = 1,
-    Keeper = 2,
-    Knight = 3,
-    Scoute = 4,
-    Trap = 5,
-    Lizardman = 6,
-    Thunderbird = 7,
-    Axe = 8,
-    Hammer = 9,
-    Catapult = 10,
-    Pillar = 11,
-
-    Select = 99,
-    Walkable = 100,
-    UnWalkable = 110,
-    Start = 120,
-    End = 130,
-    CheckPoint = 200,
-
-    Path = 150,
-
-    TP = 160,
-    Collapsable = 170,
-    FlipACoin = 180,
-    Spring = 210,
-    Bombe = 220,
-    Needle = 230,
-    MovingPlatform = 240,
-
-    MapDeco = 190
 }

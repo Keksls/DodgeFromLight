@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
-using DFLCommonNetwork.GameEngine;
 
 public class UI_PlayerInfos : MonoBehaviour
 {
@@ -21,8 +20,7 @@ public class UI_PlayerInfos : MonoBehaviour
         Events.SaveUpdated -= Events_SaveUpdated;
         Events.SaveUpdated += Events_SaveUpdated;
 
-        if (DFLClient.LoginState == LoginState.LoggedIn)
-            UpdatePlayerInfos();
+        UpdatePlayerInfos();
     }
 
     private void Events_SaveUpdated()
@@ -44,22 +42,22 @@ public class UI_PlayerInfos : MonoBehaviour
     public void UpdatePlayerInfos()
     {
         // set slider avancement
-        int currentLvl = DodgeFromLight.Databases.RewardData.GetLevel(SaveManager.CurrentSave.XP);
-        float xp = SaveManager.CurrentSave.XP;
+        int currentLvl = DodgeFromLight.Databases.RewardData.GetLevel(SaveManager.CurrentSave.Experience);
+        float xp = SaveManager.CurrentSave.Experience;
         float startXp = DodgeFromLight.Databases.RewardData.GetXpForLevel(currentLvl);
         float nextXp = DodgeFromLight.Databases.RewardData.GetXpForLevel(currentLvl + 1);
         StopAllCoroutines();
         StartCoroutine(AnimateXpSlider((xp - startXp) / (nextXp - startXp)));
 
         // display rewards button
-        if (DodgeFromLight.Databases.RewardData.HasRewards(SaveManager.CurrentSave.XP))
+        if (DodgeFromLight.Databases.RewardData.HasRewards(SaveManager.CurrentSave.Experience))
             BtnPendingRewards.gameObject.SetActive(true);
         else
             BtnPendingRewards.gameObject.SetActive(false);
 
         // set texts
         LvlText.text = "Lvl " + currentLvl;
-        NameText.text = DFLClient.CurrentUser.Name;
+        NameText.text = SaveManager.CurrentSave.DisplayName;
         NameText.colorGradient = DodgeFromLight.Databases.OrnamentData.GetOrnamentData(SaveManager.CurrentSave.GetCurrentPart(SkinType.Ornament)).TextColor;
         NameText.gameObject.GetComponent<AnimateTextGradient>().Initialize();
 
@@ -93,8 +91,8 @@ public class UI_PlayerInfos : MonoBehaviour
         UITooltipSetter xpTP = XPSlider.gameObject.AddComponent<UITooltipSetter>();
         xpTP.MessageFunc = () =>
         {
-            int currentLvl = DodgeFromLight.Databases.RewardData.GetLevel(SaveManager.CurrentSave.XP);
-            float xp = SaveManager.CurrentSave.XP;
+            int currentLvl = DodgeFromLight.Databases.RewardData.GetLevel(SaveManager.CurrentSave.Experience);
+            float xp = SaveManager.CurrentSave.Experience;
             float startXp = DodgeFromLight.Databases.RewardData.GetXpForLevel(currentLvl);
             float nextXp = DodgeFromLight.Databases.RewardData.GetXpForLevel(currentLvl + 1);
             float percent = (xp - startXp) / (nextXp - startXp) * 100f;
@@ -104,8 +102,8 @@ public class UI_PlayerInfos : MonoBehaviour
         UITooltipSetter pendingRewardsTP = BtnPendingRewards.gameObject.AddComponent<UITooltipSetter>();
         pendingRewardsTP.MessageFunc = () =>
         {
-            if (DodgeFromLight.Databases.RewardData.HasRewards(SaveManager.CurrentSave.XP))
-                return DodgeFromLight.Databases.RewardData.GetNbPendingRewards(SaveManager.CurrentSave.XP) + " Pending Rewards";
+            if (DodgeFromLight.Databases.RewardData.HasRewards(SaveManager.CurrentSave.Experience))
+                return DodgeFromLight.Databases.RewardData.GetNbPendingRewards(SaveManager.CurrentSave.Experience) + " Pending Rewards";
             else
                 return "No pending rewards";
         };

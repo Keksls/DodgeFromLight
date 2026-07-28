@@ -1,4 +1,3 @@
-using DFLCommonNetwork.GameEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -200,7 +199,6 @@ public class UI_Inventory : MonoBehaviour
 
     private void OnDisable()
     {
-        LobbyManager.Instance.StopForceOrnamentEnabled();
         Events.SaveGetted -= Events_SaveGetted;
     }
 
@@ -273,7 +271,6 @@ public class UI_Inventory : MonoBehaviour
         Title.text = GetTitle(types[0]);
         OrnamentPanel.SetActive(false);
         ItemsPanel.SetActive(true);
-        LobbyManager.Instance.StopForceOrnamentEnabled();
         // unselect last item button
         foreach (var type in currentSelectedSkins)
             if (dicItemsButtons.ContainsKey(type))
@@ -344,7 +341,6 @@ public class UI_Inventory : MonoBehaviour
                     selectedItemsGO.Remove(type);
                 }
                 SaveManager.SetCurrentPart(type, -1);
-                DFLClient.EquipSkin(type, -1);
             }
             else
             {
@@ -361,7 +357,6 @@ public class UI_Inventory : MonoBehaviour
                                 selectedItemsGO.Remove(disablingType);
                             }
                             SaveManager.SetCurrentPart(disablingType, -1);
-                            DFLClient.EquipSkin(disablingType, -1);
                         }
                     }
                 }
@@ -372,7 +367,6 @@ public class UI_Inventory : MonoBehaviour
                 selectedItemsGO[type] = item;
                 SaveManager.SetCurrentPart(type, id);
                 item.transform.GetChild(2).GetComponent<Image>().color = SelectedItemColor;
-                DFLClient.EquipSkin(type, id);
             }
         });
         if (SaveManager.CurrentSave.GetCurrentPart(type) == id)
@@ -396,7 +390,6 @@ public class UI_Inventory : MonoBehaviour
             if (dicItemsButtons.ContainsKey(type))
                 dicItemsButtons[type].GetComponent<Image>().color = UnselectedItemButtonColor;
         currentSelectedSkins = new SkinType[1] { SkinType.Ornament };
-        LobbyManager.Instance.StartForceOrnamentEnabled();
         OrnamentPanel.SetActive(true);
         ItemsPanel.SetActive(false);
         foreach (Transform t in OrnamentsContainer)
@@ -405,7 +398,7 @@ public class UI_Inventory : MonoBehaviour
         foreach (short id in SaveManager.CurrentSave.GetUnlocked(SkinType.Ornament))
         {
             GameObject ornament = Instantiate(ornamentItemPrefab);
-            GameObject ornamentInner = DodgeFromLight.Databases.OrnamentData.GetOrnament(id, DFLClient.CurrentUser.Name);
+            GameObject ornamentInner = DodgeFromLight.Databases.OrnamentData.GetOrnament(id, SaveManager.CurrentSave.DisplayName);
             ornament.transform.SetParent(OrnamentsContainer.transform, false);
             ornamentInner.GetComponent<RectTransform>().SetAndStretchParent(ornament.GetComponent<RectTransform>());
 
@@ -416,16 +409,8 @@ public class UI_Inventory : MonoBehaviour
 
             ornament.GetComponentInChildren<Button>().onClick.AddListener(() =>
             {
-                if (DFLClient.OnlineState == OnlineState.Online && DFLClient.LoginState == LoginState.LoggedIn)
-                {
-                    SaveManager.CurrentSave.SetCurrentPart(SkinType.Ornament, id);
-                    DFLClient.EquipSkin(SkinType.Ornament, id);
-                }
-                else
-                {
-                    SaveManager.CurrentSave.SetCurrentPart(SkinType.Ornament, id);
-                    BindOrnaments();
-                }
+                SaveManager.SetCurrentPart(SkinType.Ornament, id);
+                BindOrnaments();
             });
         }
 
