@@ -1188,7 +1188,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6721637483642289527, guid: 14280cf11ff77fb49a57e881810a0ac3, type: 3}
       propertyPath: m_text
-      value: Back to Hub
+      value: Back to Main Menu
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_AddedGameObjects: []

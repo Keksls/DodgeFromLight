@@ -49,16 +49,12 @@
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.4.11f1\Editor\Data\Tools\BuildPipeline\Unity.SourceGenerators\Unity.UIToolkit.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\UI\UI Elements\MenuBar\UI_MenuBar.cs" />
-    <Compile Include="Assets\Scripts\Network\DFLClient_Controller.cs" />
     <Compile Include="Assets\UI\UI Elements\MapCreator\UI_EnvironmentButton.cs" />
     <Compile Include="Assets\Scripts\GameEngine\GameRules.cs" />
-    <Compile Include="Assets\UI\UI Elements\MapStar\UI_MapStar.cs" />
     <Compile Include="Assets\Scripts\RotateAndScale.cs" />
     <Compile Include="Assets\Scripts\UI\UI_Notifications.cs" />
     <Compile Include="Assets\Scripts\GameEngine\Ennemies\Thunderbird.cs" />
     <Compile Include="Assets\Plugins\Demigiant\DOTween\Modules\DOTweenModuleUtils.cs" />
-    <Compile Include="Assets\UI\UI Elements\MapInfos\UIMapInfo.cs" />
     <Compile Include="Assets\UI\HSVPicker\UtilityScripts\HSVUtil.cs" />
     <Compile Include="Assets\Cursors\CursorManager.cs" />
     <Compile Include="Assets\UI\HSVPicker\Enums\ColorValues.cs" />
@@ -66,11 +62,9 @@
     <Compile Include="Assets\UI\Scripts\UINavigation.cs" />
     <Compile Include="Assets\Scripts\GridManager.cs" />
     <Compile Include="Assets\Plugins\Demigiant\DOTween\Modules\DOTweenModuleAudio.cs" />
-    <Compile Include="Assets\UI\UI Elements\LobbyManager\LobbyManager.cs" />
     <Compile Include="Assets\UI\HSVPicker\UI\ColorImage.cs" />
     <Compile Include="Assets\Scripts\GameEngine\Ennemies\Scoute.cs" />
     <Compile Include="Assets\UI\HSVPicker\UI\ColorPresetManager.cs" />
-    <Compile Include="Assets\Scripts\Player\LobbyPlayer_Controller.cs" />
     <Compile Include="Assets\Scripts\GameEngine\Ennemies\Catapult.cs" />
     <Compile Include="Assets\Scripts\CharacterCameraController.cs" />
     <Compile Include="Assets\Scripts\PoolManager.cs" />
@@ -84,7 +78,6 @@
     <Compile Include="Assets\Scripts\CampaignManager.cs" />
     <Compile Include="Assets\VFX\Cartoon FX\Scripts\CFX_LightIntensityFade.cs" />
     <Compile Include="Assets\Scripts\Theme.cs" />
-    <Compile Include="Assets\UI\UI Elements\Console\UI_Console.cs" />
     <Compile Include="Assets\UI\Scripts\UI_TabMenu.cs" />
     <Compile Include="Assets\Scripts\Databases\WeaponData.cs" />
     <Compile Include="Assets\Entities Models\Enemies\Catapult\CatapultController.cs" />
@@ -92,7 +85,6 @@
     <Compile Include="Assets\VFX\Cartoon FX\Scripts\CFX_AutoRotate.cs" />
     <Compile Include="Assets\VFX\Cartoon FX\Scripts\CFX_AutoDestructShuriken.cs" />
     <Compile Include="Assets\Scripts\GameEngine\InterractibleObjects\MovingPlatform.cs" />
-    <Compile Include="Assets\Scripts\UI\GamePreparationUI.cs" />
     <Compile Include="Assets\Scripts\GameEngine\Grid.cs" />
     <Compile Include="Assets\Scripts\GameEngine\Domain\Orientation.cs" />
     <Compile Include="Assets\Scripts\GameEngine\Ennemies\Keeper.cs" />
@@ -100,7 +92,6 @@
     <Compile Include="Assets\Plugins\Demigiant\DOTween\Modules\DOTweenModulePhysics2D.cs" />
     <Compile Include="Assets\Scripts\GameEngine\Ennemies\Knight.cs" />
     <Compile Include="Assets\Scripts\GameEngine\Ennemies\Axe.cs" />
-    <Compile Include="Assets\UI\UI Elements\LobbyInfos\UI_LobbyInfos.cs" />
     <Compile Include="Assets\VFX\Cartoon FX\Demo\Assets\CFX_Demo_Translate.cs" />
     <Compile Include="Assets\UI\Scripts\FlexibleResizeHandler.cs" />
     <Compile Include="Assets\Scripts\GameEvents.cs" />
@@ -119,14 +110,12 @@
     <Compile Include="Assets\Scripts\LookatCamera.cs" />
     <Compile Include="Assets\Scripts\Databases\RewardData.cs" />
     <Compile Include="Assets\UI\HSVPicker\UI\ColorPickerSetup.cs" />
-    <Compile Include="Assets\UI\UI Elements\GameUI\UI_Game.cs" />
     <Compile Include="Assets\Scripts\Databases\CellPOData.cs" />
     <Compile Include="Assets\Scripts\MapCreator\EditorMapCreator.cs" />
     <Compile Include="Assets\UI\HSVPicker\UI\ColorLabel.cs" />
     <Compile Include="Assets\Scripts\GameEngine\Ennemies\Trap.cs" />
     <Compile Include="Assets\Scripts\EnvironmentController.cs" />
     <Compile Include="Assets\Scripts\GameEngine\Gears\Mirror.cs" />
-    <Compile Include="Assets\Scripts\UI\UI_Loggin.cs" />
     <Compile Include="Assets\UI\Scripts\UI_CarouselView.cs" />
     <Compile Include="Assets\UI\UI Elements\MapCreator\ToolType.cs" />
     <Compile Include="Assets\UI\ornament\AnimateTextGradient.cs" />
@@ -138,7 +127,6 @@
     <Compile Include="Assets\Scripts\GameEngine\Gears\Grapple.cs" />
     <Compile Include="Assets\Scripts\MapCreator\CameraOrbit.cs" />
     <Compile Include="Assets\Scripts\POCellController.cs" />
-    <Compile Include="Assets\UI\UI Elements\Social\UI_Social.cs" />
     <Compile Include="Assets\VFX\Cartoon FX\Demo\Assets\CFX_Demo_RotateCamera.cs" />
     <Compile Include="Assets\Plugins\Demigiant\DOTween\Modules\DOTweenModulePhysics.cs" />
     <Compile Include="Assets\UI\Scripts\FlexibleDraggableObject.cs" />
@@ -148,7 +136,6 @@
     <Compile Include="Assets\Scripts\Databases\OrnamentData.cs" />
     <Compile Include="Assets\Scripts\GameEngine\Ennemy.cs" />
     <Compile Include="Assets\Scripts\GameEngine\Domain\PlayerSave.cs" />
-    <Compile Include="Assets\UI\Scripts\UI_ButtonMapStar.cs" />
     <Compile Include="Assets\Scripts\GameEngine\Domain\SkinType.cs" />
     <Compile Include="Assets\UI\Scripts\UIToggle.cs" />
     <Compile Include="Assets\Scripts\GameEngine\Domain\CellPos.cs" />
@@ -161,14 +148,12 @@
     <Compile Include="Assets\Plugins\Demigiant\DOTween\Modules\DOTweenModuleSprite.cs" />
     <Compile Include="Assets\Scripts\HoverableMapObject.cs" />
     <Compile Include="Assets\Scripts\GameEngine\Traps\Needle.cs" />
-    <Compile Include="Assets\UI\UI Elements\MapStar\MapStartList\UI_MapStarItem.cs" />
     <Compile Include="Assets\UI\HSVPicker\UI\ColorSlider.cs" />
     <Compile Include="Assets\VFX\Cartoon FX\Demo\Assets\CFX_Demo_New.cs" />
     <Compile Include="Assets\Scripts\GameEngine\Ennemies\Pillar.cs" />
     <Compile Include="Assets\Scripts\GameEngine\Domain\Map.cs" />
     <Compile Include="Assets\Scripts\GameEngine\Domain\MapState.cs" />
     <Compile Include="Assets\Scripts\GameEngine\Entity.cs" />
-    <Compile Include="Assets\UI\UI Elements\ServerMaps\UI_ServerMap.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerPreparation.cs" />
     <Compile Include="Assets\Scripts\GameEngine\Gears\Gear.cs" />
     <Compile Include="Assets\Plugins\Demigiant\DOTween\Modules\DOTweenModuleUI.cs" />
@@ -177,7 +162,6 @@
     <Compile Include="Assets\Scripts\GameEngine\Cell.cs" />
     <Compile Include="Assets\UI\Scripts\UI_PointerHoverAnimations.cs" />
     <Compile Include="Assets\Scripts\GridController.cs" />
-    <Compile Include="Assets\Scripts\AutoConnect.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerSkinPartContainer.cs" />
     <Compile Include="Assets\3thParties\Pets\DefaultPet\StoneMonster\Script\Animation_Test.cs" />
     <Compile Include="Assets\Scripts\SceneTransitions.cs" />
@@ -197,7 +181,6 @@
     <Compile Include="Assets\Scripts\FPSOnGUIText.cs" />
     <Compile Include="Assets\Scripts\UI\ContextMenuable.cs" />
     <Compile Include="Assets\VFX\Cartoon FX\Demo\Assets\CFX_AutoStopLoopedEffect.cs" />
-    <Compile Include="Assets\UI\UI Elements\LocalMaps\MapsController.cs" />
     <Compile Include="Assets\Scripts\GameEngine\Ennemies\Lizardman.cs" />
     <Compile Include="Assets\Scripts\GameEngine\Gears\Bomb.cs" />
     <Compile Include="Assets\Scripts\Databases\CampaingData.cs" />
@@ -219,7 +202,6 @@
     <Compile Include="Assets\Scripts\Utils.cs" />
     <Compile Include="Assets\UI\Scripts\UI_Collapsable.cs" />
     <Compile Include="Assets\Scripts\UI\UIHelper.cs" />
-    <Compile Include="Assets\UI\UI Elements\MenuBar\UI_MenuBarItem.cs" />
     <Compile Include="Assets\Scripts\GameEngine\Ennemies\Hamer.cs" />
     <Compile Include="Assets\Scripts\DodgeFromLight.cs" />
     <Compile Include="Assets\UI\HSVPicker\Events\HSVChangedEvent.cs" />
