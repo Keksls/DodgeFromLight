@@ -33,7 +33,7 @@ public static class LocalGameSessionFactory
                 "No tutorial or local map is available for direct gameplay.");
         }
 
-        // Replaying built-in content keeps direct startup functional before a local map exists.
-        return new GameRules().SetTutorial(tutorialReplay);
+        // Replay the complete built-in sequence without advancing finished save progression.
+        return new GameRules().SetTutorial(tutorialReplay, false);
     }
 }

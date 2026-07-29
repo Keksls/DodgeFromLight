@@ -10,6 +10,7 @@ public sealed class GameRules
     public bool Endless;
     public bool Random;
     public bool Tutorial;
+    public bool TracksTutorialProgress { get; private set; }
     public List<string> Grids { get; private set; }
     public int CurrentGrid { get; private set; }
     public int NbGrids => Grids.Count;
@@ -52,6 +53,7 @@ public sealed class GameRules
         Endless = endless;
         Random = random;
         Tutorial = false;
+        TracksTutorialProgress = false;
         CurrentGrid = 0;
     }
 
@@ -63,18 +65,22 @@ public sealed class GameRules
         // Reset traversal when a new authored sequence is selected.
         Grids = grids == null ? new List<string>() : new List<string>(grids);
         CurrentGrid = 0;
+        TracksTutorialProgress = false;
         return this;
     }
 
     /// <summary>
-    /// Configures a finite ordered tutorial session.
+    /// Configures a finite ordered tutorial session and its persistence behavior.
     /// </summary>
-    public GameRules SetTutorial(List<string> gridFolders)
+    public GameRules SetTutorial(
+        List<string> gridFolders,
+        bool trackProgress = true)
     {
         // Tutorial identifiers resolve inside the built-in StreamingAssets folder.
         SetGrids(gridFolders);
         Random = false;
         Tutorial = true;
+        TracksTutorialProgress = trackProgress;
         Endless = false;
         return this;
     }

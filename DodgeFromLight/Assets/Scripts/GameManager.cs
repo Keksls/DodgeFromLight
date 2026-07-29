@@ -61,7 +61,8 @@ public class GameManager : MonoBehaviour
     private CoreGridPosition? pendingCoreCheckpoint;
     private bool coreCommandRunning;
     private bool wasTimerRunningBeforePause;
-    private GameObject coreAnchorView;
+    private GameObject coreGrappleView;
+    private CoreWeaponAnchorPresenter coreWeaponAnchorPresenter;
 
     public bool UsesCoreSimulation => coreState != null;
 
@@ -106,7 +107,9 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void OnDestroy()
     {
-        // Pool readiness is the only external lifecycle subscription owned here.
+        // Release transient views and the only external lifecycle subscription owned here.
+        DestroyCoreGrappleView();
+        ClearCoreWeaponAnchorPresentation();
         PoolManager.OnPoolingReady -= PoolManager_OnPoolingReady;
     }
 
@@ -330,7 +333,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void ExecuteCoreCommand(PlayerCommand command)
     {
-        // The simulation resolves synchronously; views consume only the returned facts.
+        // Resolve immediately, then let presentation consume the ordered event facts.
         if (!UsesCoreSimulation || coreCommandRunning || command == null)
             return;
 
@@ -346,13 +349,384 @@ public class GameManager : MonoBehaviour
         StartTimer();
         coreState = result.State;
         NbTurn = coreState.TurnIndex;
-        ApplyCoreState(result.Events);
+        StartCoroutine(PresentCoreCommand(result.Events));
+    }
+
+    /// <summary>
+    /// Presents an accepted core command before synchronizing every resolved view.
+    /// </summary>
+    private IEnumerator PresentCoreCommand(
+        IReadOnlyList<SimulationEvent> events)
+    {
+        // Player events provide the exact authored route without returning authority to views.
+        foreach (var simulationEvent in events)
+            yield return PresentCorePlayerEvent(simulationEvent);
+
+        ApplyCoreState(events);
         coreCommandRunning = false;
 
         if (coreState.Status == SimulationStatus.Lost)
             StartCoroutine(RestartCoreAfterDefeat());
         else if (coreState.Status == SimulationStatus.Won)
             PlayerReachEnd();
+    }
+
+    /// <summary>
+    /// Presents one player-related simulation event with its matching motion language.
+    /// </summary>
+    private IEnumerator PresentCorePlayerEvent(
+        SimulationEvent simulationEvent)
+    {
+        // Non-player facts remain available to their dedicated view synchronizers.
+        switch (simulationEvent.Type)
+        {
+            case SimulationEventType.PlayerMoved:
+                yield return AnimateCorePlayerLinearMovement(
+                    simulationEvent.From,
+                    simulationEvent.To,
+                    simulationEvent.Direction);
+                break;
+            case SimulationEventType.PlayerForcedMoved:
+                if (simulationEvent.ContentId == GearTypeIds.Grapple)
+                {
+                    yield return AnimateCoreGrappleMovement(
+                        simulationEvent.From,
+                        simulationEvent.To,
+                        simulationEvent.Direction);
+                }
+                else
+                {
+                    yield return AnimateCorePlayerLinearMovement(
+                        simulationEvent.From,
+                        simulationEvent.To,
+                        simulationEvent.Direction);
+                }
+
+                break;
+            case SimulationEventType.PlayerSpringLaunched:
+                GameContext.GridController.AnimateSpring(
+                    new CellPos(simulationEvent.From.X, simulationEvent.From.Y));
+                yield return AnimateCorePlayerArcMovement(
+                    simulationEvent.From,
+                    simulationEvent.To,
+                    simulationEvent.Direction,
+                    SpringAnimationCurve,
+                    YSpringJump,
+                    JumpDuration,
+                    "Jump");
+                break;
+            case SimulationEventType.PlayerTeleported:
+                GameContext.GridController.AnimateTP(
+                    new CellPos(simulationEvent.From.X, simulationEvent.From.Y));
+                yield return null;
+                SetCorePlayerPresentationPosition(simulationEvent.To);
+                break;
+            case SimulationEventType.AnchorPlanted:
+                yield return GetCoreWeaponAnchorPresenter().PresentPlant(
+                    new Vector3(
+                        simulationEvent.To.X,
+                        0f,
+                        simulationEvent.To.Y),
+                    EntitiesMovementDuration);
+                break;
+            case SimulationEventType.AnchorSwapped:
+                yield return GetCoreWeaponAnchorPresenter().PresentSwap(
+                    new Vector3(
+                        simulationEvent.From.X,
+                        0f,
+                        simulationEvent.From.Y),
+                    new Vector3(
+                        simulationEvent.To.X,
+                        0f,
+                        simulationEvent.To.Y),
+                    EntitiesMovementDuration * 2f,
+                    EntitiesMovementDuration);
+                break;
+            case SimulationEventType.AnchorPushed:
+                yield return GetCoreWeaponAnchorPresenter().PresentPush(
+                    new Vector3(
+                        simulationEvent.From.X,
+                        0f,
+                        simulationEvent.From.Y),
+                    new Vector3(
+                        simulationEvent.To.X,
+                        0f,
+                        simulationEvent.To.Y),
+                    EntitiesMovementDuration * 0.5f,
+                    _playerController.ShieldStrikeVFXPrefab);
+                break;
+            case SimulationEventType.PlayerJumped:
+                yield return AnimateCorePlayerArcMovement(
+                    simulationEvent.From,
+                    simulationEvent.To,
+                    simulationEvent.Direction,
+                    GearJumpCurve,
+                    GearJumpYOffset,
+                    EntitiesMovementDuration * 2f,
+                    "Jump");
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Launches the retained grapple view and pulls the player to its resolved destination.
+    /// </summary>
+    private IEnumerator AnimateCoreGrappleMovement(
+        CoreGridPosition from,
+        CoreGridPosition to,
+        CoreDirection direction)
+    {
+        // The hook and cable visualize an already accepted Core displacement.
+        SetCorePlayerPresentationDirection(direction);
+        var startPosition = new Vector3(from.X, 0f, from.Y);
+        var endPosition = new Vector3(to.X, 0f, to.Y);
+        var hookStartPosition = startPosition + Vector3.up * 0.35f;
+        var hookEndPosition = endPosition + Vector3.up * 0.35f;
+        var distance = Mathf.Max(
+            1,
+            Mathf.Abs(to.X - from.X) + Mathf.Abs(to.Y - from.Y));
+        var launchDuration = Mathf.Max(
+            0.0001f,
+            EntitiesMovementDuration * (distance / 5f));
+        var pullDuration = launchDuration * 2f;
+        _playerController.transform.position = startPosition;
+
+        if (GearGrapplePrefab == null)
+        {
+            Debug.LogError("The grapple presentation prefab is not assigned.");
+            yield return AnimateCorePlayerPull(
+                startPosition,
+                endPosition,
+                pullDuration,
+                null,
+                null);
+            yield break;
+        }
+
+        DestroyCoreGrappleView();
+        coreGrappleView = Instantiate(GearGrapplePrefab);
+        var grapple = coreGrappleView;
+        grapple.transform.position = hookStartPosition;
+        grapple.transform.localEulerAngles =
+            GameContext.CurrentMap.Grid.GetOrientationVector(
+                ToLegacyOrientation(direction));
+        var lineRenderer = grapple.GetComponent<LineRenderer>();
+        UpdateCoreGrappleLine(
+            lineRenderer,
+            startPosition,
+            hookStartPosition);
+
+        var elapsed = 0f;
+        while (elapsed < launchDuration)
+        {
+            grapple.transform.position = Vector3.Lerp(
+                hookStartPosition,
+                hookEndPosition,
+                elapsed / launchDuration);
+            UpdateCoreGrappleLine(
+                lineRenderer,
+                startPosition,
+                grapple.transform.position);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        grapple.transform.position = hookEndPosition;
+        UpdateCoreGrappleLine(
+            lineRenderer,
+            startPosition,
+            hookEndPosition);
+        yield return AnimateCorePlayerPull(
+            startPosition,
+            endPosition,
+            pullDuration,
+            grapple.transform,
+            lineRenderer);
+        DestroyCoreGrappleView();
+    }
+
+    /// <summary>
+    /// Pulls the player toward an anchored grapple while maintaining the cable endpoints.
+    /// </summary>
+    private IEnumerator AnimateCorePlayerPull(
+        Vector3 startPosition,
+        Vector3 endPosition,
+        float duration,
+        Transform grappleTransform,
+        LineRenderer lineRenderer)
+    {
+        // Jump gives the pulled character an airborne pose instead of walking over holes.
+        _playerController.Play("Jump", smooth: false);
+        var elapsed = 0f;
+        while (elapsed < duration)
+        {
+            _playerController.transform.position = Vector3.Lerp(
+                startPosition,
+                endPosition,
+                elapsed / duration);
+            UpdateCoreGrappleLine(
+                lineRenderer,
+                _playerController.transform.position,
+                grappleTransform == null
+                    ? endPosition
+                    : grappleTransform.position);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        _playerController.transform.position = endPosition;
+        UpdateCoreGrappleLine(
+            lineRenderer,
+            endPosition,
+            grappleTransform == null
+                ? endPosition
+                : grappleTransform.position);
+    }
+
+    /// <summary>
+    /// Updates both world-space endpoints of the retained grapple cable.
+    /// </summary>
+    private static void UpdateCoreGrappleLine(
+        LineRenderer lineRenderer,
+        Vector3 playerPosition,
+        Vector3 hookPosition)
+    {
+        // Missing line renderers degrade to hook-only presentation without breaking the turn.
+        if (lineRenderer == null)
+            return;
+
+        lineRenderer.SetPosition(0, playerPosition + Vector3.up * 0.35f);
+        lineRenderer.SetPosition(1, hookPosition);
+    }
+
+    /// <summary>
+    /// Destroys the transient grapple view without affecting its resolved Core movement.
+    /// </summary>
+    private void DestroyCoreGrappleView()
+    {
+        // Restarts and scene exits may interrupt the presentation coroutine mid-flight.
+        if (coreGrappleView != null)
+            Destroy(coreGrappleView);
+        coreGrappleView = null;
+    }
+
+    /// <summary>
+    /// Gets the retained presenter responsible for the equipped weapon anchor.
+    /// </summary>
+    private CoreWeaponAnchorPresenter GetCoreWeaponAnchorPresenter()
+    {
+        // Lazy creation waits until the gameplay player and camera views are available.
+        if (coreWeaponAnchorPresenter == null)
+        {
+            coreWeaponAnchorPresenter = new CoreWeaponAnchorPresenter(
+                _playerController,
+                Follower);
+        }
+
+        return coreWeaponAnchorPresenter;
+    }
+
+    /// <summary>
+    /// Clears every retained weapon-anchor view and restores the held weapon.
+    /// </summary>
+    private void ClearCoreWeaponAnchorPresentation()
+    {
+        // Map reloads and scene exits may interrupt an anchor animation mid-frame.
+        if (coreWeaponAnchorPresenter != null)
+            coreWeaponAnchorPresenter.Clear();
+    }
+
+    /// <summary>
+    /// Interpolates a grounded player displacement while playing the walk animation.
+    /// </summary>
+    private IEnumerator AnimateCorePlayerLinearMovement(
+        CoreGridPosition from,
+        CoreGridPosition to,
+        CoreDirection direction)
+    {
+        // Scale duration by travelled cells so speed boosts remain readable.
+        SetCorePlayerPresentationDirection(direction);
+        _playerController.Play("Walk");
+        var startPosition = new Vector3(from.X, 0f, from.Y);
+        var endPosition = new Vector3(to.X, 0f, to.Y);
+        var distance = Mathf.Max(
+            1,
+            Mathf.Abs(to.X - from.X) + Mathf.Abs(to.Y - from.Y));
+        var duration = Mathf.Max(
+            0.0001f,
+            EntitiesMovementDuration * distance);
+        var elapsed = 0f;
+        _playerController.transform.position = startPosition;
+        while (elapsed < duration)
+        {
+            _playerController.transform.position = Vector3.Lerp(
+                startPosition,
+                endPosition,
+                elapsed / duration);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        _playerController.transform.position = endPosition;
+    }
+
+    /// <summary>
+    /// Interpolates a player displacement along a configurable vertical arc.
+    /// </summary>
+    private IEnumerator AnimateCorePlayerArcMovement(
+        CoreGridPosition from,
+        CoreGridPosition to,
+        CoreDirection direction,
+        AnimationCurve heightCurve,
+        float height,
+        float duration,
+        string animationName)
+    {
+        // Arc motion is presentation-only; the destination was already resolved by Core.
+        SetCorePlayerPresentationDirection(direction);
+        _playerController.Play(animationName);
+        var startPosition = new Vector3(from.X, 0f, from.Y);
+        var endPosition = new Vector3(to.X, 0f, to.Y);
+        var safeDuration = Mathf.Max(0.0001f, duration);
+        var elapsed = 0f;
+        _playerController.transform.position = startPosition;
+        while (elapsed < safeDuration)
+        {
+            var progress = elapsed / safeDuration;
+            var position = Vector3.Lerp(startPosition, endPosition, progress);
+            if (heightCurve != null)
+                position.y = heightCurve.Evaluate(progress) * height;
+            _playerController.transform.position = position;
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        _playerController.transform.position = endPosition;
+    }
+
+    /// <summary>
+    /// Updates the player's presentation-facing without invoking legacy callbacks.
+    /// </summary>
+    private void SetCorePlayerPresentationDirection(CoreDirection direction)
+    {
+        // Direction.None preserves the last valid facing for stationary commands.
+        if (direction == CoreDirection.None)
+            return;
+
+        _playerController.Orientation = ToLegacyOrientation(direction);
+        _playerController.transform.localEulerAngles =
+            GameContext.CurrentMap.Grid.GetOrientationVector(
+                _playerController.Orientation);
+    }
+
+    /// <summary>
+    /// Places the player presentation at one resolved core coordinate.
+    /// </summary>
+    private void SetCorePlayerPresentationPosition(CoreGridPosition position)
+    {
+        // Teleports snap between endpoints while their cell VFX remains event-driven.
+        _playerController.transform.position =
+            new Vector3(position.X, 0f, position.Y);
     }
 
     /// <summary>
@@ -512,6 +886,7 @@ public class GameManager : MonoBehaviour
             : null;
         NbTurn = 0;
         GameContext.GridController.ClearGrid();
+        ClearCoreWeaponAnchorPresentation();
         GameContext.GridController.DrawGrid(GameContext.CurrentMap.Grid);
         Follower.Offset = Follower.BaseOffset;
         _playerController.GearA = null;
@@ -554,7 +929,7 @@ public class GameManager : MonoBehaviour
         // Board mutations are applied before actor transforms and danger overlays.
         ApplyCoreBoardEvents(events);
         SyncCorePlayerView();
-        SyncCoreEnemyViews();
+        SyncCoreEnemyViews(events);
         SyncCorePlatformViews();
         SyncCoreCellViews();
         SyncCorePlacedObjectViews();
@@ -591,6 +966,13 @@ public class GameManager : MonoBehaviour
             {
                 case SimulationEventType.CellCollapsed:
                 case SimulationEventType.TimedBombExploded:
+                    if (simulationEvent.Type == SimulationEventType.TimedBombExploded)
+                    {
+                        SpawnCoreExplosionVfx(
+                            simulationEvent.To,
+                            GameContext.GridController.BombeVFXPrefab,
+                            "timed bomb");
+                    }
                     if (targetCell != null)
                     {
                         targetCell.SetType(CellType.NotWalkable);
@@ -602,7 +984,25 @@ public class GameManager : MonoBehaviour
                     }
 
                     break;
+                case SimulationEventType.GearUsed:
+                    if (simulationEvent.ContentId == GearTypeIds.Bomb)
+                    {
+                        SpawnCoreExplosionVfx(
+                            simulationEvent.From,
+                            GearBombeVFXPrefab,
+                            "bomb gear");
+                    }
+                    break;
                 case SimulationEventType.ElementDestroyed:
+                    if (simulationEvent.ContentId == GearTypeIds.Bomb)
+                    {
+                        // Each destroyed decoration receives its own resolved impact effect.
+                        SpawnCoreExplosionVfx(
+                            simulationEvent.To,
+                            GearBombeVFXPrefab,
+                            "bomb decoration impact");
+                    }
+
                     if (targetCell != null)
                     {
                         targetCell.HasElement = false;
@@ -631,14 +1031,6 @@ public class GameManager : MonoBehaviour
                     }
 
                     break;
-                case SimulationEventType.PlayerSpringLaunched:
-                    GameContext.GridController.AnimateSpring(
-                        new CellPos(simulationEvent.From.X, simulationEvent.From.Y));
-                    break;
-                case SimulationEventType.PlayerTeleported:
-                    GameContext.GridController.AnimateTP(
-                        new CellPos(simulationEvent.From.X, simulationEvent.From.Y));
-                    break;
                 case SimulationEventType.EnemyStunned:
                     if (simulationEvent.EntityIndex >= 0 &&
                         simulationEvent.EntityIndex < GameContext.Ennemies.Count)
@@ -652,6 +1044,26 @@ public class GameManager : MonoBehaviour
                     break;
             }
         }
+    }
+
+    /// <summary>
+    /// Spawns one retained explosion effect at a Core-resolved position.
+    /// </summary>
+    private static void SpawnCoreExplosionVfx(
+        CoreGridPosition position,
+        GameObject explosionPrefab,
+        string sourceName)
+    {
+        // Visual effects consume Core facts and never determine affected gameplay cells.
+        if (explosionPrefab == null)
+        {
+            Debug.LogError(
+                "The " + sourceName + " explosion VFX prefab is not assigned.");
+            return;
+        }
+
+        var explosion = Instantiate(explosionPrefab);
+        explosion.transform.position = new Vector3(position.X, 0f, position.Y);
     }
 
     /// <summary>
@@ -676,7 +1088,7 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// Synchronizes all enemy prefab transforms, phases, and danger overlays.
     /// </summary>
-    private void SyncCoreEnemyViews()
+    private void SyncCoreEnemyViews(IReadOnlyList<SimulationEvent> events)
     {
         // Spawn order and core definition order are both the authored enemy order.
         var count = Mathf.Min(coreState.Enemies.Count, GameContext.Ennemies.Count);
@@ -715,10 +1127,105 @@ public class GameManager : MonoBehaviour
                 view.transform.GetChild(0).localPosition = childPosition;
             }
 
-            view.Play("Idle");
+            if (view is Axe)
+            {
+                if (HasCoreEnemyPhaseChanged(events, index))
+                {
+                    // Core even phases strike right; the clip name describes the swing direction.
+                    view.Play(
+                        state.PhaseIndex % 2 == 0
+                            ? "GoLeft"
+                            : "GoRight");
+                }
+            }
+            else if (view is Hamer)
+            {
+                if (coreState.TurnIndex == 0 ||
+                    HasCoreEnemyPhaseChanged(events, index))
+                {
+                    // Hammer clips and Core danger sides share the same phase naming.
+                    view.Play(
+                        state.PhaseIndex % 2 == 0
+                            ? "HammerRight"
+                            : "HammerLeft");
+                }
+            }
+            else if (view is Catapult)
+            {
+                if (coreState.TurnIndex == 0 ||
+                    HasCoreEnemyPhaseChanged(events, index))
+                {
+                    // Even phases reload; odd phases launch toward the Core impact center.
+                    var catapultController =
+                        view.GetComponent<CatapultController>();
+                    if (catapultController == null)
+                    {
+                        Debug.LogError(
+                            "The catapult presentation controller is missing.");
+                    }
+                    else if (state.PhaseIndex % 2 == 0)
+                    {
+                        catapultController.Reload();
+                    }
+                    else
+                    {
+                        catapultController.Throw(
+                            GetCoreCatapultImpactCell(
+                                state.Position,
+                                state.Direction));
+                    }
+                }
+            }
+            else
+            {
+                view.Play("Idle");
+            }
         }
 
         GameContext.GridController.DrawCellsPO();
+    }
+
+    /// <summary>
+    /// Gets the authored five-cell impact center of a Core catapult state.
+    /// </summary>
+    private static CellPos GetCoreCatapultImpactCell(
+        CoreGridPosition origin,
+        CoreDirection direction)
+    {
+        // Presentation targets the same unfiltered center used to build the Core impact cross.
+        switch (direction)
+        {
+            case CoreDirection.Up:
+                return new CellPos(origin.X, origin.Y + 5);
+            case CoreDirection.Right:
+                return new CellPos(origin.X + 5, origin.Y);
+            case CoreDirection.Down:
+                return new CellPos(origin.X, origin.Y - 5);
+            case CoreDirection.Left:
+                return new CellPos(origin.X - 5, origin.Y);
+            default:
+                return new CellPos(origin.X, origin.Y);
+        }
+    }
+
+    /// <summary>
+    /// Reports whether one enemy changed its Core phase during the presented command.
+    /// </summary>
+    private static bool HasCoreEnemyPhaseChanged(
+        IReadOnlyList<SimulationEvent> events,
+        int enemyIndex)
+    {
+        // Event identity prevents static syncs and time-stop turns from replaying animations.
+        foreach (var simulationEvent in events)
+        {
+            if (simulationEvent.Type == SimulationEventType.EnemyPhaseChanged &&
+                simulationEvent.EntityIndex == enemyIndex)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -850,35 +1357,20 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Synchronizes the decoupled weapon anchor with a simple world-space marker.
+    /// Synchronizes the equipped weapon view with the resolved Core anchor.
     /// </summary>
     private void SyncCoreAnchorView()
     {
-        // The marker is cosmetic and never participates in collision or simulation.
+        // The equipped weapon and VFX are cosmetic and never participate in collision.
         if (!coreState.Player.AnchorPosition.HasValue)
         {
-            if (coreAnchorView != null)
-                Destroy(coreAnchorView);
-            coreAnchorView = null;
+            ClearCoreWeaponAnchorPresentation();
             return;
         }
 
-        if (coreAnchorView == null)
-        {
-            coreAnchorView = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            coreAnchorView.name = "Weapon Anchor";
-            coreAnchorView.transform.localScale = new Vector3(0.12f, 0.45f, 0.12f);
-            var collider = coreAnchorView.GetComponent<Collider>();
-            if (collider != null)
-                Destroy(collider);
-        }
-
         var position = coreState.Player.AnchorPosition.Value;
-        coreAnchorView.transform.position = new Vector3(
-            position.X,
-            0.35f,
-            position.Y);
-        coreAnchorView.transform.localEulerAngles = new Vector3(0f, 0f, 35f);
+        GetCoreWeaponAnchorPresenter().Synchronize(
+            new Vector3(position.X, 0f, position.Y));
     }
 
     /// <summary>
@@ -980,6 +1472,8 @@ public class GameManager : MonoBehaviour
         // Reloading the authored map restores destroyed cells, elements, actors, and gears.
         if (UsesCoreSimulation)
             pendingCoreCheckpoint = coreState.Player.CheckpointPosition;
+        DestroyCoreGrappleView();
+        ClearCoreWeaponAnchorPresentation();
         StopAllCoroutines();
         GameContext.WaitForEndOfAction = 0;
         coreCommandRunning = false;
@@ -991,11 +1485,16 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void NextMap()
     {
-        // Tutorial progression remains separate from authored local-map traversal.
+        // Tutorial persistence is optional, while traversal follows the loaded sequence.
         if (GameContext.CurrentRules.Tutorial)
         {
-            GameContext.TutorialController.FinishCurrentMap();
-            if (GameContext.TutorialController.HasFinishTutorial())
+            if (GameContext.CurrentRules.TracksTutorialProgress)
+                GameContext.TutorialController.FinishCurrentMap();
+
+            var hasNextMap =
+                GameContext.CurrentRules.CurrentGrid + 1 <
+                GameContext.CurrentRules.NbGrids;
+            if (!hasNextMap)
                 FinishTutorial();
             else
             {

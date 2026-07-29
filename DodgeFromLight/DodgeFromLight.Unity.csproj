@@ -139,6 +139,7 @@
     <Compile Include="Assets\Scripts\GameEngine\Domain\PlayerSave.cs" />
     <Compile Include="Assets\Scripts\GameEngine\Domain\SkinType.cs" />
     <Compile Include="Assets\UI\Scripts\UIToggle.cs" />
+    <Compile Include="Assets\Scripts\Presentation\CoreWeaponAnchorPresenter.cs" />
     <Compile Include="Assets\Scripts\GameEngine\Domain\CellPos.cs" />
     <Compile Include="Assets\UI\Scripts\UI_MainMenu.cs" />
     <Compile Include="Assets\UI\HSVPicker\Events\ColorChangedEvent.cs" />

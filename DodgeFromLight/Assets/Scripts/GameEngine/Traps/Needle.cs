@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class Needle : CellTrap
 {
+    private const float AnimationSpeedMultiplier = 2f;
+
     public Animation Animation;
     public string UpClip;
     public string DownClip;
@@ -9,6 +11,9 @@ public class Needle : CellTrap
     int mod = 2;
     public bool IsOn = false;
 
+    /// <summary>
+    /// Subscribes the needle trap to turn changes.
+    /// </summary>
     public override void Awake()
     {
         IsOn = false;
@@ -16,6 +21,9 @@ public class Needle : CellTrap
         Events.TurnStart += Events_TurnStart;
     }
 
+    /// <summary>
+    /// Initializes the visual phase of the needle trap.
+    /// </summary>
     public void Initialize(int arg)
     {
         if (GameContext.GameManager != null)
@@ -46,6 +54,9 @@ public class Needle : CellTrap
             Off();
     }
 
+    /// <summary>
+    /// Updates the needle phase when a new turn starts.
+    /// </summary>
     private void Events_TurnStart()
     {
         if (GameContext.TimeStoped > 0)
@@ -61,18 +72,50 @@ public class Needle : CellTrap
         }
     }
 
+    /// <summary>
+    /// Raises the spikes and marks the trap as active.
+    /// </summary>
     private void On()
     {
         IsOn = true;
-        Animation.Play(UpClip);
+        PlayNeedleAnimation(UpClip);
     }
 
+    /// <summary>
+    /// Lowers the spikes and marks the trap as inactive.
+    /// </summary>
     private void Off()
     {
         IsOn = false;
-        Animation.Play(DownClip);
+        PlayNeedleAnimation(DownClip);
     }
 
+    /// <summary>
+    /// Plays a needle animation clip at twice its authored speed.
+    /// </summary>
+    private void PlayNeedleAnimation(string clipName)
+    {
+        // The speed multiplier affects presentation only; trap timing remains turn-based.
+        if (Animation == null)
+        {
+            Debug.LogError($"Needle '{name}' has no Animation component assigned.", this);
+            return;
+        }
+
+        AnimationState animationState = Animation[clipName];
+        if (animationState == null)
+        {
+            Debug.LogError($"Needle '{name}' cannot find animation clip '{clipName}'.", this);
+            return;
+        }
+
+        animationState.speed = AnimationSpeedMultiplier;
+        Animation.Play(clipName);
+    }
+
+    /// <summary>
+    /// Unsubscribes the needle trap from turn changes.
+    /// </summary>
     private void OnDestroy()
     {
         Events.TurnStart -= Events_TurnStart;

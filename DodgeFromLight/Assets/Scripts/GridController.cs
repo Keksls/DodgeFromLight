@@ -634,7 +634,12 @@ public class GridController : MonoBehaviour
                 if (initializeLegacyVision)
                     ennemy.RefreshPO();
                 else
+                {
+                    // Core fills presentation overlays after every authoritative state sync.
                     ennemy.CurrentPO = new List<CellPos>();
+                    if (ennemy is Gloutton gloutton)
+                        gloutton.AttractionPOCells = new List<CellPos>();
+                }
                 Animator animator = ennemyGo.GetComponentInChildren<Animator>();
                 if (animator != null)
                     ennemy.Animator = animator;
@@ -642,7 +647,8 @@ public class GridController : MonoBehaviour
                 Ennemies.Add(ennemy.CurrentCell.ToString(), ennemyGo);
             }
         Events.Fire_EnnemiesSpawned();
-        DrawCellsPO();
+        if (initializeLegacyVision)
+            DrawCellsPO();
     }
 
     public Ennemy SpawnEnnemy(Grid grid, SerializableEnnemy serializableEnnemy)
