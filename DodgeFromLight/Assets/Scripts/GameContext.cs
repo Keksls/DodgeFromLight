@@ -1,9 +1,6 @@
-using System;
 using System.Collections.Generic;
-using UnityEngine;
-using Random = UnityEngine.Random;
 
-public static class DodgeFromLight
+public static class GameContext
 {
     public static UI_Notifications UI_Notifications;
     public static UI_WorkerNotifier UI_WorkerNotifier;
@@ -28,8 +25,12 @@ public static class DodgeFromLight
     public static int TimeStoped = 0;
     private static bool initialized = false;
 
+    /// <summary>
+    /// Initializes the shared Unity presentation services and retained view collections.
+    /// </summary>
     public static void Initialize()
     {
+        // Initialization is idempotent because several scene services register themselves.
         TimeStoped = 0;
         if (initialized)
             return;
@@ -44,14 +45,22 @@ public static class DodgeFromLight
         Events.StartMap += Events_StartMap;
     }
 
+    /// <summary>
+    /// Applies the active map environment to the Unity presentation.
+    /// </summary>
     public static void SetEnvironment(FullMap map)
     {
+        // Environment data remains visual and never feeds the deterministic simulation.
         EnvironmentController.SetFromMap(map);
         EnvironmentController.SetParticleEmissionSize(map.Grid);
     }
 
+    /// <summary>
+    /// Finds an instantiated enemy view at its authored starting position.
+    /// </summary>
     public static Ennemy GetEnnemy(CellPos pos)
     {
+        // This lookup is retained for map-editor and presentation compatibility only.
         foreach (Ennemy ennemy in Ennemies)
         {
             if (ennemy.StartCell.Equals(pos))
@@ -65,6 +74,7 @@ public static class DodgeFromLight
     /// </summary>
     public static void StartWaitingAction()
     {
+        // Presentation animations can temporarily block additional view input.
         WaitForEndOfAction++;
     }
 
@@ -73,56 +83,26 @@ public static class DodgeFromLight
     /// </summary>
     public static void StopWaitingAction()
     {
+        // Balance the presentation-only wait counter after an animation completes.
         WaitForEndOfAction--;
     }
 
+    /// <summary>
+    /// Refreshes visual environment state when a map presentation starts.
+    /// </summary>
     private static void Events_StartMap()
     {
-        //SpawnGear();
+        // Runtime gear placement belongs exclusively to the deterministic Core.
         TimeStoped = 0;
         SetEnvironment(CurrentMap);
     }
 
-    static void SpawnGear()
-    {
-        bool addGear = Random.Range(0, 100) < 0f;
-        if (addGear)
-        {
-            // get random available cell
-            List<Cell> availableCells = new List<Cell>();
-            for (int x = 0; x < CurrentMap.Grid.Width; x++)
-                for (int y = 0; y < CurrentMap.Grid.Height; y++)
-                {
-                    Cell c = CurrentMap.Grid.GetCell(x, y);
-                    if (c.EntityOnCell == null &&
-                        !CurrentMap.Grid.IsStart(c) &&
-                        !CurrentMap.Grid.IsEnd(c) &&
-                        c.IsWalkable)
-                        availableCells.Add(CurrentMap.Grid.GetCell(x, y));
-                }
-
-            // get random gear
-            if (availableCells.Count > 0)
-            {
-                Cell gearCell = availableCells[Random.Range(0, availableCells.Count - 1)];
-
-                var gears = (GearType[])Enum.GetValues(typeof(GearType));
-                // remove this once everithing is implemented
-                gears = new GearType[] { GearType.Bomb,
-                GearType.DiscoBall,
-                GearType.Mirror,
-                GearType.RemoteControl,
-                GearType.SpeedBoots,
-                GearType.TimeController,
-                GearType.Grapple};
-                GearType type = gears[Random.Range(0, gears.Length)];
-                gearCell.SetGear(type);
-            }
-        }
-    }
-
+    /// <summary>
+    /// Returns to the local main menu.
+    /// </summary>
     public static void RestartGame()
     {
-        DodgeFromLight.SceneTransitions.LoadScene("MainMenu");
+        // Scene navigation remains a Unity presentation responsibility.
+        SceneTransitions.LoadScene("MainMenu");
     }
 }

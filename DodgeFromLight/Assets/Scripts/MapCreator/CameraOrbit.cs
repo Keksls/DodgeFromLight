@@ -51,7 +51,7 @@ public class CameraOrbit : MonoBehaviour
             hasMoved = false;
         }
 
-        if (Input.GetMouseButton(2) && DodgeFromLight.CurrentMap != null)
+        if (Input.GetMouseButton(2) && GameContext.CurrentMap != null)
         {
             if(Vector3.Distance(lastPosition, Input.mousePosition) > 0.25f)
             {

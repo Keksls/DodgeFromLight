@@ -11,25 +11,25 @@ public class CursorSetter : MonoBehaviour
 
     private void Start()
     {
-        if (registered || DodgeFromLight.CursorManager == null)
+        if (registered || GameContext.CursorManager == null)
             return;
-        DodgeFromLight.CursorManager.NbSetters++;
+        GameContext.CursorManager.NbSetters++;
         registered = true;
     }
 
     private void OnEnable()
     {
-        if (registered || DodgeFromLight.CursorManager == null)
+        if (registered || GameContext.CursorManager == null)
             return;
-        DodgeFromLight.CursorManager.NbSetters++;
+        GameContext.CursorManager.NbSetters++;
         registered = true;
     }
 
     private void OnDisable()
     {
-        if (!registered || DodgeFromLight.CursorManager == null)
+        if (!registered || GameContext.CursorManager == null)
             return;
-        DodgeFromLight.CursorManager.NbSetters--;
+        GameContext.CursorManager.NbSetters--;
         registered = false;
     }
 
@@ -47,8 +47,8 @@ public class CursorSetter : MonoBehaviour
     {
         if (hovered && KeepUntilMouseUp)
         {
-            DodgeFromLight.CursorManager.SetCursor(PointerClickedCursor);
-            DodgeFromLight.CursorManager.Lock();
+            GameContext.CursorManager.SetCursor(PointerClickedCursor);
+            GameContext.CursorManager.Lock();
             mouseDown = true;
         }
     }
@@ -57,8 +57,8 @@ public class CursorSetter : MonoBehaviour
     {
         if (hovered && KeepUntilMouseUp)
         {
-            DodgeFromLight.CursorManager.UnLock();
-            DodgeFromLight.CursorManager.SetCursor(PointerClickedCursor);
+            GameContext.CursorManager.UnLock();
+            GameContext.CursorManager.SetCursor(PointerClickedCursor);
             mouseDown = false;
         }
     }
@@ -68,7 +68,7 @@ public class CursorSetter : MonoBehaviour
         if (hovered && KeepUntilMouseUp && mouseDown)
         {
             mouseDown = false;
-            DodgeFromLight.CursorManager.SetCursor(PointerClickedCursor);
+            GameContext.CursorManager.SetCursor(PointerClickedCursor);
         }
     }
 }

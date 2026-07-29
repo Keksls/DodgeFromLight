@@ -23,19 +23,19 @@ public class Mirror : Gear
 
     public override bool UseGear()
     {
-        Cell cell = DodgeFromLight.CurrentMap.Grid.GetNeighbor(DodgeFromLight.GameManager.PlayerController.CurrentCell.GetCellPos(),
-            DodgeFromLight.GameManager.PlayerController.Orientation);
-        if (cell == null || !DodgeFromLight.CurrentMap.Grid.CanGoOnCell(cell))
+        Cell cell = GameContext.CurrentMap.Grid.GetNeighbor(GameContext.GameManager.PlayerController.CurrentCell.GetCellPos(),
+            GameContext.GameManager.PlayerController.Orientation);
+        if (cell == null || !GameContext.CurrentMap.Grid.CanGoOnCell(cell))
             return false;
 
-        mirror = GameObject.Instantiate(DodgeFromLight.GameManager.GearMirrorPrefab);
+        mirror = GameObject.Instantiate(GameContext.GameManager.GearMirrorPrefab);
         cellPos = cell.GetCellPos();
         cell.UseGearOnCell(this);
-        foreach (var en in DodgeFromLight.Ennemies)
+        foreach (var en in GameContext.Ennemies)
             en.RefreshPO();
-        DodgeFromLight.GridController.DrawCellsPO();
+        GameContext.GridController.DrawCellsPO();
         mirror.transform.position = cellPos.ToVector3(0f);
-        DodgeFromLight.GameManager._playerController.ThrowGear(Side);
+        GameContext.GameManager._playerController.ThrowGear(Side);
         NbTurnLeft = 5;
         Events.TurnEnd -= Events_TurnEnd;
         Events.TurnEnd += Events_TurnEnd;
@@ -46,15 +46,15 @@ public class Mirror : Gear
     {
         Events.TurnEnd -= Events_TurnEnd;
         GameObject.Destroy(mirror);
-        DodgeFromLight.CurrentMap.Grid.GetCell(cellPos).RemoveUsedGearOnCell();
-        foreach (var en in DodgeFromLight.Ennemies)
+        GameContext.CurrentMap.Grid.GetCell(cellPos).RemoveUsedGearOnCell();
+        foreach (var en in GameContext.Ennemies)
             en.RefreshPO();
-        DodgeFromLight.GridController.DrawCellsPO();
+        GameContext.GridController.DrawCellsPO();
     }
 
     private void Events_TurnEnd()
     {
-        if (DodgeFromLight.TimeStoped > 0)
+        if (GameContext.TimeStoped > 0)
             return;
         NbTurnLeft--;
         if(NbTurnLeft <= 0)

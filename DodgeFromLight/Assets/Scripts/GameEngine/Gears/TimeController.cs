@@ -19,12 +19,12 @@ public class TimeController : Gear
     public override bool UseGear()
     {
         NbTurnLeft = 3;
-        foreach (Ennemy en in DodgeFromLight.Ennemies)
+        foreach (Ennemy en in GameContext.Ennemies)
             en.AddAlteration(new Alteration(AlterationType.PM, -99, NbTurnLeft));
-        foreach (MovingPlatform platform in DodgeFromLight.MovingPlatforms)
+        foreach (MovingPlatform platform in GameContext.MovingPlatforms)
             platform.Freeze(NbTurnLeft);
-        DodgeFromLight.GameManager._playerController.ThrowGear(Side);
-        DodgeFromLight.TimeStoped = NbTurnLeft;
+        GameContext.GameManager._playerController.ThrowGear(Side);
+        GameContext.TimeStoped = NbTurnLeft;
         return true;
     }
 }

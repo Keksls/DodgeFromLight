@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Keeper : Ennemy
@@ -18,9 +18,9 @@ public class Keeper : Ennemy
 
     private void Events_PlayerEndChangeCell(Cell arg1, Cell arg2)
     {
-        if (DodgeFromLight.GameManager?.PlayerController == null)
+        if (GameContext.GameManager?.PlayerController == null)
             return;
-        transform.LookAt(DodgeFromLight.GameManager.PlayerController.transform);
+        transform.LookAt(GameContext.GameManager.PlayerController.transform);
         Vector3 rot = transform.localEulerAngles;
         rot.x = 0f;
         rot.z = 0f;
@@ -36,7 +36,7 @@ public class Keeper : Ennemy
     {
         List<CellPos> po = new List<CellPos>();
         CellPos start = CurrentCell.GetCellPos();
-        Grid grid = DodgeFromLight.CurrentMap.Grid;
+        Grid grid = GameContext.CurrentMap.Grid;
 
         // MiddleLine
         for (int x = start.X - PO; x <= start.X + PO; x++)

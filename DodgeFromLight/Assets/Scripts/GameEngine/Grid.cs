@@ -16,7 +16,7 @@ public class Grid
     {
         if (Environment == null)
         {
-            Environment = /*DodgeFromLight.EnvironmentController.GetBuildinEnvironment(BuildInEnvironments.Default);//*/ new EnvironmentSettings();
+            Environment = /*GameContext.EnvironmentController.GetBuildinEnvironment(BuildInEnvironments.Default);//*/ new EnvironmentSettings();
             Environment.SetDefaultValues();
         }
         return Environment;
@@ -217,7 +217,7 @@ public class Grid
                 if (checkPlatforms)
                 {
                     bool canGo = false;
-                    foreach (var platform in DodgeFromLight.MovingPlatforms)
+                    foreach (var platform in GameContext.MovingPlatforms)
                     {
                         if (platform.Patrol.SimulateLastCellWithoutOrientation(platform.CurrentTA, platform.Orientation).Equals(x, y))
                             canGo = true;
@@ -811,13 +811,13 @@ public class Grid
             }
         }
 
-        for (int x = 0; x < DodgeFromLight.CurrentMap.Grid.Width; x++)
-            for (int y = 0; y < DodgeFromLight.CurrentMap.Grid.Width; y++)
+        for (int x = 0; x < GameContext.CurrentMap.Grid.Width; x++)
+            for (int y = 0; y < GameContext.CurrentMap.Grid.Width; y++)
             {
-                Cell c = DodgeFromLight.CurrentMap.Grid.GetCell(x, y);
+                Cell c = GameContext.CurrentMap.Grid.GetCell(x, y);
                 if (c != null && !string.IsNullOrEmpty(c.ElementID))
                 {
-                    var mdd = DodgeFromLight.Databases.ResourcesData.GetMapDeco(c.ElementID);
+                    var mdd = GameContext.Databases.ResourcesData.GetMapDeco(c.ElementID);
                     foreach (var unwalkable in mdd.UnWalkableCells)
                     {
                         // get cell pos acording to element orientation
@@ -825,7 +825,7 @@ public class Grid
                         pos = Quaternion.Euler(0, c.ElementOrientation, 0) * pos;
                         CellPos p = new CellPos(c.X + Mathf.RoundToInt(pos.x), c.Y + Mathf.RoundToInt(pos.z));
 
-                        Cell cell = DodgeFromLight.CurrentMap.Grid.GetCell(p);
+                        Cell cell = GameContext.CurrentMap.Grid.GetCell(p);
                         if (cell == null)
                         {
                             ErrorMessages.Add("Some elements have bounds out of the map grid");
@@ -905,7 +905,7 @@ public class Grid
     {
         if (cell != null && cell.ElementID != string.Empty)
         {
-            var mdd = DodgeFromLight.Databases.ResourcesData.GetMapDeco(cell.ElementID);
+            var mdd = GameContext.Databases.ResourcesData.GetMapDeco(cell.ElementID);
             foreach (var unwalkable in mdd.UnWalkableCells)
             {
                 // get cell pos acording to element orientation
@@ -913,12 +913,12 @@ public class Grid
                 pos = Quaternion.Euler(0, cell.ElementOrientation, 0) * pos;
                 CellPos p = new CellPos(cell.X + Mathf.RoundToInt(pos.x), cell.Y + Mathf.RoundToInt(pos.z));
 
-                Cell c = DodgeFromLight.CurrentMap.Grid.GetCell(p);
+                Cell c = GameContext.CurrentMap.Grid.GetCell(p);
                 if (c != null)
                     c.HasElement = false;
             }
             cell.ElementID = string.Empty;
-            DodgeFromLight.GridController.RemoveElement(cell);
+            GameContext.GridController.RemoveElement(cell);
         }
     }
 
@@ -995,7 +995,7 @@ public class Grid
         if (cell.Walkable)
             return true;
         bool walkable = false;
-        foreach (var platform in DodgeFromLight.MovingPlatforms)
+        foreach (var platform in GameContext.MovingPlatforms)
         {
             if (checkNextTurn)
             {
@@ -1013,7 +1013,7 @@ public class Grid
 
     public bool WillBeEnnemyNextTurn(Cell cell)
     {
-        foreach (Ennemy en in DodgeFromLight.Ennemies)
+        foreach (Ennemy en in GameContext.Ennemies)
         {
             if (en.Patrol.NbCells > 0 && en.Patrol.SimulateLastCell(en.CurrentTA, en.Orientation).Equals(cell))
                 return true;

@@ -21,34 +21,47 @@ public class BmbeController : MonoBehaviour
         initialized = true;
     }
 
+    /// <summary>
+    /// Displays the countdown resolved by the deterministic simulation.
+    /// </summary>
+    public void SetRemainingTurns(int remainingTurns)
+    {
+        // This presentation update never advances or explodes the logical bomb.
+        NbTurnLeft = remainingTurns;
+        if (NbTurnText == null)
+            NbTurnText = GetComponentInChildren<TextMeshProUGUI>();
+        if (NbTurnText != null)
+            NbTurnText.text = NbTurnLeft.ToString();
+    }
+
     private void Events_StartMap()
     {
-        NbTurnLeft = DodgeFromLight.CurrentMap.Grid.GetCell(Cell).Arg1;
+        NbTurnLeft = GameContext.CurrentMap.Grid.GetCell(Cell).Arg1;
         NbTurnText.text = NbTurnLeft.ToString();
     }
 
     private void Events_TurnEnd()
     {
-        if (DodgeFromLight.TimeStoped > 0)
+        if (GameContext.TimeStoped > 0)
             return;
-        if (DodgeFromLight.GameManager == null)
+        if (GameContext.GameManager == null)
             return;
         NbTurnLeft--;
         NbTurnText.text = NbTurnLeft.ToString();
-        DodgeFromLight.CurrentMap.Grid.GetCell(Cell).Arg1 = NbTurnLeft;
+        GameContext.CurrentMap.Grid.GetCell(Cell).Arg1 = NbTurnLeft;
         if (NbTurnLeft <= 0) // explode bombe
         {
-            GameObject vfx = Instantiate(DodgeFromLight.GridController.BombeVFXPrefab);
+            GameObject vfx = Instantiate(GameContext.GridController.BombeVFXPrefab);
             vfx.transform.position = transform.position;
             // remove cell
-            DodgeFromLight.CurrentMap.Grid.GetCell(Cell).SetType(CellType.NotWalkable);
-            DodgeFromLight.CurrentMap.Grid.GetCell(Cell).SetWalkable(false);
-            DodgeFromLight.GridController.ReloadCellNextFrame(DodgeFromLight.CurrentMap.Grid.GetCell(Cell));
+            GameContext.CurrentMap.Grid.GetCell(Cell).SetType(CellType.NotWalkable);
+            GameContext.CurrentMap.Grid.GetCell(Cell).SetWalkable(false);
+            GameContext.GridController.ReloadCellNextFrame(GameContext.CurrentMap.Grid.GetCell(Cell));
 
             // kill player if on same cell
-            if(Cell.Equals(DodgeFromLight.GameManager.PlayerController.CurrentCell.GetCellPos()))
+            if(Cell.Equals(GameContext.GameManager.PlayerController.CurrentCell.GetCellPos()))
             {
-                DodgeFromLight.GameManager.GameOver(DodgeFromLight.GameManager.PlayerController.CurrentCell);
+                GameContext.GameManager.GameOver(GameContext.GameManager.PlayerController.CurrentCell);
             }
             Destroy(gameObject);
         }

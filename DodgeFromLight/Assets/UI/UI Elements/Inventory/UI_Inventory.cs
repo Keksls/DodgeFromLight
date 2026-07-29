@@ -237,27 +237,27 @@ public class UI_Inventory : MonoBehaviour
 
         //if (Input.GetKeyDown(KeyCode.C))
         //{
-        //    DodgeFromLight.Databases.SkinsData.SetSkinRarity(lastSelectedItemType, lastSelectedItemID, SkinRarityType.Common);
+        //    GameContext.Databases.SkinsData.SetSkinRarity(lastSelectedItemType, lastSelectedItemID, SkinRarityType.Common);
         //    BindItems();
         //}
         //if (Input.GetKeyDown(KeyCode.E))
         //{
-        //    DodgeFromLight.Databases.SkinsData.SetSkinRarity(lastSelectedItemType, lastSelectedItemID, SkinRarityType.Epic);
+        //    GameContext.Databases.SkinsData.SetSkinRarity(lastSelectedItemType, lastSelectedItemID, SkinRarityType.Epic);
         //    BindItems();
         //}
         //if (Input.GetKeyDown(KeyCode.L))
         //{
-        //    DodgeFromLight.Databases.SkinsData.SetSkinRarity(lastSelectedItemType, lastSelectedItemID, SkinRarityType.Legendary);
+        //    GameContext.Databases.SkinsData.SetSkinRarity(lastSelectedItemType, lastSelectedItemID, SkinRarityType.Legendary);
         //    BindItems();
         //}
         //if (Input.GetKeyDown(KeyCode.R))
         //{
-        //    DodgeFromLight.Databases.SkinsData.SetSkinRarity(lastSelectedItemType, lastSelectedItemID, SkinRarityType.Rare);
+        //    GameContext.Databases.SkinsData.SetSkinRarity(lastSelectedItemType, lastSelectedItemID, SkinRarityType.Rare);
         //    BindItems();
         //}
         //if (Input.GetKeyDown(KeyCode.M))
         //{
-        //    DodgeFromLight.Databases.SkinsData.SetSkinRarity(lastSelectedItemType, lastSelectedItemID, SkinRarityType.Mythical);
+        //    GameContext.Databases.SkinsData.SetSkinRarity(lastSelectedItemType, lastSelectedItemID, SkinRarityType.Mythical);
         //    BindItems(currentSelectedSkins);
         //}
     }
@@ -311,7 +311,7 @@ public class UI_Inventory : MonoBehaviour
     {
         foreach (short id in Skins)
         {
-            if (DodgeFromLight.Databases.RewardData.SkinsRarities[rarity].ContainsKey(type) && DodgeFromLight.Databases.RewardData.SkinsRarities[rarity][type].Contains(id))
+            if (GameContext.Databases.RewardData.SkinsRarities[rarity].ContainsKey(type) && GameContext.Databases.RewardData.SkinsRarities[rarity][type].Contains(id))
                 BindItem(type, id, ref nbItems);
         }
     }
@@ -321,10 +321,10 @@ public class UI_Inventory : MonoBehaviour
         nbItems++;
         Sprite tex = Resources.Load<Sprite>(@"Items/" + type.ToString() + "_" + id);
         GameObject item = Instantiate(ItemPrefab);
-        item.transform.GetChild(1).gameObject.GetComponent<Image>().sprite = DodgeFromLight.Databases.SkinsData.GetSkin(type, id).Sprite;
-        SkinRarityType rarity = DodgeFromLight.Databases.RewardData.GetRarity(type, id);
+        item.transform.GetChild(1).gameObject.GetComponent<Image>().sprite = GameContext.Databases.SkinsData.GetSkin(type, id).Sprite;
+        SkinRarityType rarity = GameContext.Databases.RewardData.GetRarity(type, id);
         if (rarity != SkinRarityType.None)
-            item.transform.GetChild(0).gameObject.GetComponent<Image>().color = DodgeFromLight.Databases.RewardData.GetRarityColor(rarity, 0.2f);
+            item.transform.GetChild(0).gameObject.GetComponent<Image>().color = GameContext.Databases.RewardData.GetRarityColor(rarity, 0.2f);
         else
             item.transform.GetChild(0).gameObject.GetComponent<Image>().color = Vector4.zero;
 
@@ -398,7 +398,7 @@ public class UI_Inventory : MonoBehaviour
         foreach (short id in SaveManager.CurrentSave.GetUnlocked(SkinType.Ornament))
         {
             GameObject ornament = Instantiate(ornamentItemPrefab);
-            GameObject ornamentInner = DodgeFromLight.Databases.OrnamentData.GetOrnament(id, SaveManager.CurrentSave.DisplayName);
+            GameObject ornamentInner = GameContext.Databases.OrnamentData.GetOrnament(id, SaveManager.CurrentSave.DisplayName);
             ornament.transform.SetParent(OrnamentsContainer.transform, false);
             ornamentInner.GetComponent<RectTransform>().SetAndStretchParent(ornament.GetComponent<RectTransform>());
 

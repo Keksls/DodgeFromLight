@@ -10,7 +10,7 @@ public class UI_Notifications : MonoBehaviour
 
     private void Awake()
     {
-        DodgeFromLight.UI_Notifications = this;
+        GameContext.UI_Notifications = this;
     }
 
     public void Notify(string message, float duration = 5f)

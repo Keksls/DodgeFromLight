@@ -21,8 +21,8 @@ public class CastingPetController : Entity
 
     private void Events_TurnEnd1()
     {
-        if(CurrentCell.Equals(DodgeFromLight.GameManager._playerController.CurrentCell))
-            DodgeFromLight.GameManager._playerController.UncastPet(false, true);
+        if(CurrentCell.Equals(GameContext.GameManager._playerController.CurrentCell))
+            GameContext.GameManager._playerController.UncastPet(false, true);
     }
 
     public void CastPet(GameObject PetPrefab, Cell cell, Orientation orientation)
@@ -34,7 +34,7 @@ public class CastingPetController : Entity
         pet.transform.SetParent(null, false);
         pet.transform.localScale = pet.transform.localScale * 1.7f;
         pet.transform.position = transform.position;
-        DodgeFromLight.GameManager.Follower.Target = transform;
+        GameContext.GameManager.Follower.Target = transform;
         SetOrientation(orientation);
     }
 
@@ -45,7 +45,7 @@ public class CastingPetController : Entity
 
     void Update()
     {
-        if (DodgeFromLight.GameManager != null && DodgeFromLight.HasEntitiesMoving || Dead)
+        if (GameContext.GameManager != null && GameContext.HasEntitiesMoving || Dead)
             return;
 
         Orientation dir = Orientation.None;
@@ -53,7 +53,7 @@ public class CastingPetController : Entity
 
         if (dir != Orientation.None)
         {
-            switch (DodgeFromLight.GameManager.Follower.Orientation)
+            switch (GameContext.GameManager.Follower.Orientation)
             {
                 case Orientation.Left:
                     switch (dir)
@@ -109,8 +109,8 @@ public class CastingPetController : Entity
                     }
                     break;
             }
-            DodgeFromLight.GameManager.StartTimer();
-            DodgeFromLight.GameManager.PlayerMove(dir);
+            GameContext.GameManager.StartTimer();
+            GameContext.GameManager.PlayerMove(dir);
         }
     }
 
@@ -119,13 +119,13 @@ public class CastingPetController : Entity
         if (Input.GetKey(KeyCode.LeftControl))
             return;
 
-        if (DodgeFromLight.GameSettingsManager.GetInput(InputSettingsType.Right).IsDown())
+        if (GameContext.GameSettingsManager.GetInput(InputSettingsType.Right).IsDown())
             dir = Orientation.Right;
-        else if (DodgeFromLight.GameSettingsManager.GetInput(InputSettingsType.left).IsDown())
+        else if (GameContext.GameSettingsManager.GetInput(InputSettingsType.left).IsDown())
             dir = Orientation.Left;
-        else if (DodgeFromLight.GameSettingsManager.GetInput(InputSettingsType.Forward).IsDown())
+        else if (GameContext.GameSettingsManager.GetInput(InputSettingsType.Forward).IsDown())
             dir = Orientation.Up;
-        else if (DodgeFromLight.GameSettingsManager.GetInput(InputSettingsType.Backward).IsDown())
+        else if (GameContext.GameSettingsManager.GetInput(InputSettingsType.Backward).IsDown())
             dir = Orientation.Down;
     }
 }

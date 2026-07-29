@@ -15,7 +15,7 @@ public class UI_Modal : MonoBehaviour
 
     private void Awake()
     {
-        DodgeFromLight.UI_Modal = this;
+        GameContext.UI_Modal = this;
         Hide();
     }
 

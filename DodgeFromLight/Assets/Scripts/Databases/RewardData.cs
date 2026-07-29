@@ -70,7 +70,7 @@ public class RewardData : ScriptableObject
     public List<SkinDataAsset> GetAllSkinsByRarity(SkinRarityType rarity)
     {
         List<SkinDataAsset> skins = new List<SkinDataAsset>();
-        foreach (var sr in DodgeFromLight.Databases.SkinsData.Skins)
+        foreach (var sr in GameContext.Databases.SkinsData.Skins)
             if (sr.Rarity == rarity)
                 skins.Add(sr);
         return skins;
@@ -79,7 +79,7 @@ public class RewardData : ScriptableObject
     public Dictionary<SkinType, HashSet<int>> GetAllSkinsIDByRarity(SkinRarityType rarity)
     {
         Dictionary<SkinType, HashSet<int>> skins = new Dictionary<SkinType, HashSet<int>>();
-        foreach (SkinDataAsset skin in DodgeFromLight.Databases.SkinsData.Skins)
+        foreach (SkinDataAsset skin in GameContext.Databases.SkinsData.Skins)
         {
             if (skin.Rarity == rarity)
             {
@@ -93,7 +93,7 @@ public class RewardData : ScriptableObject
 
     public SkinRarityType GetRarity(SkinType type, int ID)
     {
-        foreach (SkinDataAsset skin in DodgeFromLight.Databases.SkinsData.Skins)
+        foreach (SkinDataAsset skin in GameContext.Databases.SkinsData.Skins)
             if (skin.Type == type && skin.ID == ID)
                 return skin.Rarity;
         return SkinRarityType.None;

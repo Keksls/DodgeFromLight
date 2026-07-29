@@ -84,7 +84,7 @@ namespace DodgeFromLight.Tests
             {
                 cells.Add(new CellDefinition(
                     new GridPosition(x, 0),
-                    SimulationEngine.FloorCellId,
+                    CellTypeIds.Floor,
                     true,
                     floorId,
                     string.Empty,

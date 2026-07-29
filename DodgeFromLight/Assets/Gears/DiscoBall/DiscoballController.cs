@@ -39,7 +39,7 @@ public class DiscoballController : MonoBehaviour
 
     private void Events_TurnEnd()
     {
-        if (DodgeFromLight.TimeStoped > 0)
+        if (GameContext.TimeStoped > 0)
             return;
         Gear.NbTurnLeft--;
         RefreshCouldown();

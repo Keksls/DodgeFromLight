@@ -29,7 +29,7 @@ public class Catapult : Ennemy
 
     private void Events_TurnStart1()
     {
-        if (DodgeFromLight.TimeStoped > 0)
+        if (GameContext.TimeStoped > 0)
             return;
         nbTurn++;
         bool reload = nbTurn % 2 == 0;
@@ -92,7 +92,7 @@ public class Catapult : Ennemy
         }
 
         CellPos cp = GetThrowCell();
-        Grid grid = DodgeFromLight.CurrentMap.Grid;
+        Grid grid = GameContext.CurrentMap.Grid;
         Cell c = grid.GetNeighbor(cp, Orientation.Up);
         if (c != null)
             po.Add(c.GetCellPos());

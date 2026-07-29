@@ -27,7 +27,7 @@ public class Hamer : Ennemy
 
     private void Events_TurnStart1()
     {
-        if (DodgeFromLight.TimeStoped > 0)
+        if (GameContext.TimeStoped > 0)
             return;
         nbTurn++;
         bool right = nbTurn % 2 == 0;
@@ -79,16 +79,16 @@ public class Hamer : Ennemy
         }
         CellPos cp = po[0];
 
-        Cell c = DodgeFromLight.CurrentMap.Grid.GetNeighbor(cp, Orientation.Up);
+        Cell c = GameContext.CurrentMap.Grid.GetNeighbor(cp, Orientation.Up);
         if (c != null)
             po.Add(c.GetCellPos());
-        c = DodgeFromLight.CurrentMap.Grid.GetNeighbor(cp, Orientation.Down);
+        c = GameContext.CurrentMap.Grid.GetNeighbor(cp, Orientation.Down);
         if (c != null)
             po.Add(c.GetCellPos());
-        c = DodgeFromLight.CurrentMap.Grid.GetNeighbor(cp, Orientation.Right);
+        c = GameContext.CurrentMap.Grid.GetNeighbor(cp, Orientation.Right);
         if (c != null)
             po.Add(c.GetCellPos());
-        c = DodgeFromLight.CurrentMap.Grid.GetNeighbor(cp, Orientation.Left);
+        c = GameContext.CurrentMap.Grid.GetNeighbor(cp, Orientation.Left);
         if (c != null)
             po.Add(c.GetCellPos());
 

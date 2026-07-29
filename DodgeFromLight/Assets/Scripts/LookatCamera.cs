@@ -8,8 +8,8 @@ public class LookatCamera : MonoBehaviour
 
     public void Start()
     {
-        if (DodgeFromLight.GameManager != null)
-            CameraTransform = DodgeFromLight.GameManager.Follower.transform;
+        if (GameContext.GameManager != null)
+            CameraTransform = GameContext.GameManager.Follower.transform;
         else
             CameraTransform = Camera.main.transform;
     }

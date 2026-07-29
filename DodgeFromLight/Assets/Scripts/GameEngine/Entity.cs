@@ -110,12 +110,12 @@ public class Entity : MonoBehaviour
     public void PlaceOnCell(Cell cell, bool placeTransform)
     {
         if (CurrentCell != null)
-            DodgeFromLight.CurrentMap.Grid.GetCell(CurrentCell.X, CurrentCell.Y).EntityOnCell = null;
+            GameContext.CurrentMap.Grid.GetCell(CurrentCell.X, CurrentCell.Y).EntityOnCell = null;
         LastCell = CurrentCell;
         CurrentCell = cell;
         if (placeTransform)
             transform.position = new Vector3(cell.X, 0f, cell.Y);
-        DodgeFromLight.CurrentMap.Grid.GetCell(CurrentCell.X, CurrentCell.Y).EntityOnCell = this;
+        GameContext.CurrentMap.Grid.GetCell(CurrentCell.X, CurrentCell.Y).EntityOnCell = this;
         Play("Idle");
     }
 
@@ -126,7 +126,7 @@ public class Entity : MonoBehaviour
     public void SetOrientation(Orientation orientation)
     {
         Orientation = orientation;
-        transform.localEulerAngles = DodgeFromLight.CurrentMap.Grid.GetOrientationVector(Orientation);
+        transform.localEulerAngles = GameContext.CurrentMap.Grid.GetOrientationVector(Orientation);
         Play("Idle");
     }
 
@@ -137,8 +137,8 @@ public class Entity : MonoBehaviour
     public void MoveToDirection(Orientation orientation)
     {
         // get next cell
-        Cell targetCell = DodgeFromLight.CurrentMap.Grid.GetNextCell(CurrentCell, orientation, CurrentTA);
-        GoToCell(targetCell, DodgeFromLight.GameManager.EntitiesMovementDuration);
+        Cell targetCell = GameContext.CurrentMap.Grid.GetNextCell(CurrentCell, orientation, CurrentTA);
+        GoToCell(targetCell, GameContext.GameManager.EntitiesMovementDuration);
     }
 
     public void GoToCell(Cell cell, float duration, Action Callback = null, Action EachFrameCallback = null)
@@ -266,12 +266,12 @@ public class Entity : MonoBehaviour
     IEnumerator UnlockAnimator(float duration, bool lockedWaitEnd)
     {
         if (lockedWaitEnd)
-            DodgeFromLight.StartWaitingAction();
+            GameContext.StartWaitingAction();
         yield return new WaitForSeconds(duration);
         AnimatorLocked = false;
         Play(NextClipToPlay);
         if (lockedWaitEnd)
-            DodgeFromLight.StopWaitingAction();
+            GameContext.StopWaitingAction();
     }
 
     #region Stats

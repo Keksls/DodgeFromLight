@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using UnityEngine;
 using DG.Tweening;
 
@@ -60,17 +60,28 @@ public class GamePlayer_Controller : Entity
             wings.GetComponent<Animator>().SetBool("Flap Fast", flapping);
     }
 
-    void Update()
+    /// <summary>
+    /// Routes player input to the authoritative runtime selected by the active game manager.
+    /// </summary>
+    private void Update()
     {
-        if ((DodgeFromLight.GameManager != null && DodgeFromLight.HasEntitiesMoving) || Jumping)
+        // Core sessions bypass every historical gameplay component while retaining this view.
+        if (GameContext.GameManager != null &&
+            GameContext.GameManager.UsesCoreSimulation)
+        {
+            GameContext.GameManager.HandleCorePlayerInput();
+            return;
+        }
+
+        if ((GameContext.GameManager != null && GameContext.HasEntitiesMoving) || Jumping)
             return;
 
         if (IsCastingPet)
         {
-            if (DodgeFromLight.GameSettingsManager.GetInput(InputSettingsType.CastPet).IsDown())
+            if (GameContext.GameSettingsManager.GetInput(InputSettingsType.CastPet).IsDown())
             {
-                DodgeFromLight.GameManager.StartTimer();
-                DodgeFromLight.GameManager.PlayerMove(Orientation.None);
+                GameContext.GameManager.StartTimer();
+                GameContext.GameManager.PlayerMove(Orientation.None);
                 UncastPet(true, false);
             }
             return;
@@ -81,7 +92,7 @@ public class GamePlayer_Controller : Entity
 
         if (dir != Orientation.None)
         {
-            switch (DodgeFromLight.GameManager.Follower.Orientation)
+            switch (GameContext.GameManager.Follower.Orientation)
             {
                 case Orientation.Left:
                     switch (dir)
@@ -137,8 +148,8 @@ public class GamePlayer_Controller : Entity
                     }
                     break;
             }
-            DodgeFromLight.GameManager.StartTimer();
-            DodgeFromLight.GameManager.PlayerMove(dir);
+            GameContext.GameManager.StartTimer();
+            GameContext.GameManager.PlayerMove(dir);
         }
     }
 
@@ -162,7 +173,7 @@ public class GamePlayer_Controller : Entity
             Destroy(petGO);
         if (PlayerCharacter.GetInstantiatesSkin(SkinType.Pet) != null)
             PlayerCharacter.GetInstantiatesSkin(SkinType.Pet).SetActive(true);
-        DodgeFromLight.GameManager._petController = null;
+        GameContext.GameManager._petController = null;
         Jumping = false;
 
         // set player skin
@@ -174,51 +185,51 @@ public class GamePlayer_Controller : Entity
         if (Input.GetKey(KeyCode.LeftControl))
             return;
 
-        if (DodgeFromLight.GameSettingsManager.GetInput(InputSettingsType.Right).IsDown())
+        if (GameContext.GameSettingsManager.GetInput(InputSettingsType.Right).IsDown())
             dir = Orientation.Right;
-        else if (DodgeFromLight.GameSettingsManager.GetInput(InputSettingsType.left).IsDown())
+        else if (GameContext.GameSettingsManager.GetInput(InputSettingsType.left).IsDown())
             dir = Orientation.Left;
-        else if (DodgeFromLight.GameSettingsManager.GetInput(InputSettingsType.Forward).IsDown())
+        else if (GameContext.GameSettingsManager.GetInput(InputSettingsType.Forward).IsDown())
             dir = Orientation.Up;
-        else if (DodgeFromLight.GameSettingsManager.GetInput(InputSettingsType.Backward).IsDown())
+        else if (GameContext.GameSettingsManager.GetInput(InputSettingsType.Backward).IsDown())
             dir = Orientation.Down;
 
-        else if (DodgeFromLight.GameSettingsManager.GetInput(InputSettingsType.Gear1).IsDown())
+        else if (GameContext.GameSettingsManager.GetInput(InputSettingsType.Gear1).IsDown())
         {
             if (CurrentCell.GearType != GearType.None)
                 SetGearA(CurrentCell.GearType);
             else if (GearA != null && GearA.CanUseGear())
                 GearA.UseGear();
-            DodgeFromLight.GameManager.StartTimer();
+            GameContext.GameManager.StartTimer();
         }
 
-        else if (DodgeFromLight.GameSettingsManager.GetInput(InputSettingsType.Gear2).IsDown())
+        else if (GameContext.GameSettingsManager.GetInput(InputSettingsType.Gear2).IsDown())
         {
             if (CurrentCell.GearType != GearType.None)
                 SetGearE(CurrentCell.GearType);
             else if (GearE != null && GearE.CanUseGear())
                 GearE.UseGear();
-            DodgeFromLight.GameManager.StartTimer();
+            GameContext.GameManager.StartTimer();
         }
 
-        else if (DodgeFromLight.GameSettingsManager.GetInput(InputSettingsType.PlantSword).IsDown() &&
+        else if (GameContext.GameSettingsManager.GetInput(InputSettingsType.PlantSword).IsDown() &&
             (SaveManager.CurrentSave.GetCurrentPart(SkinType.Sword) != -1 ||
             SaveManager.CurrentSave.GetCurrentPart(SkinType.Wand) != -1 ||
             SaveManager.CurrentSave.GetCurrentPart(SkinType.Hammer) != -1 ||
             SaveManager.CurrentSave.GetCurrentPart(SkinType.Dagger) != -1 ||
             SaveManager.CurrentSave.GetCurrentPart(SkinType.Axe) != -1))
         {
-            DodgeFromLight.GameManager.StartTimer();
-            DodgeFromLight.GameManager.PlayerMove(Orientation.None);
+            GameContext.GameManager.StartTimer();
+            GameContext.GameManager.PlayerMove(Orientation.None);
 
-            DodgeFromLight.StartWaitingAction();
+            GameContext.StartWaitingAction();
             if (plantedSword == null) // first time plant sword
                 StartCoroutine(PlantSword());
             else // switch sword positions
                 StartCoroutine(SwitchSwordPositions());
         }
 
-        else if (DodgeFromLight.GameSettingsManager.GetInput(InputSettingsType.DeployShield).IsDown() &&
+        else if (GameContext.GameSettingsManager.GetInput(InputSettingsType.DeployShield).IsDown() &&
             SaveManager.CurrentSave.GetCurrentPart(SkinType.Shield) != -1)
         {
             // check if sword on forward cell
@@ -226,7 +237,7 @@ public class GamePlayer_Controller : Entity
                 FailStrikeShield();
             else
             {
-                Cell forwardCell = DodgeFromLight.CurrentMap.Grid.GetNeighbor(CurrentCell.GetCellPos(), Orientation);
+                Cell forwardCell = GameContext.CurrentMap.Grid.GetNeighbor(CurrentCell.GetCellPos(), Orientation);
                 if (forwardCell != null && forwardCell.GetCellPos().Equals(plantedSwordCell))
                     StrikeShield();
                 else
@@ -234,18 +245,18 @@ public class GamePlayer_Controller : Entity
             }
         }
 
-        else if (DodgeFromLight.GameSettingsManager.GetInput(InputSettingsType.CastPet).IsDown() && canPet &&
+        else if (GameContext.GameSettingsManager.GetInput(InputSettingsType.CastPet).IsDown() && canPet &&
             SaveManager.CurrentSave.GetCurrentPart(SkinType.Pet) != -1)
         {
             // try cast pet on forward cell
-            Cell nextCell = DodgeFromLight.CurrentMap.Grid.GetNextCell(CurrentCell, Orientation, 1);
+            Cell nextCell = GameContext.CurrentMap.Grid.GetNextCell(CurrentCell, Orientation, 1);
             if (nextCell != null)
             {
                 CastPet(nextCell);
             }
         }
 
-        else if (DodgeFromLight.GameSettingsManager.GetInput(InputSettingsType.Jump).IsDown())
+        else if (GameContext.GameSettingsManager.GetInput(InputSettingsType.Jump).IsDown())
             StartCoroutine(Jump());
     }
 
@@ -260,43 +271,43 @@ public class GamePlayer_Controller : Entity
         Play("Jump");
         Transform playerTransform = transform;
         Vector3 pos = playerTransform.position;
-        float YOffset = DodgeFromLight.GameManager.GearJumpYOffset;
-        float duration = DodgeFromLight.GameManager.EntitiesMovementDuration;
+        float YOffset = GameContext.GameManager.GearJumpYOffset;
+        float duration = GameContext.GameManager.EntitiesMovementDuration;
         float enlapsed = 0.0f;
         CellPos playerCell = CurrentCell.GetCellPos();
 
         // jump up
         CurrentCell.EntityOnCell = null;
         CurrentCell = new Cell(-1, -1);
-        DodgeFromLight.GameManager.PlayerMove(Orientation.None);
-        DodgeFromLight.StartWaitingAction();
+        GameContext.GameManager.PlayerMove(Orientation.None);
+        GameContext.StartWaitingAction();
         while (enlapsed < duration)
         {
             Vector3 p = pos;
-            p.y = DodgeFromLight.GameManager.GearJumpCurve.Evaluate((enlapsed / duration) * 0.5f) * YOffset;
+            p.y = GameContext.GameManager.GearJumpCurve.Evaluate((enlapsed / duration) * 0.5f) * YOffset;
             playerTransform.position = p;
             yield return null;
             enlapsed += Time.deltaTime;
         }
-        DodgeFromLight.StopWaitingAction();
+        GameContext.StopWaitingAction();
 
         yield return null;
         // fall down
         enlapsed = 0.0f;
         CurrentCell.EntityOnCell = this;
-        CurrentCell = DodgeFromLight.CurrentMap.Grid.GetCell(playerCell);
-        DodgeFromLight.GameManager.PlayerMove(Orientation.None);
-        DodgeFromLight.StartWaitingAction();
+        CurrentCell = GameContext.CurrentMap.Grid.GetCell(playerCell);
+        GameContext.GameManager.PlayerMove(Orientation.None);
+        GameContext.StartWaitingAction();
         while (enlapsed < duration)
         {
             Vector3 p = pos;
-            p.y = DodgeFromLight.GameManager.GearJumpCurve.Evaluate(((enlapsed / duration) * 0.5f) + 0.5f) * YOffset;
+            p.y = GameContext.GameManager.GearJumpCurve.Evaluate(((enlapsed / duration) * 0.5f) + 0.5f) * YOffset;
             playerTransform.position = p;
             yield return null;
             enlapsed += Time.deltaTime;
         }
         PlaceOnCell(CurrentCell, true);
-        DodgeFromLight.StopWaitingAction();
+        GameContext.StopWaitingAction();
         Jumping = false;
     }
     #endregion
@@ -308,13 +319,13 @@ public class GamePlayer_Controller : Entity
         canPet = false;
         petGO = new GameObject("castingPet");
         GameObject pet = PlayerCharacter.GetInstantiatesSkin(SkinType.Pet);
-        DodgeFromLight.GameManager._petController = petGO.AddComponent<CastingPetController>();
-        DodgeFromLight.GameManager._petController.CastPet(pet, CurrentCell, Orientation);
+        GameContext.GameManager._petController = petGO.AddComponent<CastingPetController>();
+        GameContext.GameManager._petController.CastPet(pet, CurrentCell, Orientation);
         pet.SetActive(false);
         GameObject vfx = Instantiate(CastPetVFX);
         vfx.transform.position = cell.GetCellPos().ToVector3(2f);
-        DodgeFromLight.GameManager.StartTimer();
-        DodgeFromLight.GameManager.PlayerMove(Orientation);
+        GameContext.GameManager.StartTimer();
+        GameContext.GameManager.PlayerMove(Orientation);
 
     }
 
@@ -324,14 +335,14 @@ public class GamePlayer_Controller : Entity
             return;
         IsCastingPet = false;
         canPet = false;
-        CastingPetController pet = DodgeFromLight.GameManager._petController;
+        CastingPetController pet = GameContext.GameManager._petController;
         if (transposition)
             PlaceOnCell(pet.CurrentCell, true);
         pet.CurrentCell.EntityOnCell = null;
         pet.CurrentCell.Walkable = true;
         pet.UncastPet();
-        DodgeFromLight.GameManager._petController = null;
-        DodgeFromLight.GameManager.Follower.Target = transform;
+        GameContext.GameManager._petController = null;
+        GameContext.GameManager.Follower.Target = transform;
         GameObject vfx = Instantiate(UncastPetVFX);
         vfx.transform.position = pet.CurrentCell.GetCellPos().ToVector3(0.3f);
         if (keepPet)
@@ -346,27 +357,27 @@ public class GamePlayer_Controller : Entity
     #region Deploy shield
     private void StrikeShield()
     {
-        CellPos swordStrikePos = DodgeFromLight.CurrentMap.Grid.GetFarestCell(plantedSwordCell, Orientation, 4, InLineCellType.Push);
+        CellPos swordStrikePos = GameContext.CurrentMap.Grid.GetFarestCell(plantedSwordCell, Orientation, 4, InLineCellType.Push);
         if (!swordStrikePos.Equals(plantedSwordCell))
         {
-            DodgeFromLight.GameManager.StartTimer();
-            DodgeFromLight.GameManager.PlayerMove(Orientation.None);
+            GameContext.GameManager.StartTimer();
+            GameContext.GameManager.PlayerMove(Orientation.None);
             Play("StrikeShield");
             StartCoroutine(PushSword(swordStrikePos));
         }
         else
         {
             Play("StrikeShieldHit");
-            DodgeFromLight.GameManager.StartTimer();
-            DodgeFromLight.GameManager.PlayerMove(Orientation.None);
+            GameContext.GameManager.StartTimer();
+            GameContext.GameManager.PlayerMove(Orientation.None);
         }
     }
 
     IEnumerator PushSword(CellPos pos)
     {
-        DodgeFromLight.StartWaitingAction();
+        GameContext.StartWaitingAction();
         float enlapsed = 0.0f;
-        float duration = DodgeFromLight.GameManager.EntitiesMovementDuration / 2f;
+        float duration = GameContext.GameManager.EntitiesMovementDuration / 2f;
         yield return new WaitForSeconds(0.15f);
         GameObject vfx = Instantiate(ShieldStrikeVFXPrefab);
         vfx.transform.position = plantedSword.transform.position;
@@ -386,14 +397,14 @@ public class GamePlayer_Controller : Entity
         plantedSword.transform.position = Send;
         currentSwordFX.transform.position = FXend;
         plantedSwordCell = pos;
-        DodgeFromLight.StopWaitingAction();
+        GameContext.StopWaitingAction();
     }
 
     private void FailStrikeShield()
     {
         Play("StrikeShieldHit");
-        DodgeFromLight.GameManager.StartTimer();
-        DodgeFromLight.GameManager.PlayerMove(Orientation.None);
+        GameContext.GameManager.StartTimer();
+        GameContext.GameManager.PlayerMove(Orientation.None);
     }
     #endregion
 
@@ -408,7 +419,7 @@ public class GamePlayer_Controller : Entity
                 weaponGO.SetActive(true);
             Destroy(currentSwordFX);
             WeaponDataAsset wda = PlayerCharacter.GetCurrentWeaponData();
-            GameObject FX = DodgeFromLight.Databases.WeaponData.GetTranspositionWeaponVFX(wda.Type, wda.SkinID);
+            GameObject FX = GameContext.Databases.WeaponData.GetTranspositionWeaponVFX(wda.Type, wda.SkinID);
             FX.transform.position = transform.position;
         }
         currentSwordFX = null;
@@ -419,27 +430,27 @@ public class GamePlayer_Controller : Entity
     {
         Play("PlantSword");
         WeaponDataAsset wda = PlayerCharacter.GetCurrentWeaponData();
-        plantedSword = Instantiate(DodgeFromLight.Databases.SkinsData.GetPrefab(wda.Type, wda.SkinID));
+        plantedSword = Instantiate(GameContext.Databases.SkinsData.GetPrefab(wda.Type, wda.SkinID));
         plantedSwordCell = CurrentCell.GetCellPos();
         plantedSword.transform.localScale = wda.Scale / 6f;
         PlayerCharacter.GetInstantiatedWeaponGameObject().SetActive(false);
-        currentSwordFX = DodgeFromLight.Databases.WeaponData.GetPlantedVFX(wda.Type, wda.SkinID);
+        currentSwordFX = GameContext.Databases.WeaponData.GetPlantedVFX(wda.Type, wda.SkinID);
         PlantedSwordPosition(wda);
-        yield return new WaitForSeconds(DodgeFromLight.GameManager.EntitiesMovementDuration);
-        DodgeFromLight.StopWaitingAction();
+        yield return new WaitForSeconds(GameContext.GameManager.EntitiesMovementDuration);
+        GameContext.StopWaitingAction();
     }
 
     private void PlantedSwordPosition(WeaponDataAsset weapon)
     {
-        WeaponDataAsset wda = DodgeFromLight.Databases.WeaponData.GetWeaponData(weapon.Type, weapon.SkinID);
-        SkinDataAsset sda = DodgeFromLight.Databases.SkinsData.GetSkin(wda.Type, wda.SkinID);
+        WeaponDataAsset wda = GameContext.Databases.WeaponData.GetWeaponData(weapon.Type, weapon.SkinID);
+        SkinDataAsset sda = GameContext.Databases.SkinsData.GetSkin(wda.Type, wda.SkinID);
         plantedSword.transform.position = plantedSwordCell.ToVector3(wda.YPos / 6f) + sda.localPos;
         plantedSword.transform.localRotation = Quaternion.Euler(wda.Rotation) * sda.localRot;
         currentSwordFX.transform.position = plantedSwordCell.ToVector3(0.025f);
-        StopCoroutine(SwordFall(plantedSword.transform, DodgeFromLight.GameManager.EntitiesMovementDuration, 2f));
-        StopCoroutine(SwordFall(currentSwordFX.transform, DodgeFromLight.GameManager.EntitiesMovementDuration / 2f, 2f));
-        StartCoroutine(SwordFall(plantedSword.transform, DodgeFromLight.GameManager.EntitiesMovementDuration, 4f));
-        StartCoroutine(SwordFall(currentSwordFX.transform, DodgeFromLight.GameManager.EntitiesMovementDuration / 2f, 2f));
+        StopCoroutine(SwordFall(plantedSword.transform, GameContext.GameManager.EntitiesMovementDuration, 2f));
+        StopCoroutine(SwordFall(currentSwordFX.transform, GameContext.GameManager.EntitiesMovementDuration / 2f, 2f));
+        StartCoroutine(SwordFall(plantedSword.transform, GameContext.GameManager.EntitiesMovementDuration, 4f));
+        StartCoroutine(SwordFall(currentSwordFX.transform, GameContext.GameManager.EntitiesMovementDuration / 2f, 2f));
     }
 
     IEnumerator SwordFall(Transform _transform, float duration, float StartUp)
@@ -465,11 +476,11 @@ public class GamePlayer_Controller : Entity
     IEnumerator SwitchSwordPositions()
     {
         Play("Win", true, 0.5f, lockedWaitEnd: false);
-        Events.Fire_PlayerStartChangeCell(CurrentCell, DodgeFromLight.CurrentMap.Grid.GetCell(plantedSwordCell));
-        float duration = DodgeFromLight.GameManager.EntitiesMovementDuration * 2f;
+        Events.Fire_PlayerStartChangeCell(CurrentCell, GameContext.CurrentMap.Grid.GetCell(plantedSwordCell));
+        float duration = GameContext.GameManager.EntitiesMovementDuration * 2f;
         float enlapsed = 0f;
         CellPos lastCell = CurrentCell.GetCellPos();
-        PlaceOnCell(DodgeFromLight.CurrentMap.Grid.GetCell(plantedSwordCell), false);
+        PlaceOnCell(GameContext.CurrentMap.Grid.GetCell(plantedSwordCell), false);
 
         // turn player to look at sword
         // player jump to sword
@@ -503,13 +514,13 @@ public class GamePlayer_Controller : Entity
         PlantedSwordPosition(weapon);
 
         // player jump fall FX
-        GameObject FX = DodgeFromLight.Databases.WeaponData.GetTranspositionWeaponVFX(weapon.Type, weapon.SkinID);
+        GameObject FX = GameContext.Databases.WeaponData.GetTranspositionWeaponVFX(weapon.Type, weapon.SkinID);
         FX.transform.position = transform.position;
 
         // camera shake
-        DodgeFromLight.GameManager.Follower.GetComponent<Camera>().DOShakeRotation(0.25f, 10f, 2, 2f);
-        DodgeFromLight.StopWaitingAction();
-        Events.Fire_PlayerEndChangeCell(DodgeFromLight.CurrentMap.Grid.GetCell(lastCell), CurrentCell);
+        GameContext.GameManager.Follower.GetComponent<Camera>().DOShakeRotation(0.25f, 10f, 2, 2f);
+        GameContext.StopWaitingAction();
+        Events.Fire_PlayerEndChangeCell(GameContext.CurrentMap.Grid.GetCell(lastCell), CurrentCell);
     }
     #endregion
 
@@ -527,10 +538,10 @@ public class GamePlayer_Controller : Entity
             GearA.Initialize(this, GearSide.A);
         else
             Debug.Log("Gear A fail");
-        DodgeFromLight.GameManager.PlayerMove(Orientation.None);
+        GameContext.GameManager.PlayerMove(Orientation.None);
         PickUpGearVFX();
         CurrentCell.SetGear(GearType.None);
-        DodgeFromLight.GridController.UnSpawnGear(CurrentCell);
+        GameContext.GridController.UnSpawnGear(CurrentCell);
         Events.Fire_SetGear(type);
     }
 
@@ -547,16 +558,16 @@ public class GamePlayer_Controller : Entity
             GearE.Initialize(this, GearSide.E);
         else
             Debug.Log("Gear E fail");
-        DodgeFromLight.GameManager.PlayerMove(Orientation.None);
+        GameContext.GameManager.PlayerMove(Orientation.None);
         PickUpGearVFX();
         CurrentCell.SetGear(GearType.None);
-        DodgeFromLight.GridController.UnSpawnGear(CurrentCell);
+        GameContext.GridController.UnSpawnGear(CurrentCell);
         Events.Fire_SetGear(type);
     }
 
     public void PickUpGearVFX()
     {
-        GameObject vfx = Instantiate(DodgeFromLight.GameManager.GearPickupVFX);
+        GameObject vfx = Instantiate(GameContext.GameManager.GearPickupVFX);
         Vector3 pos = transform.position;
         pos.y = 10f;
         vfx.transform.position = pos;
@@ -564,7 +575,7 @@ public class GamePlayer_Controller : Entity
 
     public void SaveCheckpointVFX()
     {
-        GameObject vfx = Instantiate(DodgeFromLight.GameManager.CheckboxSaveVFX);
+        GameObject vfx = Instantiate(GameContext.GameManager.CheckboxSaveVFX);
         Vector3 pos = transform.position;
         pos.y = 10f;
         vfx.transform.position = pos;

@@ -16,8 +16,8 @@ public class SpeedBoots : Gear
 
     public override bool UseGear()
     {
-        DodgeFromLight.GameManager._playerController.ThrowGear(Side);
-        DodgeFromLight.GameManager._playerController.AddAlteration(new Alteration(AlterationType.PM, 1, 2));
+        GameContext.GameManager._playerController.ThrowGear(Side);
+        GameContext.GameManager._playerController.AddAlteration(new Alteration(AlterationType.PM, 1, 2));
         return true;
     }
 }

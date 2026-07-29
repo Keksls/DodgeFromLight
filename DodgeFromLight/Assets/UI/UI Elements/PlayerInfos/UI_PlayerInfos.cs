@@ -42,15 +42,15 @@ public class UI_PlayerInfos : MonoBehaviour
     public void UpdatePlayerInfos()
     {
         // set slider avancement
-        int currentLvl = DodgeFromLight.Databases.RewardData.GetLevel(SaveManager.CurrentSave.Experience);
+        int currentLvl = GameContext.Databases.RewardData.GetLevel(SaveManager.CurrentSave.Experience);
         float xp = SaveManager.CurrentSave.Experience;
-        float startXp = DodgeFromLight.Databases.RewardData.GetXpForLevel(currentLvl);
-        float nextXp = DodgeFromLight.Databases.RewardData.GetXpForLevel(currentLvl + 1);
+        float startXp = GameContext.Databases.RewardData.GetXpForLevel(currentLvl);
+        float nextXp = GameContext.Databases.RewardData.GetXpForLevel(currentLvl + 1);
         StopAllCoroutines();
         StartCoroutine(AnimateXpSlider((xp - startXp) / (nextXp - startXp)));
 
         // display rewards button
-        if (DodgeFromLight.Databases.RewardData.HasRewards(SaveManager.CurrentSave.Experience))
+        if (GameContext.Databases.RewardData.HasRewards(SaveManager.CurrentSave.Experience))
             BtnPendingRewards.gameObject.SetActive(true);
         else
             BtnPendingRewards.gameObject.SetActive(false);
@@ -58,7 +58,7 @@ public class UI_PlayerInfos : MonoBehaviour
         // set texts
         LvlText.text = "Lvl " + currentLvl;
         NameText.text = SaveManager.CurrentSave.DisplayName;
-        NameText.colorGradient = DodgeFromLight.Databases.OrnamentData.GetOrnamentData(SaveManager.CurrentSave.GetCurrentPart(SkinType.Ornament)).TextColor;
+        NameText.colorGradient = GameContext.Databases.OrnamentData.GetOrnamentData(SaveManager.CurrentSave.GetCurrentPart(SkinType.Ornament)).TextColor;
         NameText.gameObject.GetComponent<AnimateTextGradient>().Initialize();
 
         // update preview
@@ -91,10 +91,10 @@ public class UI_PlayerInfos : MonoBehaviour
         UITooltipSetter xpTP = XPSlider.gameObject.AddComponent<UITooltipSetter>();
         xpTP.MessageFunc = () =>
         {
-            int currentLvl = DodgeFromLight.Databases.RewardData.GetLevel(SaveManager.CurrentSave.Experience);
+            int currentLvl = GameContext.Databases.RewardData.GetLevel(SaveManager.CurrentSave.Experience);
             float xp = SaveManager.CurrentSave.Experience;
-            float startXp = DodgeFromLight.Databases.RewardData.GetXpForLevel(currentLvl);
-            float nextXp = DodgeFromLight.Databases.RewardData.GetXpForLevel(currentLvl + 1);
+            float startXp = GameContext.Databases.RewardData.GetXpForLevel(currentLvl);
+            float nextXp = GameContext.Databases.RewardData.GetXpForLevel(currentLvl + 1);
             float percent = (xp - startXp) / (nextXp - startXp) * 100f;
             return ((int)xp - (int)startXp) + " / " + ((int)nextXp - (int)startXp) + " (" + (int)percent + " %)";
         };
@@ -102,8 +102,8 @@ public class UI_PlayerInfos : MonoBehaviour
         UITooltipSetter pendingRewardsTP = BtnPendingRewards.gameObject.AddComponent<UITooltipSetter>();
         pendingRewardsTP.MessageFunc = () =>
         {
-            if (DodgeFromLight.Databases.RewardData.HasRewards(SaveManager.CurrentSave.Experience))
-                return DodgeFromLight.Databases.RewardData.GetNbPendingRewards(SaveManager.CurrentSave.Experience) + " Pending Rewards";
+            if (GameContext.Databases.RewardData.HasRewards(SaveManager.CurrentSave.Experience))
+                return GameContext.Databases.RewardData.GetNbPendingRewards(SaveManager.CurrentSave.Experience) + " Pending Rewards";
             else
                 return "No pending rewards";
         };

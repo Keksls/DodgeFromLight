@@ -11,7 +11,7 @@ public class CatapultController : MonoBehaviour
 
     public IEnumerator ThrowAnimation(CellPos targetCell)
     {
-        float duration = (DodgeFromLight.GameManager != null ? DodgeFromLight.GameManager.EntitiesMovementDuration : 0.15f);
+        float duration = (GameContext.GameManager != null ? GameContext.GameManager.EntitiesMovementDuration : 0.15f);
         float enlapsed = 0f;
         Vector3 startPos = Rock.position;
         Vector3 endPos = targetCell.ToVector3(0f);

@@ -146,9 +146,9 @@ public sealed class GameRules
             return;
         }
 
-        DodgeFromLight.UI_WorkerNotifier?.Show("Loading local map...");
+        GameContext.UI_WorkerNotifier?.Show("Loading local map...");
         var opened = LocalMapRepository.Open(GetCurrentGridID());
         callback?.Invoke(opened ? GridManager.GetFullMap() : null);
-        DodgeFromLight.UI_WorkerNotifier?.Hide();
+        GameContext.UI_WorkerNotifier?.Hide();
     }
 }

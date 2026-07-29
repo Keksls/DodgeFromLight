@@ -215,7 +215,7 @@ namespace DodgeFromLight.Tests
                     var isVoid = voidPosition.HasValue && voidPosition.Value == position;
                     cells.Add(new CellDefinition(
                         position,
-                        isVoid ? SimulationEngine.VoidCellId : SimulationEngine.FloorCellId,
+                        isVoid ? CellTypeIds.Void : CellTypeIds.Floor,
                         !isVoid,
                         "decor.test_floor",
                         string.Empty,

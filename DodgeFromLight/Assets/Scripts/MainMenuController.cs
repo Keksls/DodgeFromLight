@@ -41,10 +41,10 @@ public class MainMenuController : MonoBehaviour
     {
         // The menu no longer checks connectivity or presents an account screen.
         EnvironmentSettings env = JsonConvert.DeserializeObject<EnvironmentSettings>(Resources.Load<TextAsset>("MainMenuEnvironment").text);
-        DodgeFromLight.EnvironmentController.SetEnvironment(env);
-        DodgeFromLight.EnvironmentController.SetFogSettings(env, fog, foam);
+        GameContext.EnvironmentController.SetEnvironment(env);
+        GameContext.EnvironmentController.SetFogSettings(env, fog, foam);
 
-        if (DodgeFromLight.TutorialController.HasFinishTutorial())
+        if (GameContext.TutorialController.HasFinishTutorial())
         {
             PlayButton.GetComponentInChildren<TextMeshProUGUI>().text = "Play";
             MapButton.interactable = true;
@@ -83,14 +83,14 @@ public class MainMenuController : MonoBehaviour
         yield return new WaitForSeconds(AnimationDuration);
         if (cleanGameManager)
         {
-            if (DodgeFromLight.GameManager != null)
+            if (GameContext.GameManager != null)
             {
-                Destroy(DodgeFromLight.GameManager.gameObject);
-                Destroy(DodgeFromLight.GameManager);
-                DodgeFromLight.GameManager = null;
+                Destroy(GameContext.GameManager.gameObject);
+                Destroy(GameContext.GameManager);
+                GameContext.GameManager = null;
             }
         }
-        DodgeFromLight.SceneTransitions.LoadScene(sceneName);
+        GameContext.SceneTransitions.LoadScene(sceneName);
     }
 
     /// <summary>
@@ -116,28 +116,10 @@ public class MainMenuController : MonoBehaviour
     /// </summary>
     public void Player()
     {
-        // Route new players through onboarding and returning players through local content.
-        string sceneName;
-        if (!DodgeFromLight.TutorialController.HasFinishTutorial())
-        {
-            sceneName = "Main";
-            DodgeFromLight.CurrentRules = new GameRules().SetTutorial(DodgeFromLight.TutorialController.GetRemaningMapsFolders());
-        }
-        else
-        {
-            var map = LocalMapRepository.GetMostRecent();
-            if (map == null)
-            {
-                sceneName = "MapCreator";
-            }
-            else
-            {
-                sceneName = "Main";
-                DodgeFromLight.CurrentRules = new GameRules(false, false, map.ID);
-            }
-        }
-
-        StartCoroutine(Play_routine(sceneName, "Attack", false));
+        // Share the same deterministic startup selection as direct Intro-to-Main launches.
+        GameContext.CurrentRules = LocalGameSessionFactory.CreateDefault(
+            GameContext.TutorialController);
+        StartCoroutine(Play_routine("Main", "Attack", false));
     }
 
     /// <summary>

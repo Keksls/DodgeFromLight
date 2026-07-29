@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 public class Gloutton : Ennemy
 {
@@ -89,8 +89,8 @@ public class Gloutton : Ennemy
 
     public override void DoEffect()
     {
-        Grid grid = DodgeFromLight.CurrentMap.Grid;
-        string playerName = DodgeFromLight.GameManager?.PlayerController?.Name;
+        Grid grid = GameContext.CurrentMap.Grid;
+        string playerName = GameContext.GameManager?.PlayerController?.Name;
         Cell tmpCell = null;
         foreach (CellPos po in AttractionPOCells)
         {
@@ -99,21 +99,21 @@ public class Gloutton : Ennemy
             {
                 Entity player = tmpCell.EntityOnCell;
                 // move to player and attack
-                Play("Attract", true, DodgeFromLight.GameManager.EntitiesMovementDuration);
-                DodgeFromLight.StopWaitingAction();
-                DodgeFromLight.GridController.DrawCellsPO();
+                Play("Attract", true, GameContext.GameManager.EntitiesMovementDuration);
+                GameContext.StopWaitingAction();
+                GameContext.GridController.DrawCellsPO();
                 player.StopMovementsForThisTurn(); // stop the player
                 StopMovementsForThisTurn(); // stop ennemy movement for this turn
 
                 // attract player
-                Orientation displacementOrientation = DodgeFromLight.CurrentMap.Grid.GetOrientation(tmpCell, CurrentCell);
+                Orientation displacementOrientation = GameContext.CurrentMap.Grid.GetOrientation(tmpCell, CurrentCell);
                 Cell targetPlayerCell = grid.GetNextCell(tmpCell, displacementOrientation, NbCellsToAttract);
-                DodgeFromLight.StartWaitingAction();
-                player.GoToCell(targetPlayerCell, DodgeFromLight.GameManager.EntitiesMovementDuration, () =>
+                GameContext.StartWaitingAction();
+                player.GoToCell(targetPlayerCell, GameContext.GameManager.EntitiesMovementDuration, () =>
                 {
                     RefreshPO();
-                    DodgeFromLight.GridController.DrawCellsPO();
-                    DodgeFromLight.StopWaitingAction();
+                    GameContext.GridController.DrawCellsPO();
+                    GameContext.StopWaitingAction();
                 });
             }
         }

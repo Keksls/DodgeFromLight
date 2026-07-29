@@ -22,7 +22,7 @@ public class Pillar : Ennemy
 
     private void Events_TurnStart1()
     {
-        if (DodgeFromLight.TimeStoped > 0)
+        if (GameContext.TimeStoped > 0)
             return;
         nbTurn++;
         bool reload = nbTurn % 2 == 0;
@@ -66,7 +66,7 @@ public class Pillar : Ennemy
 
         List<CellPos> targets = new List<CellPos>();
 
-        Grid grid = DodgeFromLight.CurrentMap.Grid;
+        Grid grid = GameContext.CurrentMap.Grid;
         for (int i = 0; i < 2; i++)
         {
             int nb = po.Count;

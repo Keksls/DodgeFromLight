@@ -155,7 +155,7 @@ namespace DodgeFromLight.Infrastructure.Maps
             var legacyElementId = ReadOptionalString(cellDocument, "ElementID");
             var parameters = new Dictionary<string, string>
             {
-                ["floorDirection"] = MapDirection(
+                [CellParameterIds.FloorDirection] = MapDirection(
                     ReadOptionalInteger(cellDocument, "FloorOrientation", 1),
                     issues,
                     "Cell.FloorOrientation").ToString()
@@ -247,21 +247,56 @@ namespace DodgeFromLight.Infrastructure.Maps
                 if (platformDocument == null)
                     throw new JsonException("A moving-platform entry is not an object.");
 
+                var startPosition = ParsePosition(
+                    RequireObject(platformDocument, "StartPos"),
+                    "MovingPlatform.StartPos");
+                var waypoints = NormalizePlatformWaypoints(
+                    startPosition,
+                    ParsePositions(
+                        platformDocument["WayPoints"] as JArray,
+                        "MovingPlatform.WayPoints"));
                 platforms.Add(new MovingPlatformDefinition(
-                    ParsePosition(
-                        RequireObject(platformDocument, "StartPos"),
-                        "MovingPlatform.StartPos"),
+                    startPosition,
                     MapDirection(
                         ReadRequiredInteger(platformDocument, "StartOrientation"),
                         issues,
                         "MovingPlatform.StartOrientation"),
-                    ParsePositions(
-                        platformDocument["WayPoints"] as JArray,
-                        "MovingPlatform.WayPoints"),
+                    waypoints,
                     ReadOptionalInteger(platformDocument, "TA", 0)));
             }
 
             return platforms;
+        }
+
+        /// <summary>
+        /// Rotates a cyclic legacy platform route so its authored start is the first waypoint.
+        /// </summary>
+        private static IReadOnlyList<GridPosition> NormalizePlatformWaypoints(
+            GridPosition startPosition,
+            IReadOnlyList<GridPosition> waypoints)
+        {
+            // Legacy routes may contain the start anywhere in the cycle; rotation preserves the path.
+            var startIndex = -1;
+            for (var index = 0; index < waypoints.Count; index++)
+            {
+                if (waypoints[index] == startPosition)
+                {
+                    startIndex = index;
+                    break;
+                }
+            }
+
+            var normalized = new List<GridPosition>(waypoints.Count + 1);
+            if (startIndex < 0)
+            {
+                normalized.Add(startPosition);
+                normalized.AddRange(waypoints);
+                return normalized;
+            }
+
+            for (var offset = 0; offset < waypoints.Count; offset++)
+                normalized.Add(waypoints[(startIndex + offset) % waypoints.Count]);
+            return normalized;
         }
 
         /// <summary>
@@ -315,14 +350,17 @@ namespace DodgeFromLight.Infrastructure.Maps
             // Name known arguments while retaining unknown non-zero values explicitly.
             switch (typeId)
             {
-                case "cell.spring":
-                    parameters["distance"] = argument.ToString(CultureInfo.InvariantCulture);
+                case CellTypeIds.Spring:
+                    parameters[CellParameterIds.SpringDistance] =
+                        argument.ToString(CultureInfo.InvariantCulture);
                     break;
-                case "cell.timed_bomb":
-                    parameters["turns"] = argument.ToString(CultureInfo.InvariantCulture);
+                case CellTypeIds.TimedBomb:
+                    parameters[CellParameterIds.TimedBombTurns] =
+                        argument.ToString(CultureInfo.InvariantCulture);
                     break;
-                case "cell.needles":
-                    parameters["initialPhase"] = argument.ToString(CultureInfo.InvariantCulture);
+                case CellTypeIds.Needles:
+                    parameters[CellParameterIds.NeedleInitialPhase] =
+                        argument.ToString(CultureInfo.InvariantCulture);
                     break;
                 default:
                     if (argument != 0)
@@ -342,25 +380,25 @@ namespace DodgeFromLight.Infrastructure.Maps
             switch (legacyType)
             {
                 case 0:
-                    return "cell.floor";
+                    return CellTypeIds.Floor;
                 case 1:
-                    return "cell.void";
+                    return CellTypeIds.Void;
                 case 2:
-                    return "cell.teleporter";
+                    return CellTypeIds.Teleporter;
                 case 3:
-                    return "cell.collapse";
+                    return CellTypeIds.Collapse;
                 case 4:
-                    return "cell.speed_boost";
+                    return CellTypeIds.SpeedBoost;
                 case 5:
-                    return "cell.checkpoint";
+                    return CellTypeIds.Checkpoint;
                 case 6:
-                    return "cell.spring";
+                    return CellTypeIds.Spring;
                 case 7:
-                    return "cell.timed_bomb";
+                    return CellTypeIds.TimedBomb;
                 case 8:
-                    return "cell.needles";
+                    return CellTypeIds.Needles;
                 case 9:
-                    return "cell.sword_socket";
+                    return CellTypeIds.SwordSocket;
                 default:
                     issues.Add(new LegacyMapImportIssue(
                         LegacyMapImportIssueSeverity.Error,
@@ -383,23 +421,23 @@ namespace DodgeFromLight.Infrastructure.Maps
                 case 0:
                     return string.Empty;
                 case 1:
-                    return "gear.bomb";
+                    return GearTypeIds.Bomb;
                 case 2:
-                    return "gear.disco_ball";
+                    return GearTypeIds.DiscoBall;
                 case 3:
-                    return "gear.grapple";
+                    return GearTypeIds.Grapple;
                 case 4:
-                    return "gear.invisibility_cloak";
+                    return GearTypeIds.InvisibilityCloak;
                 case 5:
-                    return "gear.mirror";
+                    return GearTypeIds.Mirror;
                 case 6:
-                    return "gear.powder_of_darkness";
+                    return GearTypeIds.PowderOfDarkness;
                 case 7:
-                    return "gear.remote_control";
+                    return GearTypeIds.RemoteControl;
                 case 8:
-                    return "gear.speed_boots";
+                    return GearTypeIds.SpeedBoots;
                 case 9:
-                    return "gear.time_controller";
+                    return GearTypeIds.TimeController;
                 default:
                     issues.Add(new LegacyMapImportIssue(
                         LegacyMapImportIssueSeverity.Error,
@@ -420,29 +458,29 @@ namespace DodgeFromLight.Infrastructure.Maps
             switch (legacyType)
             {
                 case 0:
-                    return "enemy.cyclops";
+                    return EnemyTypeIds.Cyclops;
                 case 1:
-                    return "enemy.gloutton";
+                    return EnemyTypeIds.Gloutton;
                 case 2:
-                    return "enemy.keeper";
+                    return EnemyTypeIds.Keeper;
                 case 3:
-                    return "enemy.knight";
+                    return EnemyTypeIds.Knight;
                 case 4:
-                    return "enemy.scout";
+                    return EnemyTypeIds.Scout;
                 case 5:
-                    return "enemy.trap";
+                    return EnemyTypeIds.Trap;
                 case 6:
-                    return "enemy.lizardman";
+                    return EnemyTypeIds.Lizardman;
                 case 7:
-                    return "enemy.thunderbird";
+                    return EnemyTypeIds.Thunderbird;
                 case 8:
-                    return "enemy.axe";
+                    return EnemyTypeIds.Axe;
                 case 9:
-                    return "enemy.hammer";
+                    return EnemyTypeIds.Hammer;
                 case 10:
-                    return "enemy.catapult";
+                    return EnemyTypeIds.Catapult;
                 case 11:
-                    return "enemy.pillar";
+                    return EnemyTypeIds.Pillar;
                 default:
                     issues.Add(new LegacyMapImportIssue(
                         LegacyMapImportIssueSeverity.Error,

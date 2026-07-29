@@ -22,14 +22,14 @@ public class Undoable_SetCellType : UndoableAction
 
     public override void Redo()
     {
-        Cell cell = DodgeFromLight.CurrentMap.Grid.GetCell(CellPos);
+        Cell cell = GameContext.CurrentMap.Grid.GetCell(CellPos);
         cell.SetType(NewCellType);
         cell.SetWalkable(NewCellType != CellType.NotWalkable);
     }
 
     public override void Undo()
     {
-        Cell cell = DodgeFromLight.CurrentMap.Grid.GetCell(CellPos);
+        Cell cell = GameContext.CurrentMap.Grid.GetCell(CellPos);
         cell.SetType(PreviewCellType);
         cell.SetWalkable(PreviewCellType != CellType.NotWalkable);
     }
@@ -50,13 +50,13 @@ public class Undoable_SetFloorType : UndoableAction
 
     public override void Redo()
     {
-        Cell cell = DodgeFromLight.CurrentMap.Grid.GetCell(CellPos);
+        Cell cell = GameContext.CurrentMap.Grid.GetCell(CellPos);
         cell.FloorID = NewCellType;
     }
 
     public override void Undo()
     {
-        Cell cell = DodgeFromLight.CurrentMap.Grid.GetCell(CellPos);
+        Cell cell = GameContext.CurrentMap.Grid.GetCell(CellPos);
         cell.FloorID = PreviewCellType;
     }
 }
@@ -76,7 +76,7 @@ public class Undoable_SetElement : UndoableAction
 
     public override void Redo()
     {
-        Cell cell = DodgeFromLight.CurrentMap.Grid.GetCell(CellPos);
+        Cell cell = GameContext.CurrentMap.Grid.GetCell(CellPos);
         if (string.IsNullOrEmpty(newElementID))
             cell.RemoveElement();
         else
@@ -85,7 +85,7 @@ public class Undoable_SetElement : UndoableAction
 
     public override void Undo()
     {
-        Cell cell = DodgeFromLight.CurrentMap.Grid.GetCell(CellPos);
+        Cell cell = GameContext.CurrentMap.Grid.GetCell(CellPos);
         if (string.IsNullOrEmpty(elementID))
             cell.RemoveElement();
         else

@@ -1643,28 +1643,6 @@ PrefabInstance:
     m_RemovedComponents: []
     m_AddedGameObjects: []
   m_SourcePrefab: {fileID: 100100000, guid: e5726badc1d0ed74eb401c1893a50518, type: 3}
---- !u!114 &1109958451 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 3969887047795233235, guid: e5726badc1d0ed74eb401c1893a50518, type: 3}
-  m_PrefabInstance: {fileID: 1109958450}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 948f4100a11a5c24981795d21301da5c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &1109958452 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4578208089283640141, guid: e5726badc1d0ed74eb401c1893a50518, type: 3}
-  m_PrefabInstance: {fileID: 1109958450}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8b9a305e18de0c04dbd257a21cd47087, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1289939871
 GameObject:
   m_ObjectHideFlags: 0
@@ -2718,14 +2696,6 @@ PrefabInstance:
     serializedVersion: 2
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 1016101379129972809, guid: 7d67751288cecfc4db5e0f2ced0ac592, type: 3}
-      propertyPath: PostProcessLayer
-      value: 
-      objectReference: {fileID: 1109958451}
-    - target: {fileID: 1016101379129972809, guid: 7d67751288cecfc4db5e0f2ced0ac592, type: 3}
-      propertyPath: PostProcessVolume
-      value: 
-      objectReference: {fileID: 1109958452}
     - target: {fileID: 4783567424406358356, guid: 7d67751288cecfc4db5e0f2ced0ac592, type: 3}
       propertyPath: cam
       value: 
@@ -5092,4 +5062,3 @@ MonoBehaviour:
   - {fileID: 5627978970088670817}
   HideCursorDuration: 5
   MouseMovementThreshold: 0.1
-  AutoHideCursor: 1

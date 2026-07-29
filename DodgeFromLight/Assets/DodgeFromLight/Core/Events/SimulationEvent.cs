@@ -11,6 +11,8 @@ namespace DodgeFromLight.Core.Events
         public GridPosition To { get; }
         public Direction Direction { get; }
         public int EntityIndex { get; }
+        public string ContentId { get; }
+        public int Value { get; }
 
         /// <summary>
         /// Describes one resolved gameplay fact for presentation and diagnostics.
@@ -21,7 +23,9 @@ namespace DodgeFromLight.Core.Events
             GridPosition from,
             GridPosition to,
             Direction direction,
-            int entityIndex = -1)
+            int entityIndex = -1,
+            string contentId = "",
+            int value = 0)
         {
             // Store resolved values only; events never contain presentation objects.
             if (entityIndex < -1)
@@ -33,6 +37,8 @@ namespace DodgeFromLight.Core.Events
             To = to;
             Direction = direction;
             EntityIndex = entityIndex;
+            ContentId = contentId ?? string.Empty;
+            Value = value;
         }
     }
 }

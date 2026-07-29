@@ -36,7 +36,7 @@ public class FPSOnGUIText : MonoBehaviour
 
     void Update()
     {
-        if (DodgeFromLight.GameSettingsManager == null || !DodgeFromLight.GameSettingsManager.CurrentSettings.Global.DisplayFPS)
+        if (GameContext.GameSettingsManager == null || !GameContext.GameSettingsManager.CurrentSettings.Global.DisplayFPS)
             return;
         ++frames;
         float newSample = Time.realtimeSinceStartup;
@@ -56,7 +56,7 @@ public class FPSOnGUIText : MonoBehaviour
 
     void OnGUI()
     {
-        if (!DodgeFromLight.GameSettingsManager.CurrentSettings.Global.DisplayFPS)
+        if (!GameContext.GameSettingsManager.CurrentSettings.Global.DisplayFPS)
             return;
         GUI.Label(new Rect(Screen.width - 152, 32, 152, 32), "<color=#ffffff><size=24>" + "FPS:" + fps.ToString("f1") + "</size></color>", style);
     }

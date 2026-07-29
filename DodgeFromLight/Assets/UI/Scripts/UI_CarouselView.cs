@@ -27,9 +27,9 @@ public class UI_CarouselView : MonoBehaviour
     #region mono
     void Start()
     {
-        images = new RectTransform[DodgeFromLight.Databases.GlossaryData.GlossaryItems.Length];
+        images = new RectTransform[GameContext.Databases.GlossaryData.GlossaryItems.Length];
         int index = 0;
-        foreach (GlossaryDataItem data in DodgeFromLight.Databases.GlossaryData.GlossaryItems)
+        foreach (GlossaryDataItem data in GameContext.Databases.GlossaryData.GlossaryItems)
         {
             GameObject item = Instantiate(HeaderItemPrefab);
             item.transform.SetParent(HeaderContainer, false);
@@ -169,7 +169,7 @@ public class UI_CarouselView : MonoBehaviour
         m_currentIndex = index;
 
         // bind body data
-        GlossaryDataItem data = DodgeFromLight.Databases.GlossaryData.GlossaryItems[index];
+        GlossaryDataItem data = GameContext.Databases.GlossaryData.GlossaryItems[index];
         Body.transform.GetChild(0).GetChild(0).GetChild(1).GetComponent<Image>().sprite = data.Image;
         Body.transform.GetChild(1).GetChild(0).GetComponent<TextMeshProUGUI>().text = data.Name;
         Body.transform.GetChild(2).GetChild(0).GetComponent<TextMeshProUGUI>().text = data.Description;

@@ -22,40 +22,40 @@ public class Grapple : Gear
     public override bool UseGear()
     {
         // get target cell pos
-        CellPos target = DodgeFromLight.CurrentMap.Grid.GetFarestCell(DodgeFromLight.GameManager.PlayerController.CurrentCell.GetCellPos(),
-            DodgeFromLight.GameManager.PlayerController.Orientation, NbCells, InLineCellType.Grapple);
-        bool sameCell = target.Equals(DodgeFromLight.GameManager.PlayerController.CurrentCell.GetCellPos());
+        CellPos target = GameContext.CurrentMap.Grid.GetFarestCell(GameContext.GameManager.PlayerController.CurrentCell.GetCellPos(),
+            GameContext.GameManager.PlayerController.Orientation, NbCells, InLineCellType.Grapple);
+        bool sameCell = target.Equals(GameContext.GameManager.PlayerController.CurrentCell.GetCellPos());
         if (!sameCell)
         {
-            DodgeFromLight.GameManager.PlayerMove(Orientation.None);
+            GameContext.GameManager.PlayerMove(Orientation.None);
             // spawn grapple
-            GameObject grapple = GameObject.Instantiate(DodgeFromLight.GameManager.GearGrapplePrefab);
-            Vector3 pos = DodgeFromLight.GameManager.PlayerController.transform.position;
+            GameObject grapple = GameObject.Instantiate(GameContext.GameManager.GearGrapplePrefab);
+            Vector3 pos = GameContext.GameManager.PlayerController.transform.position;
             pos.y += 0.35f;
             grapple.transform.position = pos;
-            grapple.transform.eulerAngles = DodgeFromLight.CurrentMap.Grid.GetOrientationVector(DodgeFromLight.GameManager.PlayerController.Orientation);
+            grapple.transform.eulerAngles = GameContext.CurrentMap.Grid.GetOrientationVector(GameContext.GameManager.PlayerController.Orientation);
             // throw the grapple
-            DodgeFromLight.GameManager.StartCoroutine(ThrowGrapple(target, grapple));
+            GameContext.GameManager.StartCoroutine(ThrowGrapple(target, grapple));
 
             // throw current gear
-            DodgeFromLight.GameManager._playerController.ThrowGear(Side);
+            GameContext.GameManager._playerController.ThrowGear(Side);
         }
         return true;
     }
 
     IEnumerator ThrowGrapple(CellPos cell, GameObject grapple)
     {
-        Events.Fire_PlayerStartChangeCell(DodgeFromLight.GameManager.PlayerController.CurrentCell, DodgeFromLight.CurrentMap.Grid.GetCell(cell));
-        float dist = cell.Distance(DodgeFromLight.GameManager.PlayerController.CurrentCell.GetCellPos());
-        Transform player = DodgeFromLight.GameManager.PlayerController.transform;
-        DodgeFromLight.StartWaitingAction();
-        float duration = DodgeFromLight.GameManager.EntitiesMovementDuration * (dist / NbCells);
+        Events.Fire_PlayerStartChangeCell(GameContext.GameManager.PlayerController.CurrentCell, GameContext.CurrentMap.Grid.GetCell(cell));
+        float dist = cell.Distance(GameContext.GameManager.PlayerController.CurrentCell.GetCellPos());
+        Transform player = GameContext.GameManager.PlayerController.transform;
+        GameContext.StartWaitingAction();
+        float duration = GameContext.GameManager.EntitiesMovementDuration * (dist / NbCells);
         float enlapsed = 0f;
         Vector3 startPos = player.position;
         startPos.y = 0.35f;
         Vector3 endPos = cell.ToVector3(0f);
         endPos.y = 0.35f;
-        Cell lastCell = DodgeFromLight.GameManager.PlayerController.CurrentCell;
+        Cell lastCell = GameContext.GameManager.PlayerController.CurrentCell;
         LineRenderer lr = grapple.GetComponent<LineRenderer>();
 
         // throw grapple
@@ -73,7 +73,7 @@ public class Grapple : Gear
         startPos.y = 0f;
         endPos.y = 0f;
         enlapsed = 0f;
-        duration = DodgeFromLight.GameManager.EntitiesMovementDuration * (dist / NbCells) * 2f;
+        duration = GameContext.GameManager.EntitiesMovementDuration * (dist / NbCells) * 2f;
         while (enlapsed < duration)
         {
             Vector3 pos = Vector3.Lerp(startPos, endPos, enlapsed / duration);
@@ -88,16 +88,16 @@ public class Grapple : Gear
         GameObject.Destroy(grapple);
 
         // cleannely end turn and place player
-        DodgeFromLight.GameManager.PlayerController.PlaceOnCell(DodgeFromLight.CurrentMap.Grid.GetCell(cell), true);
-        Events.Fire_PlayerEndChangeCell(lastCell, DodgeFromLight.CurrentMap.Grid.GetCell(cell));
-        DodgeFromLight.GameManager.CheckIfReachEndCell();
-        DodgeFromLight.StopWaitingAction();
+        GameContext.GameManager.PlayerController.PlaceOnCell(GameContext.CurrentMap.Grid.GetCell(cell), true);
+        Events.Fire_PlayerEndChangeCell(lastCell, GameContext.CurrentMap.Grid.GetCell(cell));
+        GameContext.GameManager.CheckIfReachEndCell();
+        GameContext.StopWaitingAction();
 
-        foreach (Ennemy ennemy in DodgeFromLight.Ennemies)
+        foreach (Ennemy ennemy in GameContext.Ennemies)
         {
             ennemy.RefreshPO();
             ennemy.DoEffect();
         }
-        DodgeFromLight.GridController.DrawCellsPO();
+        GameContext.GridController.DrawCellsPO();
     }
 }

@@ -15,7 +15,7 @@ public class SceneTransitions : MonoBehaviour
 
     private void Awake()
     {
-        DodgeFromLight.SceneTransitions = this;
+        GameContext.SceneTransitions = this;
         VersionText.text = "v " + Application.version;
     }
 

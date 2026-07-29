@@ -13,18 +13,18 @@ public class UISoundFX : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
     public void OnPointerClick(PointerEventData eventData)
     {
         if (ClickClip != null)
-            DodgeFromLight.AudioManager.PlayUIFX(ClickClip, ClickVolume);
+            GameContext.AudioManager.PlayUIFX(ClickClip, ClickVolume);
     }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
         if (EnterClip != null)
-            DodgeFromLight.AudioManager.PlayUIFX(EnterClip, EnterVolume);
+            GameContext.AudioManager.PlayUIFX(EnterClip, EnterVolume);
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
         if (ExitClip != null)
-            DodgeFromLight.AudioManager.PlayUIFX(ExitClip, ExitVolume);
+            GameContext.AudioManager.PlayUIFX(ExitClip, ExitVolume);
     }
 }

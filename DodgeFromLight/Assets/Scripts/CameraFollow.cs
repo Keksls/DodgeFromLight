@@ -46,11 +46,11 @@ public class CameraFollow : MonoBehaviour
 
     private void Update()
     {
-        if (DodgeFromLight.GameManager != null && DodgeFromLight.HasEntitiesMoving)
+        if (GameContext.GameManager != null && GameContext.HasEntitiesMoving)
             return;
 
         // turn right
-        if (DodgeFromLight.GameSettingsManager.GetInput(InputSettingsType.TurnCameraRight).IsDown())
+        if (GameContext.GameSettingsManager.GetInput(InputSettingsType.TurnCameraRight).IsDown())
         {
             switch (Orientation)
             {
@@ -68,11 +68,11 @@ public class CameraFollow : MonoBehaviour
                     break;
             }
             SetOrientation(Orientation);
-            DodgeFromLight.GameManager.PlayerMove(Orientation.None);
+            GameContext.GameManager.PlayerMove(Orientation.None);
         }
 
         // turn left
-        else if (DodgeFromLight.GameSettingsManager.GetInput(InputSettingsType.TurnCameraLeft).IsDown())
+        else if (GameContext.GameSettingsManager.GetInput(InputSettingsType.TurnCameraLeft).IsDown())
         {
             switch (Orientation)
             {
@@ -90,7 +90,7 @@ public class CameraFollow : MonoBehaviour
                     break;
             }
             SetOrientation(Orientation);
-            DodgeFromLight.GameManager.PlayerMove(Orientation.None);
+            GameContext.GameManager.PlayerMove(Orientation.None);
         }
     }
 
@@ -128,10 +128,10 @@ public class CameraFollow : MonoBehaviour
 
     IEnumerator AnimateCamera_Routine(Vector3 start, Vector3 end)
     {
-        DodgeFromLight.GameManager.InGameUI.HideUI();
+        GameContext.GameManager.InGameUI.HideUI();
 
         animating = true;
-        DodgeFromLight.StartWaitingAction();
+        GameContext.StartWaitingAction();
 
         end = Target.position + Offset;
         transform.LookAt(end);
@@ -153,10 +153,10 @@ public class CameraFollow : MonoBehaviour
             yield return null;
             enlapsed += Time.deltaTime;
         }
-        DodgeFromLight.StopWaitingAction();
+        GameContext.StopWaitingAction();
         animating = false;
 
-        DodgeFromLight.GameManager.InGameUI.ShowUI();
+        GameContext.GameManager.InGameUI.ShowUI();
     }
 
     public void AnimateCamera(Vector3 start, Vector3 end)

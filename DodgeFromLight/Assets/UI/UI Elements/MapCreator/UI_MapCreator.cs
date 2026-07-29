@@ -54,9 +54,9 @@ public class UI_MapCreator : MonoBehaviour
             if (!enabled) return;
             if (Input.GetKey(KeyCode.P))
             {
-                foreach (Ennemy en in DodgeFromLight.Ennemies)
+                foreach (Ennemy en in GameContext.Ennemies)
                     en.DrawPath(transform);
-                foreach (MovingPlatform platform in DodgeFromLight.MovingPlatforms)
+                foreach (MovingPlatform platform in GameContext.MovingPlatforms)
                     platform.DrawPath(transform);
             }
             else if (selectedEnnemy != null)
@@ -76,7 +76,7 @@ public class UI_MapCreator : MonoBehaviour
     {
         // Continue the last local edit when possible so quitting never loses discoverability.
         PlayButton.gameObject.SetActive(true);
-        DodgeFromLight.UI_WorkerNotifier.Show("Loading map...");
+        GameContext.UI_WorkerNotifier.Show("Loading map...");
         if (GridManager.GetGrid() != null && GridManager.GetMap() != null)
         {
             LoadMap();
@@ -86,11 +86,11 @@ public class UI_MapCreator : MonoBehaviour
         const int defaultSize = 8;
         var metadata = new Map("Untitled Map", defaultSize, defaultSize);
         metadata.SetAuthor(SaveManager.CurrentSave.DisplayName);
-        DodgeFromLight.CurrentMap = new FullMap(
+        GameContext.CurrentMap = new FullMap(
             new Grid(defaultSize, defaultSize),
             metadata);
-        DodgeFromLight.CurrentMap.Grid.Environment =
-            DodgeFromLight.EnvironmentController.GetBuildinEnvironment(
+        GameContext.CurrentMap.Grid.Environment =
+            GameContext.EnvironmentController.GetBuildinEnvironment(
                 BuildInEnvironments.Default);
         UpdateMap();
         StartCoroutine(SaveMap(LoadMap));
@@ -103,7 +103,7 @@ public class UI_MapCreator : MonoBehaviour
             CellPos? cellPos = GetClickedCell();
             if (cellPos.HasValue)
             {
-                ClickOnCell(DodgeFromLight.CurrentMap.Grid.GetCell(cellPos.Value));
+                ClickOnCell(GameContext.CurrentMap.Grid.GetCell(cellPos.Value));
                 ValidateGrid();
             }
             else
@@ -115,7 +115,7 @@ public class UI_MapCreator : MonoBehaviour
             UnSelectCell();
         }
 
-        if (Input.GetKeyDown(KeyCode.Delete) && DodgeFromLight.CurrentMap.Grid != null && selectedCell != null)
+        if (Input.GetKeyDown(KeyCode.Delete) && GameContext.CurrentMap.Grid != null && selectedCell != null)
         {
             selectedCell.SetType(CellType.Walkable);
             if (!string.IsNullOrEmpty(selectedCell.ElementID))
@@ -125,16 +125,16 @@ public class UI_MapCreator : MonoBehaviour
             }
             if (selectedEnnemy != null)
             {
-                DodgeFromLight.CurrentMap.Grid.RemoveEnnemy(selectedCell.GetCellPos());
+                GameContext.CurrentMap.Grid.RemoveEnnemy(selectedCell.GetCellPos());
                 UpdateMap();
             }
             else if (selectedMovingPlatform != null)
             {
-                DodgeFromLight.CurrentMap.Grid.RemoveMovingPlatform(selectedCell.GetCellPos());
+                GameContext.CurrentMap.Grid.RemoveMovingPlatform(selectedCell.GetCellPos());
                 UpdateMap();
             }
             else
-                GridController.RefreshCrossCell(selectedCell, DodgeFromLight.CurrentMap.Grid, true);
+                GridController.RefreshCrossCell(selectedCell, GameContext.CurrentMap.Grid, true);
             ValidateGrid();
         }
 
@@ -164,17 +164,17 @@ public class UI_MapCreator : MonoBehaviour
                 else if (Input.GetKeyDown(KeyCode.LeftArrow))
                     dir = Orientation.Left;
 
-                var en = DodgeFromLight.CurrentMap.Grid.GetEnnemyOnCell(selectedCell);
+                var en = GameContext.CurrentMap.Grid.GetEnnemyOnCell(selectedCell);
                 // element orientation
                 if (!string.IsNullOrEmpty(selectedCell.ElementID))
                 {
-                    selectedCell.ElementOrientation = DodgeFromLight.CurrentMap.Grid.GetOrientationVector(dir).y;
-                    DodgeFromLight.GridController.RefreshCell(selectedCell, DodgeFromLight.CurrentMap.Grid);
+                    selectedCell.ElementOrientation = GameContext.CurrentMap.Grid.GetOrientationVector(dir).y;
+                    GameContext.GridController.RefreshCell(selectedCell, GameContext.CurrentMap.Grid);
                     DrawFeedbacks();
                 }
                 else if (selectedEnnemy != null)
                 {
-                    DodgeFromLight.CurrentMap.Grid.GetEnnemyOnCell(selectedEnnemy.StartCell).StartOrientation = dir;
+                    GameContext.CurrentMap.Grid.GetEnnemyOnCell(selectedEnnemy.StartCell).StartOrientation = dir;
                     selectedEnnemy.SetOrientation(dir);
                     selectedEnnemy.RefreshPO();
                     GridController.DrawCellsPO();
@@ -182,7 +182,7 @@ public class UI_MapCreator : MonoBehaviour
                 else
                 {
                     selectedCell.FloorOrientation = dir;
-                    DodgeFromLight.GridController.RefreshCell(selectedCell, DodgeFromLight.CurrentMap.Grid);
+                    GameContext.GridController.RefreshCell(selectedCell, GameContext.CurrentMap.Grid);
                 }
             }
         }
@@ -227,10 +227,10 @@ public class UI_MapCreator : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
             {
-                if (DodgeFromLight.CurrentMap.Grid.ValidateEnnemyPath(selectedEnnemy))
+                if (GameContext.CurrentMap.Grid.ValidateEnnemyPath(selectedEnnemy))
                     SetTool(ToolType.Select);
                 else
-                    DodgeFromLight.UI_Notifications.Notify("This ennemy has invalide path. 'esc' to cancel.");
+                    GameContext.UI_Notifications.Notify("This ennemy has invalide path. 'esc' to cancel.");
             }
             else if (Input.GetKeyDown(KeyCode.Escape))
             {
@@ -244,8 +244,8 @@ public class UI_MapCreator : MonoBehaviour
     #region Environments
     public void SetBuildinEnvironment(BuildInEnvironments envType)
     {
-        DodgeFromLight.CurrentMap.Grid.Environment = DodgeFromLight.EnvironmentController.GetBuildinEnvironment(envType);
-        DodgeFromLight.SetEnvironment(DodgeFromLight.CurrentMap);
+        GameContext.CurrentMap.Grid.Environment = GameContext.EnvironmentController.GetBuildinEnvironment(envType);
+        GameContext.SetEnvironment(GameContext.CurrentMap);
     }
     #endregion
 
@@ -260,7 +260,7 @@ public class UI_MapCreator : MonoBehaviour
             ToolsButtons[CurrentTool].GetComponent<Image>().color = CurrentToolButtonBaseColor;
         if (selectedEnnemy != null && CurrentTool == ToolType.Path)
         {
-            if (!DodgeFromLight.CurrentMap.Grid.ValidateEnnemyPath(selectedEnnemy))
+            if (!GameContext.CurrentMap.Grid.ValidateEnnemyPath(selectedEnnemy))
             {
                 selectedEnnemy.WayPoints = new List<CellPos>();
                 selectedEnnemy.Patrol = new Patrol();
@@ -291,11 +291,11 @@ public class UI_MapCreator : MonoBehaviour
     public void BindDecoTools()
     {
         MapDecoButtons = new Dictionary<string, GameObject>();
-        var resData = DodgeFromLight.Databases.ResourcesData;
+        var resData = GameContext.Databases.ResourcesData;
         foreach (string type in resData.Types)
         {
             if (type != "Excluded" && !string.IsNullOrEmpty(type))
-                DrawDecor(DodgeFromLight.Databases.ResourcesData.GetDataForType(type), type);
+                DrawDecor(GameContext.Databases.ResourcesData.GetDataForType(type), type);
         }
     }
 
@@ -333,19 +333,19 @@ public class UI_MapCreator : MonoBehaviour
     public void ValidateGrid()
     {
         errors.Clear();
-        if (DodgeFromLight.CurrentMap.Grid != null)
-            DodgeFromLight.CurrentMap.Grid.ValidateGrid(ref errors);
+        if (GameContext.CurrentMap.Grid != null)
+            GameContext.CurrentMap.Grid.ValidateGrid(ref errors);
     }
 
     public void UpdateMap()
     {
         GridController.ClearGrid();
-        GridController.DrawGrid(DodgeFromLight.CurrentMap.Grid);
-        GridController.SpawnEnnemies(DodgeFromLight.CurrentMap.Grid);
-        GridController.SpawnPlatforms(DodgeFromLight.CurrentMap.Grid);
+        GridController.DrawGrid(GameContext.CurrentMap.Grid);
+        GridController.SpawnEnnemies(GameContext.CurrentMap.Grid);
+        GridController.SpawnPlatforms(GameContext.CurrentMap.Grid);
         GridController.AddEnnemiesColliders();
-        GridController.AddCellsColiders(DodgeFromLight.CurrentMap.Grid);
-        DodgeFromLight.SetEnvironment(DodgeFromLight.CurrentMap);
+        GridController.AddCellsColiders(GameContext.CurrentMap.Grid);
+        GameContext.SetEnvironment(GameContext.CurrentMap);
         if (selectedCell != null)
             SelectCell(selectedCell);
         DrawFeedbacks();
@@ -355,7 +355,7 @@ public class UI_MapCreator : MonoBehaviour
     {
         Cell sc = selectedCell;
         UnSelectCell(clearPanels);
-        GridController.RefreshCrossCell(cell, DodgeFromLight.CurrentMap.Grid, true);
+        GridController.RefreshCrossCell(cell, GameContext.CurrentMap.Grid, true);
         GridController.AddCellColider(cell, true);
         selectedCell = sc;
         if (selectedCell != null && selectedCell.GetCellPos().Equals(cell.GetCellPos()))
@@ -367,23 +367,23 @@ public class UI_MapCreator : MonoBehaviour
     #region Map Elements
     private void ResetMapElementsUnwalkable()
     {
-        for (int x = 0; x < DodgeFromLight.CurrentMap.Grid.Width; x++)
-            for (int y = 0; y < DodgeFromLight.CurrentMap.Grid.Height; y++)
+        for (int x = 0; x < GameContext.CurrentMap.Grid.Width; x++)
+            for (int y = 0; y < GameContext.CurrentMap.Grid.Height; y++)
             {
-                Cell c = DodgeFromLight.CurrentMap.Grid.GetCell(x, y);
+                Cell c = GameContext.CurrentMap.Grid.GetCell(x, y);
                 c.HasElement = false;
             }
     }
 
     private void ProcessmapElementsUnwalkable()
     {
-        for (int x = 0; x < DodgeFromLight.CurrentMap.Grid.Width; x++)
-            for (int y = 0; y < DodgeFromLight.CurrentMap.Grid.Height; y++)
+        for (int x = 0; x < GameContext.CurrentMap.Grid.Width; x++)
+            for (int y = 0; y < GameContext.CurrentMap.Grid.Height; y++)
             {
-                Cell c = DodgeFromLight.CurrentMap.Grid.GetCell(x, y);
+                Cell c = GameContext.CurrentMap.Grid.GetCell(x, y);
                 if (!string.IsNullOrEmpty(c.ElementID))
                 {
-                    var mdd = DodgeFromLight.Databases.ResourcesData.GetMapDeco(c.ElementID);
+                    var mdd = GameContext.Databases.ResourcesData.GetMapDeco(c.ElementID);
                     foreach (var unwalkable in mdd.UnWalkableCells)
                     {
                         // get cell pos acording to element orientation
@@ -391,7 +391,7 @@ public class UI_MapCreator : MonoBehaviour
                         pos = Quaternion.Euler(0, c.ElementOrientation, 0) * pos;
                         CellPos p = new CellPos(c.X + Mathf.RoundToInt(pos.x), c.Y + Mathf.RoundToInt(pos.z));
 
-                        Cell cell = DodgeFromLight.CurrentMap.Grid.GetCell(p);
+                        Cell cell = GameContext.CurrentMap.Grid.GetCell(p);
                         if (cell != null)
                         {
                             cell.HasElement = true;
@@ -414,10 +414,10 @@ public class UI_MapCreator : MonoBehaviour
         ProcessmapElementsUnwalkable();
         ClearFeedbacks();
 
-        for (int x = 0; x < DodgeFromLight.CurrentMap.Grid.Width; x++)
-            for (int y = 0; y < DodgeFromLight.CurrentMap.Grid.Height; y++)
+        for (int x = 0; x < GameContext.CurrentMap.Grid.Width; x++)
+            for (int y = 0; y < GameContext.CurrentMap.Grid.Height; y++)
             {
-                Cell c = DodgeFromLight.CurrentMap.Grid.GetCell(x, y);
+                Cell c = GameContext.CurrentMap.Grid.GetCell(x, y);
                 if (c.HasElement)
                 {
                     GameObject fb = Instantiate(UnwalkableFeedbackPrefab);
@@ -458,7 +458,7 @@ public class UI_MapCreator : MonoBehaviour
                         cell.GetCellPos(),
                         cell.Type, CellType.Walkable));
                 cell.SetType(CellType.Walkable);
-                GridController.RefreshCrossCell(cell, DodgeFromLight.CurrentMap.Grid, true);
+                GridController.RefreshCrossCell(cell, GameContext.CurrentMap.Grid, true);
                 return;
 
             case ToolType.UnWalkable:
@@ -470,7 +470,7 @@ public class UI_MapCreator : MonoBehaviour
                         cell.GetCellPos(),
                         cell.Type, CellType.NotWalkable));
                 cell.SetType(CellType.NotWalkable);
-                GridController.RefreshCrossCell(cell, DodgeFromLight.CurrentMap.Grid, true);
+                GridController.RefreshCrossCell(cell, GameContext.CurrentMap.Grid, true);
                 return;
 
             case ToolType.MapDeco:
@@ -524,8 +524,8 @@ public class UI_MapCreator : MonoBehaviour
                     return;
                 if (GridController.Platforms.ContainsKey(cell.ToString()))
                     return;
-                var platform = DodgeFromLight.CurrentMap.Grid.AddMovingPlatform(cell.GetCellPos());
-                GridController.SpawnPlatform(DodgeFromLight.CurrentMap.Grid, platform);
+                var platform = GameContext.CurrentMap.Grid.AddMovingPlatform(cell.GetCellPos());
+                GridController.SpawnPlatform(GameContext.CurrentMap.Grid, platform);
                 selectedMovingPlatform = GridController.Platforms[cell.ToString()].GetComponent<MovingPlatform>();
                 break;
 
@@ -558,7 +558,7 @@ public class UI_MapCreator : MonoBehaviour
                 if (cell.EntityOnCell != null)
                     return;
                 cell.SetWalkable(true);
-                DodgeFromLight.CurrentMap.Grid.SetStart(cell);
+                GameContext.CurrentMap.Grid.SetStart(cell);
                 UpdateMap();
                 break;
 
@@ -577,7 +577,7 @@ public class UI_MapCreator : MonoBehaviour
                 if (cell.EntityOnCell != null)
                     return;
                 cell.SetWalkable(true);
-                DodgeFromLight.CurrentMap.Grid.SetEnd(cell);
+                GameContext.CurrentMap.Grid.SetEnd(cell);
                 UpdateMap();
                 break;
 
@@ -653,10 +653,10 @@ public class UI_MapCreator : MonoBehaviour
                 int x = -1, y = -1;
                 int.TryParse(cellName.Split('_')[0], out x);
                 int.TryParse(cellName.Split('_')[1], out y);
-                Cell cell = DodgeFromLight.CurrentMap.Grid.GetCell(x, y);
+                Cell cell = GameContext.CurrentMap.Grid.GetCell(x, y);
                 if (cell != null)
                 {
-                    GameObject cellGo = DodgeFromLight.GridController.GetCellGameObject(cell);
+                    GameObject cellGo = GameContext.GridController.GetCellGameObject(cell);
                     if (cellGo == null)
                         return null;
                     var mrs = cellGo.GetComponentsInChildren<Renderer>();
@@ -695,11 +695,11 @@ public class UI_MapCreator : MonoBehaviour
         {
             int x = selectedCell.X;
             int y = selectedCell.Y;
-            Cell c = DodgeFromLight.CurrentMap.Grid.GetCell(x, y);
+            Cell c = GameContext.CurrentMap.Grid.GetCell(x, y);
             MaterialChanger.ResetAllRenderers();
             MaterialChanger.Clear();
             if (c == null) return;
-            GridController.RefreshCrossCell(c, DodgeFromLight.CurrentMap.Grid, true);
+            GridController.RefreshCrossCell(c, GameContext.CurrentMap.Grid, true);
             GridController.AddCellColider(c, true);
         }
 
@@ -713,7 +713,7 @@ public class UI_MapCreator : MonoBehaviour
             GameObject element = GridController.GetCellElementGameObject(cell);
             if (element != null)
             {
-                var mdd = DodgeFromLight.Databases.ResourcesData.GetMapDeco(cell.ElementID);
+                var mdd = GameContext.Databases.ResourcesData.GetMapDeco(cell.ElementID);
                 currentRotateAndScale = element.AddComponent<RotateAndScale>();
                 currentRotateAndScale.OnRotate = (rotation) =>
                 {
@@ -789,11 +789,11 @@ public class UI_MapCreator : MonoBehaviour
             int x = selectedCell.X;
             int y = selectedCell.Y;
             selectedCell = null;
-            Cell c = DodgeFromLight.CurrentMap.Grid.GetCell(x, y);
+            Cell c = GameContext.CurrentMap.Grid.GetCell(x, y);
             MaterialChanger.ResetAllRenderers();
             MaterialChanger.Clear();
             if (c == null) return;
-            GridController.RefreshCrossCell(c, DodgeFromLight.CurrentMap.Grid, true);
+            GridController.RefreshCrossCell(c, GameContext.CurrentMap.Grid, true);
             GridController.AddCellColider(c, true);
             if (currentRotateAndScale != null)
                 Destroy(currentRotateAndScale);
@@ -805,7 +805,7 @@ public class UI_MapCreator : MonoBehaviour
 
     public bool FeedbackSelect()
     {
-        GameObject cellGo = DodgeFromLight.GridController.GetCellGameObject(selectedCell);
+        GameObject cellGo = GameContext.GridController.GetCellGameObject(selectedCell);
         if (selectedMovingPlatform != null)
             cellGo = GridController.Platforms[selectedCell.ToString()];
         if (cellGo == null)
@@ -827,20 +827,20 @@ public class UI_MapCreator : MonoBehaviour
     #region Ennemies
     private void Events_EntityEndMove(Entity entity)
     {
-        DodgeFromLight.EntitiesMoving--;
+        GameContext.EntitiesMoving--;
     }
 
     private void Events_EntityStartMove(Entity entity)
     {
-        DodgeFromLight.EntitiesMoving++;
+        GameContext.EntitiesMoving++;
     }
 
     private void AddEnnemy(EnnemyType type, Cell cell)
     {
-        if (DodgeFromLight.CurrentMap.Grid.GetEnnemyOnCell(cell) == null)
+        if (GameContext.CurrentMap.Grid.GetEnnemyOnCell(cell) == null)
         {
-            var se = DodgeFromLight.CurrentMap.Grid.AddEnnemy(type, cell.GetCellPos());
-            selectedEnnemy = GridController.SpawnEnnemy(DodgeFromLight.CurrentMap.Grid, se);
+            var se = GameContext.CurrentMap.Grid.AddEnnemy(type, cell.GetCellPos());
+            selectedEnnemy = GridController.SpawnEnnemy(GameContext.CurrentMap.Grid, se);
             GridController.AddEnnemyCollider(selectedEnnemy);
         }
     }
@@ -849,7 +849,7 @@ public class UI_MapCreator : MonoBehaviour
     {
         if (selectedEnnemy != null)
         {
-            DodgeFromLight.CurrentMap.Grid.RemoveEnnemy(selectedCell.GetCellPos());
+            GameContext.CurrentMap.Grid.RemoveEnnemy(selectedCell.GetCellPos());
             UpdateMap();
         }
     }
@@ -916,18 +916,18 @@ public class UI_MapCreator : MonoBehaviour
     public void Close()
     {
         // Both exit paths are now entirely local and return to the main menu.
-        DodgeFromLight.UI_Modal.SetTitle("Save before quit")
+        GameContext.UI_Modal.SetTitle("Save before quit")
                 .SetButtonRight("Save and Quit", () =>
                 {
                     StartCoroutine(SaveMap(() =>
                     {
-                        DodgeFromLight.GridController.ClearGrid();
+                        GameContext.GridController.ClearGrid();
                         StartCoroutine(LoadScene("MainMenu"));
                     }));
                 })
                 .SetButtonLeft("Quit without saving", () =>
                 {
-                    DodgeFromLight.GridController.ClearGrid();
+                    GameContext.GridController.ClearGrid();
                     StartCoroutine(LoadScene("MainMenu"));
                 })
                 .Show("You are going to quit the current map. Do you want to save your unsaved work before ?");
@@ -943,15 +943,15 @@ public class UI_MapCreator : MonoBehaviour
         PoolManager.Instance.PushBackAllPool(PoolName.POCell);
         yield return null;
 
-        if (DodgeFromLight.GameManager != null)
+        if (GameContext.GameManager != null)
         {
-            Destroy(DodgeFromLight.GameManager.gameObject);
-            Destroy(DodgeFromLight.GameManager);
-            DodgeFromLight.GameManager = null;
+            Destroy(GameContext.GameManager.gameObject);
+            Destroy(GameContext.GameManager);
+            GameContext.GameManager = null;
         }
 
-        DodgeFromLight.UI_WorkerNotifier.Hide();
-        DodgeFromLight.SceneTransitions.LoadScene(sceneName);
+        GameContext.UI_WorkerNotifier.Hide();
+        GameContext.SceneTransitions.LoadScene(sceneName);
     }
 
     /// <summary>
@@ -961,19 +961,19 @@ public class UI_MapCreator : MonoBehaviour
     {
         // Rebuild the authored grid and all editor panels from local disk data.
         UndoableActionsManager.Clear();
-        DodgeFromLight.CurrentMap = GridManager.GetFullMap();
+        GameContext.CurrentMap = GridManager.GetFullMap();
         UpdateMap();
         ValidateGrid();
-        CameraOrbit.Instance.targetPos = new Vector3((float)DodgeFromLight.CurrentMap.Grid.Width * 0.5f, 1f, (float)DodgeFromLight.CurrentMap.Grid.Height * 0.5f);
+        CameraOrbit.Instance.targetPos = new Vector3((float)GameContext.CurrentMap.Grid.Width * 0.5f, 1f, (float)GameContext.CurrentMap.Grid.Height * 0.5f);
         CameraOrbit.Instance.forceUpdate = true;
         EnnemiesPanel.SetActive(true);
         CellsMechanicsPanel.SetActive(true);
-        MapName.text = DodgeFromLight.CurrentMap.Map.Name;
+        MapName.text = GameContext.CurrentMap.Map.Name;
         SetTool(ToolType.Select);
         BindDecoTools();
         UnSelectCell();
-        UI_EnvironmentSettings.BindEnvironment(DodgeFromLight.CurrentMap.Grid.GetEnvironment());
-        DodgeFromLight.UI_WorkerNotifier.Hide();
+        UI_EnvironmentSettings.BindEnvironment(GameContext.CurrentMap.Grid.GetEnvironment());
+        GameContext.UI_WorkerNotifier.Hide();
     }
 
     /// <summary>
@@ -983,15 +983,15 @@ public class UI_MapCreator : MonoBehaviour
     {
         // Capture the preview before serializing the same workspace used by playtests.
         Canvas.gameObject.SetActive(false);
-        DodgeFromLight.UI_WorkerNotifier.Show("Saving Map");
+        GameContext.UI_WorkerNotifier.Show("Saving Map");
         yield return StartCoroutine(ScreenShotItems((bytes) =>
         {
-            DodgeFromLight.CurrentMap.Map.AlreadyFinished = 0;
-            DodgeFromLight.CurrentMap.Map.SetState(MapState.Draft);
-            LocalMapRepository.Save(DodgeFromLight.CurrentMap, bytes);
+            GameContext.CurrentMap.Map.AlreadyFinished = 0;
+            GameContext.CurrentMap.Map.SetState(MapState.Draft);
+            LocalMapRepository.Save(GameContext.CurrentMap, bytes);
             UpdateMap();
             Canvas.gameObject.SetActive(true);
-            DodgeFromLight.UI_WorkerNotifier.Hide();
+            GameContext.UI_WorkerNotifier.Hide();
             callback?.Invoke();
         }));
     }
@@ -1004,8 +1004,8 @@ public class UI_MapCreator : MonoBehaviour
         // Render from the dedicated orthographic preview camera.
         Camera cam = ScreenshotCamera;
         cam.gameObject.SetActive(true);
-        int maxSize = Mathf.Max(DodgeFromLight.CurrentMap.Grid.Width, DodgeFromLight.CurrentMap.Grid.Height);
-        Vector3 center = new Vector3(DodgeFromLight.CurrentMap.Grid.Width * 0.5f - 0.5f, maxSize, DodgeFromLight.CurrentMap.Grid.Height * 0.5f - 0.5f);
+        int maxSize = Mathf.Max(GameContext.CurrentMap.Grid.Width, GameContext.CurrentMap.Grid.Height);
+        Vector3 center = new Vector3(GameContext.CurrentMap.Grid.Width * 0.5f - 0.5f, maxSize, GameContext.CurrentMap.Grid.Height * 0.5f - 0.5f);
         cam.transform.position = center;
 
         // take screenshot
@@ -1040,10 +1040,10 @@ public class UI_MapCreator : MonoBehaviour
         StartCoroutine(SaveMap(() =>
         {
             PlayerPrefs.SetInt("ForceGrid", 1);
-            DodgeFromLight.CurrentRules = new GameRules(
+            GameContext.CurrentRules = new GameRules(
                 false,
                 false,
-                DodgeFromLight.CurrentMap.Map.ID);
+                GameContext.CurrentMap.Map.ID);
             StartCoroutine(LoadScene("Main"));
         }));
     }

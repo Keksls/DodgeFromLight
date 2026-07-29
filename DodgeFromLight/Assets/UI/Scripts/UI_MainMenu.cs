@@ -1,6 +1,6 @@
 using System;
 using UnityEngine;
-using UnityEngine.Rendering.PostProcessing;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 
 public class UI_MainMenu : MonoBehaviour
@@ -60,18 +60,18 @@ public class UI_MainMenu : MonoBehaviour
 
     public void BindGlobalSettings()
     {
-        if (DodgeFromLight.GameSettingsManager.CurrentSettings.Global == null)
-            DodgeFromLight.GameSettingsManager.CreateDefaultGlobalSettings();
-        DisplayFPSToggle.isOn = DodgeFromLight.GameSettingsManager.CurrentSettings.Global.DisplayFPS;
-        AutoHideCursorToggle.isOn = DodgeFromLight.GameSettingsManager.CurrentSettings.Global.AutoHideCursor;
+        if (GameContext.GameSettingsManager.CurrentSettings.Global == null)
+            GameContext.GameSettingsManager.CreateDefaultGlobalSettings();
+        DisplayFPSToggle.isOn = GameContext.GameSettingsManager.CurrentSettings.Global.DisplayFPS;
+        AutoHideCursorToggle.isOn = GameContext.GameSettingsManager.CurrentSettings.Global.AutoHideCursor;
     }
 
     public void ClearCache()
     {
-        DodgeFromLight.UI_Modal.SetTitle("you are going to clear the cache")
+        GameContext.UI_Modal.SetTitle("you are going to clear the cache")
             .SetButtonLeft("Apply", () =>
             {
-                DodgeFromLight.UI_WorkerNotifier.Show("Restarting...");
+                GameContext.UI_WorkerNotifier.Show("Restarting...");
                 int rt = 0, TutorialStepIndex = 0;
                 if (PlayerPrefs.HasKey("TutorialRewardsTaken"))
                     rt = PlayerPrefs.GetInt("TutorialRewardsTaken");
@@ -80,47 +80,47 @@ public class UI_MainMenu : MonoBehaviour
                 PlayerPrefs.DeleteAll();
                 PlayerPrefs.SetInt("TutorialRewardsTaken", rt);
                 PlayerPrefs.SetInt("TutorialStepIndex", TutorialStepIndex);
-                DodgeFromLight.RestartGame();
-                DodgeFromLight.UI_WorkerNotifier.Hide();
+                GameContext.RestartGame();
+                GameContext.UI_WorkerNotifier.Hide();
             })
         .Show("This action need to restart the game.");
     }
 
     public void RedoTutorial()
     {
-        DodgeFromLight.UI_Modal.SetTitle("you are going to clear Tutorial avancement")
+        GameContext.UI_Modal.SetTitle("you are going to clear Tutorial avancement")
             .SetButtonLeft("Apply", () =>
             {
-                DodgeFromLight.UI_WorkerNotifier.Show("Restarting...");
+                GameContext.UI_WorkerNotifier.Show("Restarting...");
                 PlayerPrefs.DeleteKey("TutorialStepIndex");
                 PlayerPrefs.DeleteKey("TutorialRewardsTaken");
-                DodgeFromLight.RestartGame();
-                DodgeFromLight.UI_WorkerNotifier.Hide();
+                GameContext.RestartGame();
+                GameContext.UI_WorkerNotifier.Hide();
             })
         .Show("This action need to restart the game.");
     }
 
     public void ResetDefaultSettings()
     {
-        DodgeFromLight.UI_Modal.SetTitle("you are going to restore default settings")
+        GameContext.UI_Modal.SetTitle("you are going to restore default settings")
             .SetButtonLeft("Apply", () =>
             {
-                DodgeFromLight.UI_WorkerNotifier.Show("Restarting...");
-                DodgeFromLight.GameSettingsManager.CreateDefaultSettings();
-                DodgeFromLight.RestartGame();
-                DodgeFromLight.UI_WorkerNotifier.Hide();
+                GameContext.UI_WorkerNotifier.Show("Restarting...");
+                GameContext.GameSettingsManager.CreateDefaultSettings();
+                GameContext.RestartGame();
+                GameContext.UI_WorkerNotifier.Hide();
             })
         .Show("This action need to restart the game.");
     }
 
     public void DisplayFPSToggleValueChange(bool val)
     {
-        DodgeFromLight.GameSettingsManager.SetDisplayFPS(val, true);
+        GameContext.GameSettingsManager.SetDisplayFPS(val, true);
     }
 
     public void AutoHideCursorToggleValueChange(bool val)
     {
-        DodgeFromLight.GameSettingsManager.SetAutoHideCursor(val, true);
+        GameContext.GameSettingsManager.SetAutoHideCursor(val, true);
     }
     #endregion
 
@@ -129,14 +129,14 @@ public class UI_MainMenu : MonoBehaviour
 
     public void BindAudioSettings()
     {
-        if (DodgeFromLight.GameSettingsManager.CurrentSettings.Audio == null)
-            DodgeFromLight.GameSettingsManager.CreateDefaultAudioSettings();
-        AudioVolumeSlider.value = DodgeFromLight.GameSettingsManager.CurrentSettings.Audio.Volume;
+        if (GameContext.GameSettingsManager.CurrentSettings.Audio == null)
+            GameContext.GameSettingsManager.CreateDefaultAudioSettings();
+        AudioVolumeSlider.value = GameContext.GameSettingsManager.CurrentSettings.Audio.Volume;
     }
 
     public void VolumeChange(float volume)
     {
-        DodgeFromLight.GameSettingsManager.SetVolume(volume, true);
+        GameContext.GameSettingsManager.SetVolume(volume, true);
     }
     #endregion
 
@@ -154,42 +154,46 @@ public class UI_MainMenu : MonoBehaviour
 
     private void BindGraphicsSettings()
     {
-        if (DodgeFromLight.GameSettingsManager.CurrentSettings.Graphics == null)
-            DodgeFromLight.GameSettingsManager.CreateDefaultGraphicSettings();
+        if (GameContext.GameSettingsManager.CurrentSettings.Graphics == null)
+            GameContext.GameSettingsManager.CreateDefaultGraphicSettings();
 
-        FullscreenToggle.isOn = DodgeFromLight.GameSettingsManager.CurrentSettings.Graphics.Fullscreen;
-        VSyncToggle.isOn = DodgeFromLight.GameSettingsManager.CurrentSettings.Graphics.VSync;
-        PostprocessToggle.isOn = DodgeFromLight.GameSettingsManager.CurrentSettings.Graphics.PostProcess;
-        QualitySlider.value = DodgeFromLight.GameSettingsManager.CurrentSettings.Graphics.Quality;
-        FPSToggle.isOn = DodgeFromLight.GameSettingsManager.CurrentSettings.Graphics.TargetFPS > -1;
+        FullscreenToggle.isOn = GameContext.GameSettingsManager.CurrentSettings.Graphics.Fullscreen;
+        VSyncToggle.isOn = GameContext.GameSettingsManager.CurrentSettings.Graphics.VSync;
+        PostprocessToggle.isOn = GameContext.GameSettingsManager.CurrentSettings.Graphics.PostProcess;
+        QualitySlider.value = GameContext.GameSettingsManager.CurrentSettings.Graphics.Quality;
+        FPSToggle.isOn = GameContext.GameSettingsManager.CurrentSettings.Graphics.TargetFPS > -1;
         TargetFPSSlider.gameObject.SetActive(FPSToggle.isOn);
         if (FPSToggle.isOn)
-            TargetFPSSlider.value = DodgeFromLight.GameSettingsManager.CurrentSettings.Graphics.TargetFPS;
+            TargetFPSSlider.value = GameContext.GameSettingsManager.CurrentSettings.Graphics.TargetFPS;
 
         // bind resolutions
         ResolutionDropdown.options.Clear();
         foreach (var res in Screen.resolutions)
             ResolutionDropdown.options.Add(new Dropdown.OptionData(res.width + " x " + res.height));
-        ResolutionDropdown.value = DodgeFromLight.GameSettingsManager.CurrentSettings.Graphics.Resolution;
+        ResolutionDropdown.value = GameContext.GameSettingsManager.CurrentSettings.Graphics.Resolution;
 
         // bind Antialiasing
         AntialiasingDropdown.options.Clear();
-        foreach (PostProcessLayer.Antialiasing res in Enum.GetValues(typeof(PostProcessLayer.Antialiasing)))
+        foreach (AntialiasingMode res in Enum.GetValues(typeof(AntialiasingMode)))
             AntialiasingDropdown.options.Add(new Dropdown.OptionData(GetAAName(res)));
-        AntialiasingDropdown.value = (int)DodgeFromLight.GameSettingsManager.CurrentSettings.Graphics.Antialiasing;
+        AntialiasingDropdown.value = (int)GameContext.GameSettingsManager.CurrentSettings.Graphics.Antialiasing;
     }
 
-    private string GetAAName(PostProcessLayer.Antialiasing aa)
+    /// <summary>
+    /// Returns the concise label displayed for an URP anti-aliasing mode.
+    /// </summary>
+    private string GetAAName(AntialiasingMode antialiasing)
     {
-        switch (aa)
+        // Keep the existing UI labels while using URP's native enum.
+        switch (antialiasing)
         {
-            case PostProcessLayer.Antialiasing.None:
+            case AntialiasingMode.None:
                 return "None";
-            case PostProcessLayer.Antialiasing.FastApproximateAntialiasing:
+            case AntialiasingMode.FastApproximateAntialiasing:
                 return "FXAA";
-            case PostProcessLayer.Antialiasing.SubpixelMorphologicalAntialiasing:
+            case AntialiasingMode.SubpixelMorphologicalAntiAliasing:
                 return "SMAA";
-            case PostProcessLayer.Antialiasing.TemporalAntialiasing:
+            case AntialiasingMode.TemporalAntiAliasing:
                 return "TAA";
             default:
                 return "None";
@@ -198,12 +202,12 @@ public class UI_MainMenu : MonoBehaviour
 
     public void VSyncToggleValueChange(bool val)
     {
-        DodgeFromLight.GameSettingsManager.SetVSync(val, true);
+        GameContext.GameSettingsManager.SetVSync(val, true);
     }
 
     public void TargetFPSValueChange(float index)
     {
-        DodgeFromLight.GameSettingsManager.SetTargetFPS((int)index, true);
+        GameContext.GameSettingsManager.SetTargetFPS((int)index, true);
         FPSText.text = "(" + (int)index + " FPS)";
     }
 
@@ -212,31 +216,31 @@ public class UI_MainMenu : MonoBehaviour
         if (val)
         {
             TargetFPSSlider.gameObject.SetActive(true);
-            DodgeFromLight.GameSettingsManager.SetTargetFPS(60, true);
-            TargetFPSSlider.value = DodgeFromLight.GameSettingsManager.CurrentSettings.Graphics.TargetFPS;
+            GameContext.GameSettingsManager.SetTargetFPS(60, true);
+            TargetFPSSlider.value = GameContext.GameSettingsManager.CurrentSettings.Graphics.TargetFPS;
             FPSText.text = "(" + 60 + " FPS)";
         }
         else
         {
             TargetFPSSlider.gameObject.SetActive(false);
-            DodgeFromLight.GameSettingsManager.SetTargetFPS(-1, true);
+            GameContext.GameSettingsManager.SetTargetFPS(-1, true);
             FPSText.text = "(Unlimited FPS)";
         }
     }
 
     public void FullscreenValueChange(bool val)
     {
-        DodgeFromLight.GameSettingsManager.SetFullScreen(val, true);
+        GameContext.GameSettingsManager.SetFullScreen(val, true);
     }
 
     public void ResolutionValueChange(int index)
     {
-        DodgeFromLight.GameSettingsManager.SetResolution(index, DodgeFromLight.GameSettingsManager.CurrentSettings.Graphics.Fullscreen, true);
+        GameContext.GameSettingsManager.SetResolution(index, GameContext.GameSettingsManager.CurrentSettings.Graphics.Fullscreen, true);
     }
 
     public void QualityValueChange(float index)
     {
-        DodgeFromLight.GameSettingsManager.SetQuality((int)index, true);
+        GameContext.GameSettingsManager.SetQuality((int)index, true);
         switch ((int)index)
         {
             case 0:
@@ -251,14 +255,18 @@ public class UI_MainMenu : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Applies the URP anti-aliasing mode selected in the settings dropdown.
+    /// </summary>
     public void AntialiasingValueChange(int index)
     {
-        DodgeFromLight.GameSettingsManager.SetAntialiasing((PostProcessLayer.Antialiasing)index, true);
+        // Dropdown entries follow the enum declaration order.
+        GameContext.GameSettingsManager.SetAntialiasing((AntialiasingMode)index, true);
     }
 
     public void PostprocessValueChange(bool val)
     {
-        DodgeFromLight.GameSettingsManager.SetPostProcess(val, true);
+        GameContext.GameSettingsManager.SetPostProcess(val, true);
     }
     #endregion
 
@@ -270,8 +278,8 @@ public class UI_MainMenu : MonoBehaviour
 
     public void BindInputs()
     {
-        if (DodgeFromLight.GameSettingsManager.CurrentSettings.Inputs == null)
-            DodgeFromLight.GameSettingsManager.CreateDefaultInputSettings();
+        if (GameContext.GameSettingsManager.CurrentSettings.Inputs == null)
+            GameContext.GameSettingsManager.CreateDefaultInputSettings();
 
         // clear container
         foreach (Transform t in InputContainer)
@@ -281,7 +289,7 @@ public class UI_MainMenu : MonoBehaviour
         var types = Enum.GetValues(typeof(InputSettingsType));
         foreach (InputSettingsType type in types)
         {
-            InputSettingsData input = DodgeFromLight.GameSettingsManager.GetInput(type);
+            InputSettingsData input = GameContext.GameSettingsManager.GetInput(type);
             GameObject line = Instantiate(InputLinePrefab);
             line.transform.SetParent(InputContainer, false);
             line.transform.GetChild(0).GetComponent<Text>().text = input.Type.ToString();
@@ -322,7 +330,7 @@ public class UI_MainMenu : MonoBehaviour
         if (Input.GetKeyDown((KeyCode)i)) // press a key
         {
             selectedInputID = -1;
-            DodgeFromLight.GameSettingsManager.SetInput(selectedInputType, (KeyCode)i,
+            GameContext.GameSettingsManager.SetInput(selectedInputType, (KeyCode)i,
                 Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl),
                 Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift), true);
             BindInputs();

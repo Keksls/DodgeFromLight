@@ -5625,8 +5625,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: daa9ec8459d58144dab331aef499db3d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  PostProcessVolume: {fileID: 0}
-  PostProcessLayer: {fileID: 0}
   Mixer: {fileID: 24100000, guid: 499c6dbba5d80a34dbd3d9c2e1f5a2c8, type: 2}
 --- !u!114 &2885659870164556699
 MonoBehaviour:

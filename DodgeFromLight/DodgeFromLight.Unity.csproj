@@ -82,6 +82,7 @@
     <Compile Include="Assets\Scripts\Databases\WeaponData.cs" />
     <Compile Include="Assets\Entities Models\Enemies\Catapult\CatapultController.cs" />
     <Compile Include="Assets\UI\UI Elements\MapCreator\UI_GearButton.cs" />
+    <Compile Include="Assets\Scripts\GameEngine\LocalGameSessionFactory.cs" />
     <Compile Include="Assets\VFX\Cartoon FX\Scripts\CFX_AutoRotate.cs" />
     <Compile Include="Assets\VFX\Cartoon FX\Scripts\CFX_AutoDestructShuriken.cs" />
     <Compile Include="Assets\Scripts\GameEngine\InterractibleObjects\MovingPlatform.cs" />
@@ -147,6 +148,7 @@
     <Compile Include="Assets\UI\UI Elements\PlayerInfos\UI_PlayerInfos.cs" />
     <Compile Include="Assets\Plugins\Demigiant\DOTween\Modules\DOTweenModuleSprite.cs" />
     <Compile Include="Assets\Scripts\HoverableMapObject.cs" />
+    <Compile Include="Assets\Scripts\GameContext.cs" />
     <Compile Include="Assets\Scripts\GameEngine\Traps\Needle.cs" />
     <Compile Include="Assets\UI\HSVPicker\UI\ColorSlider.cs" />
     <Compile Include="Assets\VFX\Cartoon FX\Demo\Assets\CFX_Demo_New.cs" />
@@ -203,7 +205,6 @@
     <Compile Include="Assets\UI\Scripts\UI_Collapsable.cs" />
     <Compile Include="Assets\Scripts\UI\UIHelper.cs" />
     <Compile Include="Assets\Scripts\GameEngine\Ennemies\Hamer.cs" />
-    <Compile Include="Assets\Scripts\DodgeFromLight.cs" />
     <Compile Include="Assets\UI\HSVPicker\Events\HSVChangedEvent.cs" />
     <Compile Include="Assets\UI\UI Elements\MapCreator\UI_MapCreator.cs" />
     <Compile Include="Assets\Scripts\UI\UI_WorkerNotifier.cs" />
@@ -1393,8 +1394,8 @@
       <HintPath>Library\ScriptAssemblies\Unity.TextMeshPro.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Unity.Postprocessing.Runtime">
-      <HintPath>Library\ScriptAssemblies\Unity.Postprocessing.Runtime.dll</HintPath>
+    <Reference Include="Unity.RenderPipelines.Universal.Runtime">
+      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Universal.Runtime.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.Collections">
@@ -1407,6 +1408,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="DodgeFromLight.Core.csproj" />
+    <ProjectReference Include="DodgeFromLight.Infrastructure.Maps.csproj" />
   </ItemGroup>
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
   <ItemGroup>

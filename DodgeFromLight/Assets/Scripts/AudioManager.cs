@@ -6,7 +6,7 @@ public class AudioManager : MonoBehaviour
 
     private void Awake()
     {
-        DodgeFromLight.AudioManager = this;
+        GameContext.AudioManager = this;
     }
 
     public void PlayUIFX(AudioClip clip, float volume)

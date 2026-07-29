@@ -53,31 +53,31 @@ public class UI_EnvironmentSettings : MonoBehaviour
         // Particle Size
         ParticleSize.onValueChanged.AddListener((particleSize) =>
         {
-            EnvironmentSettings env = DodgeFromLight.CurrentMap.Grid.GetEnvironment();
+            EnvironmentSettings env = GameContext.CurrentMap.Grid.GetEnvironment();
             env.ParticleSize = particleSize;
-            DodgeFromLight.CurrentMap.Grid.Environment = env;
-            DodgeFromLight.SetEnvironment(DodgeFromLight.CurrentMap);
-            DodgeFromLight.EnvironmentController.RestartPS();
+            GameContext.CurrentMap.Grid.Environment = env;
+            GameContext.SetEnvironment(GameContext.CurrentMap);
+            GameContext.EnvironmentController.RestartPS();
         });
 
         // Particle Density
         ParticleSize.onValueChanged.AddListener((ParticleDensity) =>
         {
-            EnvironmentSettings env = DodgeFromLight.CurrentMap.Grid.GetEnvironment();
+            EnvironmentSettings env = GameContext.CurrentMap.Grid.GetEnvironment();
             env.ParticleDensity = ParticleDensity;
-            DodgeFromLight.CurrentMap.Grid.Environment = env;
-            DodgeFromLight.SetEnvironment(DodgeFromLight.CurrentMap);
-            DodgeFromLight.EnvironmentController.RestartPS();
+            GameContext.CurrentMap.Grid.Environment = env;
+            GameContext.SetEnvironment(GameContext.CurrentMap);
+            GameContext.EnvironmentController.RestartPS();
         });
 
         // ============================= WATER
         // Foam Intensity
         FoamScale.onValueChanged.AddListener((foamScale) =>
         {
-            EnvironmentSettings env = DodgeFromLight.CurrentMap.Grid.GetEnvironment();
+            EnvironmentSettings env = GameContext.CurrentMap.Grid.GetEnvironment();
             env.FoamScale = foamScale;
-            DodgeFromLight.CurrentMap.Grid.Environment = env;
-            DodgeFromLight.SetEnvironment(DodgeFromLight.CurrentMap);
+            GameContext.CurrentMap.Grid.Environment = env;
+            GameContext.SetEnvironment(GameContext.CurrentMap);
         });
 
         // Foam Color
@@ -87,13 +87,13 @@ public class UI_EnvironmentSettings : MonoBehaviour
             ColorPicker.SetTitle("Foam Color");
             OnColorChanged = (color) =>
             {
-                EnvironmentSettings env = DodgeFromLight.CurrentMap.Grid.GetEnvironment();
+                EnvironmentSettings env = GameContext.CurrentMap.Grid.GetEnvironment();
                 env.FoamColor = new Serializable_Vector4(color);
-                DodgeFromLight.CurrentMap.Grid.Environment = env;
-                DodgeFromLight.SetEnvironment(DodgeFromLight.CurrentMap);
+                GameContext.CurrentMap.Grid.Environment = env;
+                GameContext.SetEnvironment(GameContext.CurrentMap);
                 BindEnvironment(env);
             };
-            ColorPicker.CurrentColor = DodgeFromLight.CurrentMap.Grid.GetEnvironment().FoamColor.ToColor();
+            ColorPicker.CurrentColor = GameContext.CurrentMap.Grid.GetEnvironment().FoamColor.ToColor();
         });
 
         // Deep deth Color
@@ -103,13 +103,13 @@ public class UI_EnvironmentSettings : MonoBehaviour
             ColorPicker.SetTitle("Deep Depth Color");
             OnColorChanged = (color) =>
             {
-                EnvironmentSettings env = DodgeFromLight.CurrentMap.Grid.GetEnvironment();
+                EnvironmentSettings env = GameContext.CurrentMap.Grid.GetEnvironment();
                 env.DepthDeep = new Serializable_Vector4(color);
-                DodgeFromLight.CurrentMap.Grid.Environment = env;
-                DodgeFromLight.SetEnvironment(DodgeFromLight.CurrentMap);
+                GameContext.CurrentMap.Grid.Environment = env;
+                GameContext.SetEnvironment(GameContext.CurrentMap);
                 BindEnvironment(env);
             };
-            ColorPicker.CurrentColor = DodgeFromLight.CurrentMap.Grid.GetEnvironment().DepthDeep.ToColor();
+            ColorPicker.CurrentColor = GameContext.CurrentMap.Grid.GetEnvironment().DepthDeep.ToColor();
         });
 
         // Deep shallow Color
@@ -119,13 +119,13 @@ public class UI_EnvironmentSettings : MonoBehaviour
             ColorPicker.SetTitle("Dept Shallow Color");
             OnColorChanged = (color) =>
             {
-                EnvironmentSettings env = DodgeFromLight.CurrentMap.Grid.GetEnvironment();
+                EnvironmentSettings env = GameContext.CurrentMap.Grid.GetEnvironment();
                 env.DepthShallow = new Serializable_Vector4(color);
-                DodgeFromLight.CurrentMap.Grid.Environment = env;
-                DodgeFromLight.SetEnvironment(DodgeFromLight.CurrentMap);
+                GameContext.CurrentMap.Grid.Environment = env;
+                GameContext.SetEnvironment(GameContext.CurrentMap);
                 BindEnvironment(env);
             };
-            ColorPicker.CurrentColor = DodgeFromLight.CurrentMap.Grid.GetEnvironment().DepthShallow.ToColor();
+            ColorPicker.CurrentColor = GameContext.CurrentMap.Grid.GetEnvironment().DepthShallow.ToColor();
         });
 
         // ============================= LIGHTING
@@ -136,22 +136,22 @@ public class UI_EnvironmentSettings : MonoBehaviour
             ColorPicker.SetTitle("Sun Color");
             OnColorChanged = (color) =>
             {
-                EnvironmentSettings env = DodgeFromLight.CurrentMap.Grid.GetEnvironment();
+                EnvironmentSettings env = GameContext.CurrentMap.Grid.GetEnvironment();
                 env.SunColor = new Serializable_Vector4(color);
-                DodgeFromLight.CurrentMap.Grid.Environment = env;
-                DodgeFromLight.SetEnvironment(DodgeFromLight.CurrentMap);
+                GameContext.CurrentMap.Grid.Environment = env;
+                GameContext.SetEnvironment(GameContext.CurrentMap);
                 BindEnvironment(env);
             };
-            ColorPicker.CurrentColor = DodgeFromLight.CurrentMap.Grid.GetEnvironment().SunColor.ToColor();
+            ColorPicker.CurrentColor = GameContext.CurrentMap.Grid.GetEnvironment().SunColor.ToColor();
         });
 
         // Sun Intensity
         SunIntensity.onValueChanged.AddListener((SunIntensity) =>
         {
-            EnvironmentSettings env = DodgeFromLight.CurrentMap.Grid.GetEnvironment();
+            EnvironmentSettings env = GameContext.CurrentMap.Grid.GetEnvironment();
             env.SunIntensity = SunIntensity;
-            DodgeFromLight.CurrentMap.Grid.Environment = env;
-            DodgeFromLight.SetEnvironment(DodgeFromLight.CurrentMap);
+            GameContext.CurrentMap.Grid.Environment = env;
+            GameContext.SetEnvironment(GameContext.CurrentMap);
         });
 
         // Sky Illumination
@@ -161,13 +161,13 @@ public class UI_EnvironmentSettings : MonoBehaviour
             ColorPicker.SetTitle("Sky Light Color");
             OnColorChanged = (color) =>
             {
-                EnvironmentSettings env = DodgeFromLight.CurrentMap.Grid.GetEnvironment();
+                EnvironmentSettings env = GameContext.CurrentMap.Grid.GetEnvironment();
                 env.SkyColor = new Serializable_Vector4(color);
-                DodgeFromLight.CurrentMap.Grid.Environment = env;
-                DodgeFromLight.SetEnvironment(DodgeFromLight.CurrentMap);
+                GameContext.CurrentMap.Grid.Environment = env;
+                GameContext.SetEnvironment(GameContext.CurrentMap);
                 BindEnvironment(env);
             };
-            ColorPicker.CurrentColor = DodgeFromLight.CurrentMap.Grid.GetEnvironment().SkyColor.ToColor();
+            ColorPicker.CurrentColor = GameContext.CurrentMap.Grid.GetEnvironment().SkyColor.ToColor();
         });
 
         // Equator Illumination
@@ -177,13 +177,13 @@ public class UI_EnvironmentSettings : MonoBehaviour
             ColorPicker.SetTitle("Equator Light Color");
             OnColorChanged = (color) =>
             {
-                EnvironmentSettings env = DodgeFromLight.CurrentMap.Grid.GetEnvironment();
+                EnvironmentSettings env = GameContext.CurrentMap.Grid.GetEnvironment();
                 env.EquatorColor = new Serializable_Vector4(color);
-                DodgeFromLight.CurrentMap.Grid.Environment = env;
-                DodgeFromLight.SetEnvironment(DodgeFromLight.CurrentMap);
+                GameContext.CurrentMap.Grid.Environment = env;
+                GameContext.SetEnvironment(GameContext.CurrentMap);
                 BindEnvironment(env);
             };
-            ColorPicker.CurrentColor = DodgeFromLight.CurrentMap.Grid.GetEnvironment().EquatorColor.ToColor();
+            ColorPicker.CurrentColor = GameContext.CurrentMap.Grid.GetEnvironment().EquatorColor.ToColor();
         });
 
         // Ground Illumination
@@ -193,68 +193,68 @@ public class UI_EnvironmentSettings : MonoBehaviour
             ColorPicker.SetTitle("ground Light Color");
             OnColorChanged = (color) =>
             {
-                EnvironmentSettings env = DodgeFromLight.CurrentMap.Grid.GetEnvironment();
+                EnvironmentSettings env = GameContext.CurrentMap.Grid.GetEnvironment();
                 env.GroundColor = new Serializable_Vector4(color);
-                DodgeFromLight.CurrentMap.Grid.Environment = env;
-                DodgeFromLight.SetEnvironment(DodgeFromLight.CurrentMap);
+                GameContext.CurrentMap.Grid.Environment = env;
+                GameContext.SetEnvironment(GameContext.CurrentMap);
                 BindEnvironment(env);
             };
-            ColorPicker.CurrentColor = DodgeFromLight.CurrentMap.Grid.GetEnvironment().GroundColor.ToColor();
+            ColorPicker.CurrentColor = GameContext.CurrentMap.Grid.GetEnvironment().GroundColor.ToColor();
         });
 
         // ============================= SKYBOX
         // Seed
         Seed.onValueChanged.AddListener((seed) =>
         {
-            EnvironmentSettings env = DodgeFromLight.CurrentMap.Grid.GetEnvironment();
+            EnvironmentSettings env = GameContext.CurrentMap.Grid.GetEnvironment();
             env.Seed = seed;
-            DodgeFromLight.CurrentMap.Grid.Environment = env;
-            DodgeFromLight.SetEnvironment(DodgeFromLight.CurrentMap);
+            GameContext.CurrentMap.Grid.Environment = env;
+            GameContext.SetEnvironment(GameContext.CurrentMap);
         });
 
         // Scale
         Scale.onValueChanged.AddListener((scale) =>
         {
-            EnvironmentSettings env = DodgeFromLight.CurrentMap.Grid.GetEnvironment();
+            EnvironmentSettings env = GameContext.CurrentMap.Grid.GetEnvironment();
             env.Scale = scale;
-            DodgeFromLight.CurrentMap.Grid.Environment = env;
-            DodgeFromLight.SetEnvironment(DodgeFromLight.CurrentMap);
+            GameContext.CurrentMap.Grid.Environment = env;
+            GameContext.SetEnvironment(GameContext.CurrentMap);
         });
 
         // Contrast
         Contrast.onValueChanged.AddListener((contrast) =>
         {
-            EnvironmentSettings env = DodgeFromLight.CurrentMap.Grid.GetEnvironment();
+            EnvironmentSettings env = GameContext.CurrentMap.Grid.GetEnvironment();
             env.Contrast = contrast;
-            DodgeFromLight.CurrentMap.Grid.Environment = env;
-            DodgeFromLight.SetEnvironment(DodgeFromLight.CurrentMap);
+            GameContext.CurrentMap.Grid.Environment = env;
+            GameContext.SetEnvironment(GameContext.CurrentMap);
         });
 
         // Animation Speed
         AnimationSpeed.onValueChanged.AddListener((speed) =>
         {
-            EnvironmentSettings env = DodgeFromLight.CurrentMap.Grid.GetEnvironment();
+            EnvironmentSettings env = GameContext.CurrentMap.Grid.GetEnvironment();
             env.AnimationSpeed = speed;
-            DodgeFromLight.CurrentMap.Grid.Environment = env;
-            DodgeFromLight.SetEnvironment(DodgeFromLight.CurrentMap);
+            GameContext.CurrentMap.Grid.Environment = env;
+            GameContext.SetEnvironment(GameContext.CurrentMap);
         });
 
         // Dust Amounth
         Dust.onValueChanged.AddListener((dust) =>
         {
-            EnvironmentSettings env = DodgeFromLight.CurrentMap.Grid.GetEnvironment();
+            EnvironmentSettings env = GameContext.CurrentMap.Grid.GetEnvironment();
             env.DustAmount = dust;
-            DodgeFromLight.CurrentMap.Grid.Environment = env;
-            DodgeFromLight.SetEnvironment(DodgeFromLight.CurrentMap);
+            GameContext.CurrentMap.Grid.Environment = env;
+            GameContext.SetEnvironment(GameContext.CurrentMap);
         });
 
         // Nebular 1
         Nebular1Strenght.onValueChanged.AddListener((nebular1) =>
         {
-            EnvironmentSettings env = DodgeFromLight.CurrentMap.Grid.GetEnvironment();
+            EnvironmentSettings env = GameContext.CurrentMap.Grid.GetEnvironment();
             env.Nebular1Strength = nebular1;
-            DodgeFromLight.CurrentMap.Grid.Environment = env;
-            DodgeFromLight.SetEnvironment(DodgeFromLight.CurrentMap);
+            GameContext.CurrentMap.Grid.Environment = env;
+            GameContext.SetEnvironment(GameContext.CurrentMap);
         });
 
         // Nebular 1 Color 1
@@ -264,13 +264,13 @@ public class UI_EnvironmentSettings : MonoBehaviour
             ColorPicker.SetTitle("Nebular 1 Color 2");
             OnColorChanged = (color) =>
             {
-                EnvironmentSettings env = DodgeFromLight.CurrentMap.Grid.GetEnvironment();
+                EnvironmentSettings env = GameContext.CurrentMap.Grid.GetEnvironment();
                 env.Nebular1ColorMain = new Serializable_Vector4(color);
-                DodgeFromLight.CurrentMap.Grid.Environment = env;
-                DodgeFromLight.SetEnvironment(DodgeFromLight.CurrentMap);
+                GameContext.CurrentMap.Grid.Environment = env;
+                GameContext.SetEnvironment(GameContext.CurrentMap);
                 BindEnvironment(env);
             };
-            ColorPicker.CurrentColor = DodgeFromLight.CurrentMap.Grid.GetEnvironment().Nebular1ColorMain.ToColor();
+            ColorPicker.CurrentColor = GameContext.CurrentMap.Grid.GetEnvironment().Nebular1ColorMain.ToColor();
         });
 
         // Nebular 1 Color 2
@@ -280,22 +280,22 @@ public class UI_EnvironmentSettings : MonoBehaviour
             ColorPicker.SetTitle("Nebular 1 Color 2");
             OnColorChanged = (color) =>
             {
-                EnvironmentSettings env = DodgeFromLight.CurrentMap.Grid.GetEnvironment();
+                EnvironmentSettings env = GameContext.CurrentMap.Grid.GetEnvironment();
                 env.Nebular1ColorMid = new Serializable_Vector4(color);
-                DodgeFromLight.CurrentMap.Grid.Environment = env;
-                DodgeFromLight.SetEnvironment(DodgeFromLight.CurrentMap);
+                GameContext.CurrentMap.Grid.Environment = env;
+                GameContext.SetEnvironment(GameContext.CurrentMap);
                 BindEnvironment(env);
             };
-            ColorPicker.CurrentColor = DodgeFromLight.CurrentMap.Grid.GetEnvironment().Nebular1ColorMid.ToColor();
+            ColorPicker.CurrentColor = GameContext.CurrentMap.Grid.GetEnvironment().Nebular1ColorMid.ToColor();
         });
 
         // Nebular 2
         Nebular2Strenght.onValueChanged.AddListener((nebular2) =>
         {
-            EnvironmentSettings env = DodgeFromLight.CurrentMap.Grid.GetEnvironment();
+            EnvironmentSettings env = GameContext.CurrentMap.Grid.GetEnvironment();
             env.Nebular2Strength= nebular2;
-            DodgeFromLight.CurrentMap.Grid.Environment = env;
-            DodgeFromLight.SetEnvironment(DodgeFromLight.CurrentMap);
+            GameContext.CurrentMap.Grid.Environment = env;
+            GameContext.SetEnvironment(GameContext.CurrentMap);
         });
 
         // Nebular 2 Color 1
@@ -305,13 +305,13 @@ public class UI_EnvironmentSettings : MonoBehaviour
             ColorPicker.SetTitle("Nebular 2 Color 1");
             OnColorChanged = (color) =>
             {
-                EnvironmentSettings env = DodgeFromLight.CurrentMap.Grid.GetEnvironment();
+                EnvironmentSettings env = GameContext.CurrentMap.Grid.GetEnvironment();
                 env.Nebular2Color1 = new Serializable_Vector4(color);
-                DodgeFromLight.CurrentMap.Grid.Environment = env;
-                DodgeFromLight.SetEnvironment(DodgeFromLight.CurrentMap);
+                GameContext.CurrentMap.Grid.Environment = env;
+                GameContext.SetEnvironment(GameContext.CurrentMap);
                 BindEnvironment(env);
             };
-            ColorPicker.CurrentColor = DodgeFromLight.CurrentMap.Grid.GetEnvironment().Nebular2Color1.ToColor();
+            ColorPicker.CurrentColor = GameContext.CurrentMap.Grid.GetEnvironment().Nebular2Color1.ToColor();
         });
 
         // Nebular 2 Color 2
@@ -321,31 +321,31 @@ public class UI_EnvironmentSettings : MonoBehaviour
             ColorPicker.SetTitle("Nebular 2 Color 2");
             OnColorChanged = (color) =>
             {
-                EnvironmentSettings env = DodgeFromLight.CurrentMap.Grid.GetEnvironment();
+                EnvironmentSettings env = GameContext.CurrentMap.Grid.GetEnvironment();
                 env.Nebular2Color2 = new Serializable_Vector4(color);
-                DodgeFromLight.CurrentMap.Grid.Environment = env;
-                DodgeFromLight.SetEnvironment(DodgeFromLight.CurrentMap);
+                GameContext.CurrentMap.Grid.Environment = env;
+                GameContext.SetEnvironment(GameContext.CurrentMap);
                 BindEnvironment(env);
             };
-            ColorPicker.CurrentColor = DodgeFromLight.CurrentMap.Grid.GetEnvironment().Nebular2Color2.ToColor();
+            ColorPicker.CurrentColor = GameContext.CurrentMap.Grid.GetEnvironment().Nebular2Color2.ToColor();
         });
 
         // Sun Size
         SunSize.onValueChanged.AddListener((sunSize) =>
         {
-            EnvironmentSettings env = DodgeFromLight.CurrentMap.Grid.GetEnvironment();
+            EnvironmentSettings env = GameContext.CurrentMap.Grid.GetEnvironment();
             env.SunSize = sunSize;
-            DodgeFromLight.CurrentMap.Grid.Environment = env;
-            DodgeFromLight.SetEnvironment(DodgeFromLight.CurrentMap);
+            GameContext.CurrentMap.Grid.Environment = env;
+            GameContext.SetEnvironment(GameContext.CurrentMap);
         });
 
         // Sun Intensity
         SkyboxSunIntensity.onValueChanged.AddListener((sunIntensity) =>
         {
-            EnvironmentSettings env = DodgeFromLight.CurrentMap.Grid.GetEnvironment();
+            EnvironmentSettings env = GameContext.CurrentMap.Grid.GetEnvironment();
             env.SunSkyIntensity = sunIntensity;
-            DodgeFromLight.CurrentMap.Grid.Environment = env;
-            DodgeFromLight.SetEnvironment(DodgeFromLight.CurrentMap);
+            GameContext.CurrentMap.Grid.Environment = env;
+            GameContext.SetEnvironment(GameContext.CurrentMap);
         });
 
         // Sun Color
@@ -355,31 +355,31 @@ public class UI_EnvironmentSettings : MonoBehaviour
             ColorPicker.SetTitle("Sun Color");
             OnColorChanged = (color) =>
             {
-                EnvironmentSettings env = DodgeFromLight.CurrentMap.Grid.GetEnvironment();
+                EnvironmentSettings env = GameContext.CurrentMap.Grid.GetEnvironment();
                 env.SunSkyColor = new Serializable_Vector4(color);
-                DodgeFromLight.CurrentMap.Grid.Environment = env;
-                DodgeFromLight.SetEnvironment(DodgeFromLight.CurrentMap);
+                GameContext.CurrentMap.Grid.Environment = env;
+                GameContext.SetEnvironment(GameContext.CurrentMap);
                 BindEnvironment(env);
             };
-            ColorPicker.CurrentColor = DodgeFromLight.CurrentMap.Grid.GetEnvironment().SunSkyColor.ToColor();
+            ColorPicker.CurrentColor = GameContext.CurrentMap.Grid.GetEnvironment().SunSkyColor.ToColor();
         });
 
         // Sun Up
         SunUp.onValueChanged.AddListener((sunUp) =>
         {
-            EnvironmentSettings env = DodgeFromLight.CurrentMap.Grid.GetEnvironment();
+            EnvironmentSettings env = GameContext.CurrentMap.Grid.GetEnvironment();
             env.SunUp = sunUp;
-            DodgeFromLight.CurrentMap.Grid.Environment = env;
-            DodgeFromLight.SetEnvironment(DodgeFromLight.CurrentMap);
+            GameContext.CurrentMap.Grid.Environment = env;
+            GameContext.SetEnvironment(GameContext.CurrentMap);
         });
 
         // Sun Horizontal
         SunHorizontal.onValueChanged.AddListener((sunHorizontal) =>
         {
-            EnvironmentSettings env = DodgeFromLight.CurrentMap.Grid.GetEnvironment();
+            EnvironmentSettings env = GameContext.CurrentMap.Grid.GetEnvironment();
             env.SunHorizontal = sunHorizontal;
-            DodgeFromLight.CurrentMap.Grid.Environment = env;
-            DodgeFromLight.SetEnvironment(DodgeFromLight.CurrentMap);
+            GameContext.CurrentMap.Grid.Environment = env;
+            GameContext.SetEnvironment(GameContext.CurrentMap);
         });
 
         ColorPicker.gameObject.SetActive(false);
@@ -486,48 +486,48 @@ public class UI_EnvironmentSettings : MonoBehaviour
         //    if (ImGui.ColorEdit4("Color A", ref ColorA))
         //    {
         //        env.ColorA = new Serializable_Vector4(ColorA);
-        //        DodgeFromLight.CurrentMap.Grid.Environment = env;
-        //        DodgeFromLight.SetEnvironment(DodgeFromLight.CurrentMap);
+        //        GameContext.CurrentMap.Grid.Environment = env;
+        //        GameContext.SetEnvironment(GameContext.CurrentMap);
         //    }
 
         //    float IntensityA = env.IntensityA;
         //    if (ImGui.DragFloat("Intensity A", ref IntensityA, .01f, 0f, 2f, (IntensityA * 100f) + "%%"))
         //    {
         //        env.IntensityA = IntensityA;
-        //        DodgeFromLight.CurrentMap.Grid.Environment = env;
-        //        DodgeFromLight.SetEnvironment(DodgeFromLight.CurrentMap);
+        //        GameContext.CurrentMap.Grid.Environment = env;
+        //        GameContext.SetEnvironment(GameContext.CurrentMap);
         //    }
 
         //    Serializable_Vector4 DirA = env.DirA;
         //    if (DrawVector4("Direction A", ref DirA, 0f, 359f))
         //    {
         //        env.DirA = DirA;
-        //        DodgeFromLight.CurrentMap.Grid.Environment = env;
-        //        DodgeFromLight.SetEnvironment(DodgeFromLight.CurrentMap);
+        //        GameContext.CurrentMap.Grid.Environment = env;
+        //        GameContext.SetEnvironment(GameContext.CurrentMap);
         //    }
 
         //    Vector4 ColorB = env.ColorB.ToVector4();
         //    if (ImGui.ColorEdit4("Color B", ref ColorB))
         //    {
         //        env.ColorB = new Serializable_Vector4(ColorB);
-        //        DodgeFromLight.CurrentMap.Grid.Environment = env;
-        //        DodgeFromLight.SetEnvironment(DodgeFromLight.CurrentMap);
+        //        GameContext.CurrentMap.Grid.Environment = env;
+        //        GameContext.SetEnvironment(GameContext.CurrentMap);
         //    }
 
         //    float IntensityB = env.IntensityB;
         //    if (ImGui.DragFloat("Intensity B", ref IntensityB, .01f, 0f, 2f, (IntensityB * 100f) + "%%"))
         //    {
         //        env.IntensityB = IntensityB;
-        //        DodgeFromLight.CurrentMap.Grid.Environment = env;
-        //        DodgeFromLight.SetEnvironment(DodgeFromLight.CurrentMap);
+        //        GameContext.CurrentMap.Grid.Environment = env;
+        //        GameContext.SetEnvironment(GameContext.CurrentMap);
         //    }
 
         //    Serializable_Vector4 DirB = env.DirB;
         //    if (DrawVector4("Direction B", ref DirB, 0f, 359f))
         //    {
         //        env.DirB = DirB;
-        //        DodgeFromLight.CurrentMap.Grid.Environment = env;
-        //        DodgeFromLight.SetEnvironment(DodgeFromLight.CurrentMap);
+        //        GameContext.CurrentMap.Grid.Environment = env;
+        //        GameContext.SetEnvironment(GameContext.CurrentMap);
         //    }
         //    ImGui.EndChild();
         //}
@@ -540,8 +540,8 @@ public class UI_EnvironmentSettings : MonoBehaviour
         //    {
         //        if (ImGui.Button(e.ToString()))
         //        {
-        //            DodgeFromLight.CurrentMap.Grid.Environment = DodgeFromLight.EnvironmentController.GetBuildinEnvironment(e);
-        //            DodgeFromLight.SetEnvironment(DodgeFromLight.CurrentMap);
+        //            GameContext.CurrentMap.Grid.Environment = GameContext.EnvironmentController.GetBuildinEnvironment(e);
+        //            GameContext.SetEnvironment(GameContext.CurrentMap);
         //        }
         //    }
         //    ImGui.EndChild();

@@ -5,13 +5,12 @@ using System.IO;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Audio;
-using UnityEngine.Rendering.PostProcessing;
+using UnityEngine.Rendering.Universal;
+using UnityEngine.SceneManagement;
 
 public class GameSettingsManager : MonoBehaviour
 {
     #region Variables
-    public PostProcessVolume PostProcessVolume;
-    public PostProcessLayer PostProcessLayer;
     public AudioMixer Mixer;
     [HideInInspector]
     public GameSettings CurrentSettings { get; private set; }
@@ -20,7 +19,7 @@ public class GameSettingsManager : MonoBehaviour
 
     private void Awake()
     {
-        DodgeFromLight.GameSettingsManager = this;
+        GameContext.GameSettingsManager = this;
         settingsPath = Application.persistentDataPath + @"\settings.dfl";
         LoadSettings();
     }
@@ -28,6 +27,33 @@ public class GameSettingsManager : MonoBehaviour
     private void Start()
     {
         ApplyAllSettings(CurrentSettings, false);
+    }
+
+    /// <summary>
+    /// Registers the manager so camera settings are restored after every scene load.
+    /// </summary>
+    private void OnEnable()
+    {
+        // A newly loaded scene can introduce cameras after the settings manager was initialized.
+        SceneManager.sceneLoaded += HandleSceneLoaded;
+    }
+
+    /// <summary>
+    /// Unregisters the scene callback when the manager is disabled or destroyed.
+    /// </summary>
+    private void OnDisable()
+    {
+        // Avoid retaining callbacks to a manager that no longer belongs to the active scene.
+        SceneManager.sceneLoaded -= HandleSceneLoaded;
+    }
+
+    /// <summary>
+    /// Applies camera-specific rendering settings to cameras introduced by a loaded scene.
+    /// </summary>
+    private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // The serialized settings are loaded during Awake before this callback can be invoked.
+        ApplyCameraRenderingSettings();
     }
 
     #region Graphics
@@ -39,10 +65,23 @@ public class GameSettingsManager : MonoBehaviour
             SaveSettings();
     }
 
+    /// <summary>
+    /// Selects a supported resolution while tolerating settings saved on another display.
+    /// </summary>
     public void SetResolution(int res, bool fullscreen, bool save)
     {
-        CurrentSettings.Graphics.Resolution = res;
-        Screen.SetResolution(Screen.resolutions[res].width, Screen.resolutions[res].height, fullscreen);
+        Resolution[] resolutions = Screen.resolutions;
+        if (resolutions.Length > 0)
+        {
+            // Clamp persisted indices because the available modes depend on the current display.
+            int validResolutionIndex = Mathf.Clamp(res, 0, resolutions.Length - 1);
+            CurrentSettings.Graphics.Resolution = validResolutionIndex;
+            Screen.SetResolution(
+                resolutions[validResolutionIndex].width,
+                resolutions[validResolutionIndex].height,
+                fullscreen);
+        }
+
         if (save)
             SaveSettings();
     }
@@ -55,20 +94,60 @@ public class GameSettingsManager : MonoBehaviour
             SaveSettings();
     }
 
-    public void SetAntialiasing(PostProcessLayer.Antialiasing AA, bool save)
+    /// <summary>
+    /// Applies the selected URP anti-aliasing mode to every camera in the loaded scene.
+    /// </summary>
+    public void SetAntialiasing(AntialiasingMode antialiasing, bool save)
     {
-        PostProcessLayer.antialiasingMode = AA;
-        CurrentSettings.Graphics.Antialiasing = AA;
+        CurrentSettings.Graphics.Antialiasing = antialiasing;
+        UniversalAdditionalCameraData[] cameraData = FindUniversalCameraData();
+        foreach (UniversalAdditionalCameraData data in cameraData)
+        {
+            // URP owns anti-aliasing per camera rather than through the removed PPv2 layer.
+            data.antialiasing = antialiasing;
+        }
+
         if (save)
             SaveSettings();
     }
 
-    public void SetPostProcess(bool pp, bool save)
+    /// <summary>
+    /// Enables or disables URP post-processing on every camera in the loaded scene.
+    /// </summary>
+    public void SetPostProcess(bool postProcessEnabled, bool save)
     {
-        PostProcessLayer.enabled = pp;
-        CurrentSettings.Graphics.PostProcess = pp;
+        CurrentSettings.Graphics.PostProcess = postProcessEnabled;
+        UniversalAdditionalCameraData[] cameraData = FindUniversalCameraData();
+        foreach (UniversalAdditionalCameraData data in cameraData)
+        {
+            // URP exposes post-processing as camera rendering data instead of a component toggle.
+            data.renderPostProcessing = postProcessEnabled;
+        }
+
         if (save)
             SaveSettings();
+    }
+
+    /// <summary>
+    /// Reapplies the current URP rendering choices without touching unrelated graphics settings.
+    /// </summary>
+    private void ApplyCameraRenderingSettings()
+    {
+        if (CurrentSettings?.Graphics == null)
+            return;
+
+        // Both setters safely handle scenes that do not contain an URP camera.
+        SetAntialiasing(CurrentSettings.Graphics.Antialiasing, false);
+        SetPostProcess(CurrentSettings.Graphics.PostProcess, false);
+    }
+
+    /// <summary>
+    /// Finds active and inactive URP cameras so later activation cannot bypass the saved settings.
+    /// </summary>
+    private static UniversalAdditionalCameraData[] FindUniversalCameraData()
+    {
+        // Include inactive cameras so later activation cannot bypass the saved settings.
+        return FindObjectsByType<UniversalAdditionalCameraData>(FindObjectsInactive.Include);
     }
 
     public void SetTargetFPS(int fps, bool save)
@@ -186,11 +265,14 @@ public class GameSettingsManager : MonoBehaviour
         CurrentSettings.Inputs.Initialize();
     }
 
+    /// <summary>
+    /// Creates graphics defaults compatible with the Universal Render Pipeline.
+    /// </summary>
     public void CreateDefaultGraphicSettings()
     {
-        // default graphics settings
+        // TAA preserves the visual intent of the previous default while using URP's implementation.
         CurrentSettings.Graphics = new GraphicsSettings();
-        CurrentSettings.Graphics.Antialiasing = PostProcessLayer.Antialiasing.TemporalAntialiasing;
+        CurrentSettings.Graphics.Antialiasing = AntialiasingMode.TemporalAntiAliasing;
         CurrentSettings.Graphics.Fullscreen = true;
         CurrentSettings.Graphics.PostProcess = true;
         CurrentSettings.Graphics.Quality = 2;
@@ -267,7 +349,7 @@ public class GraphicsSettings
     public bool Fullscreen { get; set; }
     public int Resolution { get; set; }
     public int Quality { get; set; }
-    public PostProcessLayer.Antialiasing Antialiasing { get; set; }
+    public AntialiasingMode Antialiasing { get; set; }
     public bool PostProcess { get; set; }
     public int TargetFPS { get; set; }
     public bool VSync { get; set; }
@@ -343,7 +425,7 @@ public class InputSettingsData
             sb.Append("Ctrl + ");
         if (Shift)
             sb.Append("Shift + ");
-        sb.Append(DodgeFromLight.GameSettingsManager.GetNiceKeyString(Key));
+        sb.Append(GameContext.GameSettingsManager.GetNiceKeyString(Key));
         return sb.ToString();
     }
 

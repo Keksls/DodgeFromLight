@@ -32,8 +32,8 @@ public class DiscoBall : Gear
 
     public void Destroy()
     {
-        DodgeFromLight.GameManager.StopCoroutine(Destroy_Routine());
-        DodgeFromLight.GameManager.StartCoroutine(Destroy_Routine());
+        GameContext.GameManager.StopCoroutine(Destroy_Routine());
+        GameContext.GameManager.StartCoroutine(Destroy_Routine());
     }
 
     IEnumerator Destroy_Routine()
@@ -41,27 +41,27 @@ public class DiscoBall : Gear
         yield return null;
         GameObject.Destroy(gameObject);
         placedCell.RemoveUsedGearOnCell();
-        DodgeFromLight.GridController.DrawCellsPO();
+        GameContext.GridController.DrawCellsPO();
     }
 
     public override bool UseGear()
     {
-        Cell c = DodgeFromLight.CurrentMap.Grid.GetNeighbor(DodgeFromLight.GameManager.PlayerController.CurrentCell.GetCellPos(),
-            DodgeFromLight.GameManager.PlayerController.Orientation);
-        if (c == null || !DodgeFromLight.CurrentMap.Grid.CanGoOnCell(c))
+        Cell c = GameContext.CurrentMap.Grid.GetNeighbor(GameContext.GameManager.PlayerController.CurrentCell.GetCellPos(),
+            GameContext.GameManager.PlayerController.Orientation);
+        if (c == null || !GameContext.CurrentMap.Grid.CanGoOnCell(c))
             return false;
 
         // instantiate discoball
         placedCell = c;
         cell = c.ToString();
-        GameObject db = GameObject.Instantiate(DodgeFromLight.GameManager.GearDiscoballPrefab);
+        GameObject db = GameObject.Instantiate(GameContext.GameManager.GearDiscoballPrefab);
         db.transform.position = c.GetCellPos().ToVector3(0f);
         db.GetComponent<DiscoballController>().Initialize(this);
         c.UseGearOnCell(this);
-        DodgeFromLight.GameManager._playerController.ThrowGear(Side);
-        foreach (var en in DodgeFromLight.Ennemies)
+        GameContext.GameManager._playerController.ThrowGear(Side);
+        foreach (var en in GameContext.Ennemies)
             en.RefreshPO();
-        DodgeFromLight.GridController.DrawCellsPO();
+        GameContext.GridController.DrawCellsPO();
         return true;
     }
 }

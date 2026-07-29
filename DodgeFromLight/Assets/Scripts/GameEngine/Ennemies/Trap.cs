@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Trap : Ennemy
@@ -66,8 +66,8 @@ public class Trap : Ennemy
 
     public override void DoEffect()
     {
-        Grid grid = DodgeFromLight.CurrentMap.Grid;
-        string playerName = DodgeFromLight.GameManager?.PlayerController?.Name;
+        Grid grid = GameContext.CurrentMap.Grid;
+        string playerName = GameContext.GameManager?.PlayerController?.Name;
         Cell tmpCell = null;
         foreach (CellPos po in CurrentPO)
         {
@@ -77,27 +77,27 @@ public class Trap : Ennemy
                 Entity player = tmpCell.EntityOnCell;
                 player.StopMovementsForThisTurn(); // stop the player
 
-                DodgeFromLight.GridController.DrawCellsPO();
+                GameContext.GridController.DrawCellsPO();
                 Play("Attract", true, .5f);
-                DodgeFromLight.StopWaitingAction();
+                GameContext.StopWaitingAction();
                 // attract player
                 int NbCellsToAttract = Random.Range(NbCellMinAttract, NbCellMaxAttract);
-                Orientation displacementOrientation = DodgeFromLight.CurrentMap.Grid.GetOrientation(tmpCell, CurrentCell);
+                Orientation displacementOrientation = GameContext.CurrentMap.Grid.GetOrientation(tmpCell, CurrentCell);
                 Cell targetPlayerCell = grid.GetNextCell(tmpCell, displacementOrientation, NbCellsToAttract);
 
                 Events.Fire_EntityStartMove(player);
-                player.GoToCell(targetPlayerCell, DodgeFromLight.GameManager.EntitiesMovementDuration / 2f, () =>
+                player.GoToCell(targetPlayerCell, GameContext.GameManager.EntitiesMovementDuration / 2f, () =>
                   {
                     // push player
                     int NbCellsToPush = Random.Range(NbCellMinPush, NbCellMaxPush);
-                      Orientation displacementOrientation2 = DodgeFromLight.CurrentMap.Grid.GetOrientation(CurrentCell, tmpCell);
+                      Orientation displacementOrientation2 = GameContext.CurrentMap.Grid.GetOrientation(CurrentCell, tmpCell);
                       Cell targetPlayerCell2 = grid.GetNextCell(targetPlayerCell ?? tmpCell, displacementOrientation2, NbCellsToPush);
 
-                      player.GoToCell(targetPlayerCell2, DodgeFromLight.GameManager.EntitiesMovementDuration / 2f, () =>
+                      player.GoToCell(targetPlayerCell2, GameContext.GameManager.EntitiesMovementDuration / 2f, () =>
                       {
                           Events.Fire_EntityEndMove(player);
                           CurrentPO = CleanPO(GetBrutPO());
-                          DodgeFromLight.GridController.DrawCellsPO();
+                          GameContext.GridController.DrawCellsPO();
                       });
                   });
             }

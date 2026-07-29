@@ -38,16 +38,16 @@ public static class SaveManager
     {
         // Grant the former tutorial bundle locally instead of requesting it from a server.
         var save = CreateDefaultSave();
-        if (DodgeFromLight.Databases != null &&
-            DodgeFromLight.Databases.RewardData != null)
+        if (GameContext.Databases != null &&
+            GameContext.Databases.RewardData != null)
         {
-            foreach (var reward in DodgeFromLight.Databases.RewardData.GetTutorialRewards())
+            foreach (var reward in GameContext.Databases.RewardData.GetTutorialRewards())
                 save.Unlock(reward.SkinType, (short)reward.SkinID);
 
-            foreach (var reward in DodgeFromLight.Databases.RewardData.GetTutorialRewards())
+            foreach (var reward in GameContext.Databases.RewardData.GetTutorialRewards())
                 save.SetCurrentPart(reward.SkinType, (short)reward.SkinID);
 
-            save.Experience = DodgeFromLight.Databases.RewardData.GetTutorialXP();
+            save.Experience = GameContext.Databases.RewardData.GetTutorialXP();
         }
 
         save.LastRewardLevel = 6;
@@ -160,7 +160,7 @@ public static class SaveManager
     private static void OrderSkins()
     {
         // Skip presentation ordering until the runtime databases are available.
-        var rewardData = DodgeFromLight.Databases?.RewardData;
+        var rewardData = GameContext.Databases?.RewardData;
         if (rewardData == null)
             return;
 

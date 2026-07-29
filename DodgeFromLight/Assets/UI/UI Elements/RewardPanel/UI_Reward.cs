@@ -19,12 +19,12 @@ public class UI_Reward : MonoBehaviour
     public void ShowPendingRewardsPanel()
     {
         RewardAnimator.Play("RewardSkinIdle");
-        List<RewardItem> rewards = DodgeFromLight.Databases.RewardData.GetPendingRewards(SaveManager.CurrentSave.Experience);
+        List<RewardItem> rewards = GameContext.Databases.RewardData.GetPendingRewards(SaveManager.CurrentSave.Experience);
         if (rewards.Count > 0)
         {
             RewardItem reward = rewards[0];
             RewardSkinShadow.enabled = false;
-            RewardRarityColor.color = DodgeFromLight.Databases.RewardData.GetRarityColor(DodgeFromLight.Databases.RewardData.GetRarity(reward.SkinType, reward.SkinID), 1f);
+            RewardRarityColor.color = GameContext.Databases.RewardData.GetRarityColor(GameContext.Databases.RewardData.GetRarity(reward.SkinType, reward.SkinID), 1f);
             BtnOpenRewardBackColor.color = RewardRarityColor.color;
             InitPendingPanel();
         }
@@ -32,7 +32,7 @@ public class UI_Reward : MonoBehaviour
 
     private void InitPendingPanel()
     {
-        List<RewardItem> rewards = DodgeFromLight.Databases.RewardData.GetPendingRewards(SaveManager.CurrentSave.Experience);
+        List<RewardItem> rewards = GameContext.Databases.RewardData.GetPendingRewards(SaveManager.CurrentSave.Experience);
         if (rewards.Count > 0)
         {
             RewardPanel.SetActive(true);
@@ -40,9 +40,9 @@ public class UI_Reward : MonoBehaviour
             RewardRemaningpendingText.text = rewards.Count.ToString();
             RewardItem reward = rewards[0];
             if (reward.Type == RewardType.Skin)
-                BtnOpenRewardBackColor.color = DodgeFromLight.Databases.RewardData.GetRarityColor(DodgeFromLight.Databases.RewardData.GetRarity(reward.SkinType, reward.SkinID), 1f);
+                BtnOpenRewardBackColor.color = GameContext.Databases.RewardData.GetRarityColor(GameContext.Databases.RewardData.GetRarity(reward.SkinType, reward.SkinID), 1f);
             else
-                BtnOpenRewardBackColor.color = DodgeFromLight.Databases.RewardData.GetRarityColor(SkinRarityType.Legendary, 0.66f);
+                BtnOpenRewardBackColor.color = GameContext.Databases.RewardData.GetRarityColor(SkinRarityType.Legendary, 0.66f);
             BtnOpenReward.onClick.RemoveAllListeners();
             BtnOpenReward.onClick.AddListener(() =>
             {
@@ -54,17 +54,17 @@ public class UI_Reward : MonoBehaviour
                     RewardSkin.color = Color.white;
                     RewardSkinShadow.sprite = tex;
                     RewardSkinShadow.enabled = true;
-                    RewardRarityColor.color = DodgeFromLight.Databases.RewardData.GetRarityColor(DodgeFromLight.Databases.RewardData.GetRarity(reward.SkinType, reward.SkinID), 1f);
+                    RewardRarityColor.color = GameContext.Databases.RewardData.GetRarityColor(GameContext.Databases.RewardData.GetRarity(reward.SkinType, reward.SkinID), 1f);
                 }
                 else
                 {
-                    Sprite tex = DodgeFromLight.Databases.OrnamentData.GetOrnamentImage(reward.Ornament);
-                    OrnamentDataAsset data = DodgeFromLight.Databases.OrnamentData.GetOrnamentData(reward.Ornament);
+                    Sprite tex = GameContext.Databases.OrnamentData.GetOrnamentImage(reward.Ornament);
+                    OrnamentDataAsset data = GameContext.Databases.OrnamentData.GetOrnamentData(reward.Ornament);
                     RewardSkin.sprite = tex;
                     RewardSkin.color = data.OrnamentColor;
                     RewardSkinShadow.sprite = tex;
                     RewardSkinShadow.enabled = true;
-                    RewardRarityColor.color = DodgeFromLight.Databases.RewardData.GetRarityColor(SkinRarityType.Legendary, 0.66f);
+                    RewardRarityColor.color = GameContext.Databases.RewardData.GetRarityColor(SkinRarityType.Legendary, 0.66f);
                 }
                 RewardAnimator.Play("RewardSkinIdle");
                 StartCoroutine(OpenReward(reward));
@@ -75,10 +75,10 @@ public class UI_Reward : MonoBehaviour
     IEnumerator OpenReward(RewardItem reward)
     {
         bool saved = false;
-        DodgeFromLight.Databases.RewardData.AcceptReward(reward, (short)(SaveManager.CurrentSave.LastRewardLevel + 1), (success, errorMess) =>
+        GameContext.Databases.RewardData.AcceptReward(reward, (short)(SaveManager.CurrentSave.LastRewardLevel + 1), (success, errorMess) =>
         {
             if (!success)
-                DodgeFromLight.UI_Notifications.Notify(errorMess);
+                GameContext.UI_Notifications.Notify(errorMess);
             //BindItems();
             RewardAnimator.Play("RewardSkinAnimation");
             saved = true;
@@ -86,7 +86,7 @@ public class UI_Reward : MonoBehaviour
         while (!saved)
             yield return null;
         yield return new WaitForSeconds(2f);
-        if (DodgeFromLight.Databases.RewardData.HasRewards(SaveManager.CurrentSave.Experience))
+        if (GameContext.Databases.RewardData.HasRewards(SaveManager.CurrentSave.Experience))
             InitPendingPanel();
     }
 }

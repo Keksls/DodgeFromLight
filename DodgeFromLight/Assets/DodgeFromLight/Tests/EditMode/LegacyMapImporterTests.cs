@@ -1,3 +1,4 @@
+using DodgeFromLight.Core.Model;
 using DodgeFromLight.Core.Simulation;
 using DodgeFromLight.Infrastructure.Maps;
 using NUnit.Framework;
@@ -34,7 +35,7 @@ namespace DodgeFromLight.Tests
                 "In-memory test");
 
             Assert.That(importResult.IsSuccessful, Is.True);
-            Assert.That(importResult.Package.Map.Cells[0].TypeId, Is.EqualTo("cell.floor"));
+            Assert.That(importResult.Package.Map.Cells[0].TypeId, Is.EqualTo(CellTypeIds.Floor));
             Assert.That(importResult.Package.Map.Enemies[0].EnemyId, Is.EqualTo("enemy.scout"));
 
             var serializer = new MapPackageSerializer();

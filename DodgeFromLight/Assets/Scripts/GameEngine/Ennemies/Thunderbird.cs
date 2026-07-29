@@ -29,7 +29,7 @@ public class Thunderbird : Ennemy
 
     private new void Events_TurnStart()
     {
-        if (DodgeFromLight.TimeStoped > 0)
+        if (GameContext.TimeStoped > 0)
             return;
         nbTurn++;
         if (isUp)
@@ -48,7 +48,7 @@ public class Thunderbird : Ennemy
     {
         isUp = true;
         float enlapsed = 0f;
-        float duration = DodgeFromLight.GameManager ? DodgeFromLight.GameManager.EntitiesMovementDuration : 0.2f;
+        float duration = GameContext.GameManager ? GameContext.GameManager.EntitiesMovementDuration : 0.2f;
         Vector3 start = new Vector3(0f, downY, 0f);
         Vector3 end = new Vector3(0f, upY, 0f);
         while (enlapsed < duration)
@@ -65,7 +65,7 @@ public class Thunderbird : Ennemy
     {
         isUp = false;
         float enlapsed = 0f;
-        float duration = DodgeFromLight.GameManager ? DodgeFromLight.GameManager.EntitiesMovementDuration : 0.2f;
+        float duration = GameContext.GameManager ? GameContext.GameManager.EntitiesMovementDuration : 0.2f;
         Vector3 start = new Vector3(0f, upY, 0f);
         Vector3 end = new Vector3(0f, downY, 0f);
         while (enlapsed < duration)

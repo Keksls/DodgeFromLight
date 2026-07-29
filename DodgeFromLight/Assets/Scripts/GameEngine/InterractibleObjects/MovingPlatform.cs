@@ -18,7 +18,7 @@ public class MovingPlatform : MonoBehaviour
     public Cell CurrentCell;
     public Cell LastCell;
     public Orientation Orientation;
-    public bool HasPlayerOnIt { get { return DodgeFromLight.GameManager.PlayerController.CurrentCell.Equals(CurrentCell); } }
+    public bool HasPlayerOnIt { get { return GameContext.GameManager.PlayerController.CurrentCell.Equals(CurrentCell); } }
     private bool initialized = false;
     private int oldBaseTA;
     private int nbTurnsFreezeRemaning = 0;
@@ -93,13 +93,13 @@ public class MovingPlatform : MonoBehaviour
     {
         if (Patrol.NbCells == 0)
         {
-            Cell cell = DodgeFromLight.CurrentMap.Grid.GetCell(StartCell);
+            Cell cell = GameContext.CurrentMap.Grid.GetCell(StartCell);
             PlaceOnCell(cell, true);
             SetOrientation(StartOrientation);
         }
         else
         {
-            Cell cell = DodgeFromLight.CurrentMap.Grid.GetCell(Patrol.FirstCell);
+            Cell cell = GameContext.CurrentMap.Grid.GetCell(Patrol.FirstCell);
             PlaceOnCell(cell, true);
             SetOrientation(Patrol.FirstOrientation);
         }
@@ -125,12 +125,12 @@ public class MovingPlatform : MonoBehaviour
             CellPos nextCell = Patrol.NextCell();// next cell is in ennemy orientation, just walk toward
                                                  //if (nextCell.IsInOrientation(CurrentCell.GetCellPos(), Orientation))
                                                  //{
-            Cell cell = DodgeFromLight.CurrentMap.Grid.GetCell(nextCell);
+            Cell cell = GameContext.CurrentMap.Grid.GetCell(nextCell);
             if (cell == null)
                 yield break;
 
             // fire walking event
-            DodgeFromLight.StartWaitingAction();
+            GameContext.StartWaitingAction();
             Moving = true;
             // cancel current movement
             StopCoroutine("MoveToCell_Routine");
@@ -138,16 +138,16 @@ public class MovingPlatform : MonoBehaviour
             // move to target cell
             yield return StartCoroutine(MoveToCell_Routine(cell, speed, null, null));
             PlaceOnCell(cell, true);
-            DodgeFromLight.StopWaitingAction();
+            GameContext.StopWaitingAction();
             //}
             //else // next cell is not orientation, need to turn
             //{
             //    Patrol.CancelNextCell();
-            //    DodgeFromLight.StartWaitingAction();
+            //    GameContext.StartWaitingAction();
             //    //float enlapsed = 0f;
             //    //Vector3 startRot = transform.localEulerAngles;
-            //    //Vector3 endRot = DodgeFromLight.CurrentMap.Grid.GetOrientationVector(
-            //    //    DodgeFromLight.CurrentMap.Grid.GetOrientation(CurrentCell.GetCellPos(), nextCell));
+            //    //Vector3 endRot = GameContext.CurrentMap.Grid.GetOrientationVector(
+            //    //    GameContext.CurrentMap.Grid.GetOrientation(CurrentCell.GetCellPos(), nextCell));
             //    //float rotWeight = Mathf.Abs(endRot.y - startRot.y);
             //    //float inversedRotWeight = Mathf.Abs((360 + endRot.y) - startRot.y);
             //    //if (inversedRotWeight < rotWeight)
@@ -158,9 +158,9 @@ public class MovingPlatform : MonoBehaviour
             //    //    enlapsed += Time.deltaTime;
             //    //    yield return null;
             //    //}
-            //    SetOrientation(DodgeFromLight.CurrentMap.Grid.GetOrientation(CurrentCell.GetCellPos(), nextCell));
+            //    SetOrientation(GameContext.CurrentMap.Grid.GetOrientation(CurrentCell.GetCellPos(), nextCell));
             //    CurrentTA--;
-            //    DodgeFromLight.StopWaitingAction();
+            //    GameContext.StopWaitingAction();
             //}
             NbPMUsed++;
         }
@@ -184,7 +184,7 @@ public class MovingPlatform : MonoBehaviour
     public void SetOrientation(Orientation orientation)
     {
         Orientation = orientation;
-        transform.localEulerAngles = DodgeFromLight.CurrentMap.Grid.GetOrientationVector(Orientation);
+        transform.localEulerAngles = GameContext.CurrentMap.Grid.GetOrientationVector(Orientation);
     }
 
     /// <summary>
@@ -194,8 +194,8 @@ public class MovingPlatform : MonoBehaviour
     public void MoveToDirection(Orientation orientation)
     {
         // get next cell
-        Cell targetCell = DodgeFromLight.CurrentMap.Grid.GetNextCell(CurrentCell, orientation, CurrentTA);
-        GoToCell(targetCell, DodgeFromLight.GameManager.EntitiesMovementDuration);
+        Cell targetCell = GameContext.CurrentMap.Grid.GetNextCell(CurrentCell, orientation, CurrentTA);
+        GoToCell(targetCell, GameContext.GameManager.EntitiesMovementDuration);
     }
 
     public void GoToCell(Cell cell, float duration, Action Callback = null, Action EachFrameCallback = null)
@@ -230,7 +230,7 @@ public class MovingPlatform : MonoBehaviour
     /// <returns></returns>
     internal IEnumerator MoveToCell_Routine(Cell cell, float duration, Action Callback = null, Action EachFrameCallback = null)
     {
-        DodgeFromLight.StartWaitingAction();
+        GameContext.StartWaitingAction();
         float enlapsed = 0.0f;
         Vector3 startPos = transform.position;
         Vector3 endPos = new Vector3(cell.X, 0f, cell.Y);
@@ -243,7 +243,7 @@ public class MovingPlatform : MonoBehaviour
         }
         CurrentTA--;
         transform.position = endPos;
-        DodgeFromLight.StopWaitingAction();
+        GameContext.StopWaitingAction();
         Moving = false;
         Callback?.Invoke();
     }
@@ -254,7 +254,7 @@ public class MovingPlatform : MonoBehaviour
     public void DrawPath(Transform tfrm)
     {
         GL.PushMatrix();
-        DodgeFromLight.GridController.lineMaterial.SetPass(0);
+        GameContext.GridController.lineMaterial.SetPass(0);
         GL.MultMatrix(tfrm.localToWorldMatrix);
 
         // Draw lines
@@ -274,8 +274,8 @@ public class MovingPlatform : MonoBehaviour
 
         // Draw Quad
         GL.Begin(GL.QUADS);
-        float minSize = DodgeFromLight.GridController.PathSquareSize / DodgeFromLight.GridController.PathSquareOffsetSize / 6f;
-        float maxSize = DodgeFromLight.GridController.PathSquareSize * DodgeFromLight.GridController.PathSquareOffsetSize / 6f;
+        float minSize = GameContext.GridController.PathSquareSize / GameContext.GridController.PathSquareOffsetSize / 6f;
+        float maxSize = GameContext.GridController.PathSquareSize * GameContext.GridController.PathSquareOffsetSize / 6f;
         for (float i = 0; i < WayPoints.Count; i++)
         {
             float size = Mathf.Lerp(minSize, maxSize, i / (float)WayPoints.Count);

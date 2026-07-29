@@ -35,7 +35,7 @@ public class EditorMapCreator : MonoBehaviour
             if (File.Exists(gridPath))
             {
                 Grid grid = JsonConvert.DeserializeObject<Grid>(File.ReadAllText(gridPath));
-                grid.Environment = DodgeFromLight.EnvironmentController.GetBuildinEnvironment(BuildInEnvironments.Default);
+                grid.Environment = GameContext.EnvironmentController.GetBuildinEnvironment(BuildInEnvironments.Default);
                 File.WriteAllText(gridPath, JsonConvert.SerializeObject(grid));
             }
         }

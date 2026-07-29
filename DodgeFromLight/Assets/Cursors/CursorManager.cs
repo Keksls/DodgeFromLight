@@ -21,7 +21,7 @@ public class CursorManager : MonoBehaviour
 
     private void Awake()
     {
-        DodgeFromLight.CursorManager = this;
+        GameContext.CursorManager = this;
         SetCursor(CursorType.Arrow);
         NbSetters = 0;
     }

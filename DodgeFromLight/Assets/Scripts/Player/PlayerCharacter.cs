@@ -115,10 +115,10 @@ public class PlayerCharacter : MonoBehaviour
                 UnsetSkinPart(linked);
 
         // get new skin data
-        SkinDataAsset skin = DodgeFromLight.Databases.SkinsData.GetSkin(type, id);
+        SkinDataAsset skin = GameContext.Databases.SkinsData.GetSkin(type, id);
         if (skin == null)
             return;
-        GameObject partPrefab = DodgeFromLight.Databases.SkinsData.GetPrefab(type, id);
+        GameObject partPrefab = GameContext.Databases.SkinsData.GetPrefab(type, id);
         if (partPrefab == null)
             return;
 
@@ -196,15 +196,15 @@ public class PlayerCharacter : MonoBehaviour
     public WeaponDataAsset GetCurrentWeaponData()
     {
         if (CurrentPlayerSave.GetCurrentPart(SkinType.Sword) != -1)
-            return DodgeFromLight.Databases.WeaponData.GetWeaponData(SkinType.Sword, CurrentPlayerSave.GetCurrentPart(SkinType.Sword));
+            return GameContext.Databases.WeaponData.GetWeaponData(SkinType.Sword, CurrentPlayerSave.GetCurrentPart(SkinType.Sword));
         else if (CurrentPlayerSave.GetCurrentPart(SkinType.Axe) != -1)
-            return DodgeFromLight.Databases.WeaponData.GetWeaponData(SkinType.Axe, CurrentPlayerSave.GetCurrentPart(SkinType.Axe));
+            return GameContext.Databases.WeaponData.GetWeaponData(SkinType.Axe, CurrentPlayerSave.GetCurrentPart(SkinType.Axe));
         else if (CurrentPlayerSave.GetCurrentPart(SkinType.Hammer) != -1)
-            return DodgeFromLight.Databases.WeaponData.GetWeaponData(SkinType.Hammer, CurrentPlayerSave.GetCurrentPart(SkinType.Hammer));
+            return GameContext.Databases.WeaponData.GetWeaponData(SkinType.Hammer, CurrentPlayerSave.GetCurrentPart(SkinType.Hammer));
         else if (CurrentPlayerSave.GetCurrentPart(SkinType.Wand) != -1)
-            return DodgeFromLight.Databases.WeaponData.GetWeaponData(SkinType.Wand, CurrentPlayerSave.GetCurrentPart(SkinType.Wand));
+            return GameContext.Databases.WeaponData.GetWeaponData(SkinType.Wand, CurrentPlayerSave.GetCurrentPart(SkinType.Wand));
         else if (CurrentPlayerSave.GetCurrentPart(SkinType.Dagger) != -1)
-            return DodgeFromLight.Databases.WeaponData.GetWeaponData(SkinType.Dagger, CurrentPlayerSave.GetCurrentPart(SkinType.Dagger));
+            return GameContext.Databases.WeaponData.GetWeaponData(SkinType.Dagger, CurrentPlayerSave.GetCurrentPart(SkinType.Dagger));
         else
             return null;
     }

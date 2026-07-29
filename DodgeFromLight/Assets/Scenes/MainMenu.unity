@@ -3018,14 +3018,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 1016101379129972809, guid: 7d67751288cecfc4db5e0f2ced0ac592, type: 3}
-      propertyPath: PostProcessLayer
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 1016101379129972809, guid: 7d67751288cecfc4db5e0f2ced0ac592, type: 3}
-      propertyPath: PostProcessVolume
-      value: 
-      objectReference: {fileID: 0}
     - target: {fileID: 4783567424406358356, guid: 7d67751288cecfc4db5e0f2ced0ac592, type: 3}
       propertyPath: cam
       value: 

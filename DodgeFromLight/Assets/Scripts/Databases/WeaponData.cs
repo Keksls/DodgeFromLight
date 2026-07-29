@@ -28,7 +28,7 @@ public class WeaponData : ScriptableObject
 
     public void BindDefaultMissingWeapons(SkinType Type)
     {
-        foreach (SkinDataAsset skin in DodgeFromLight.Databases.SkinsData.Skins)
+        foreach (SkinDataAsset skin in GameContext.Databases.SkinsData.Skins)
         {
             if (skin.Type == Type)
             {

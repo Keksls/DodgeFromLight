@@ -51,6 +51,9 @@
   <ItemGroup>
     <Compile Include="Assets\DodgeFromLight\Core\Simulation\HashUtility.cs" />
     <Compile Include="Assets\DodgeFromLight\Core\Model\MapDefinition.cs" />
+    <Compile Include="Assets\DodgeFromLight\Core\Model\GearTypeIds.cs" />
+    <Compile Include="Assets\DodgeFromLight\Core\Systems\BoardStateBuilder.cs" />
+    <Compile Include="Assets\DodgeFromLight\Core\Model\TimedBombState.cs" />
     <Compile Include="Assets\DodgeFromLight\Core\Model\EnemyState.cs" />
     <Compile Include="Assets\DodgeFromLight\Core\Model\SimulationState.cs" />
     <Compile Include="Assets\DodgeFromLight\Core\Simulation\MapDefinitionHasher.cs" />
@@ -58,22 +61,40 @@
     <Compile Include="Assets\DodgeFromLight\Core\Replays\ReplayDefinition.cs" />
     <Compile Include="Assets\DodgeFromLight\Core\Events\SimulationEvent.cs" />
     <Compile Include="Assets\DodgeFromLight\Core\Commands\PlayerCommand.cs" />
+    <Compile Include="Assets\DodgeFromLight\Core\Model\CellTypeIds.cs" />
     <Compile Include="Assets\DodgeFromLight\Core\Simulation\SimulationEngine.cs" />
     <Compile Include="Assets\DodgeFromLight\Core\Replays\ReplayResult.cs" />
     <Compile Include="Assets\DodgeFromLight\Core\Replays\SimulationHistory.cs" />
+    <Compile Include="Assets\DodgeFromLight\Core\Systems\EnemySystem.cs" />
     <Compile Include="Assets\DodgeFromLight\Core\Events\SimulationEventType.cs" />
+    <Compile Include="Assets\DodgeFromLight\Core\Model\PlacedObjectState.cs" />
+    <Compile Include="Assets\DodgeFromLight\Core\Systems\EnemyInteractionResult.cs" />
+    <Compile Include="Assets\DodgeFromLight\Core\Systems\DirectionUtility.cs" />
+    <Compile Include="Assets\DodgeFromLight\Core\Simulation\PlayerCommandResolution.cs" />
+    <Compile Include="Assets\DodgeFromLight\Core\Systems\EnemyTurnResult.cs" />
     <Compile Include="Assets\DodgeFromLight\Core\Systems\PatrolRouteBuilder.cs" />
+    <Compile Include="Assets\DodgeFromLight\Core\Model\NeedleState.cs" />
     <Compile Include="Assets\DodgeFromLight\Core\Model\PlayerState.cs" />
     <Compile Include="Assets\DodgeFromLight\Core\Model\SimulationStatus.cs" />
+    <Compile Include="Assets\DodgeFromLight\Core\Model\CellParameterIds.cs" />
+    <Compile Include="Assets\DodgeFromLight\Core\Systems\PlatformTurnResult.cs" />
     <Compile Include="Assets\DodgeFromLight\Core\Simulation\SimulationStateHasher.cs" />
+    <Compile Include="Assets\DodgeFromLight\Core\Systems\BoardSystem.cs" />
     <Compile Include="Assets\DodgeFromLight\Core\Model\EnemyDefinition.cs" />
+    <Compile Include="Assets\DodgeFromLight\Core\Systems\GearSystem.cs" />
+    <Compile Include="Assets\DodgeFromLight\Core\Model\BoardState.cs" />
     <Compile Include="Assets\DodgeFromLight\Core\Simulation\SimulationStepResult.cs" />
     <Compile Include="Assets\DodgeFromLight\Core\Commands\PlayerCommandType.cs" />
-    <Compile Include="Assets\DodgeFromLight\Core\Systems\ScoutSystem.cs" />
     <Compile Include="Assets\DodgeFromLight\Core\Model\CellDefinition.cs" />
+    <Compile Include="Assets\DodgeFromLight\Core\Systems\MovingPlatformSystem.cs" />
     <Compile Include="Assets\DodgeFromLight\Core\Model\Direction.cs" />
+    <Compile Include="Assets\DodgeFromLight\Core\Systems\GearCommandResult.cs" />
+    <Compile Include="Assets\DodgeFromLight\Core\Model\DeterministicRandomState.cs" />
+    <Compile Include="Assets\DodgeFromLight\Core\Model\MovingPlatformState.cs" />
+    <Compile Include="Assets\DodgeFromLight\Core\Systems\EnemyVisionSystem.cs" />
     <Compile Include="Assets\DodgeFromLight\Core\Model\GridPosition.cs" />
     <Compile Include="Assets\DodgeFromLight\Core\Model\MovingPlatformDefinition.cs" />
+    <Compile Include="Assets\DodgeFromLight\Core\Model\EnemyTypeIds.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\DodgeFromLight\Core\DodgeFromLight.Core.asmdef" />

@@ -27,7 +27,7 @@ public class TutorialController : MonoBehaviour
     {
         //ResetAvancement();
         //SetAvancement(13);
-        DodgeFromLight.TutorialController = this;
+        GameContext.TutorialController = this;
         Maps = new Dictionary<string, FullMap>();
         foreach (string folder in TutorialMapsFolderNames)
         {
@@ -53,29 +53,29 @@ public class TutorialController : MonoBehaviour
 
     private void Update()
     {
-        if (DodgeFromLight.CurrentRules == null || !DodgeFromLight.CurrentRules.Tutorial)
+        if (GameContext.CurrentRules == null || !GameContext.CurrentRules.Tutorial)
             return;
-        if (DodgeFromLight.GameSettingsManager.GetInput(InputSettingsType.Forward).IsPressed())
+        if (GameContext.GameSettingsManager.GetInput(InputSettingsType.Forward).IsPressed())
             Z.color = PressedKeyColor;
         else
             Z.color = UnpressedKeyColor;
 
-        if (DodgeFromLight.GameSettingsManager.GetInput(InputSettingsType.left).IsPressed())
+        if (GameContext.GameSettingsManager.GetInput(InputSettingsType.left).IsPressed())
             Q.color = PressedKeyColor;
         else
             Q.color = UnpressedKeyColor;
 
-        if (DodgeFromLight.GameSettingsManager.GetInput(InputSettingsType.Backward).IsPressed())
+        if (GameContext.GameSettingsManager.GetInput(InputSettingsType.Backward).IsPressed())
             S.color = PressedKeyColor;
         else
             S.color = UnpressedKeyColor;
 
-        if (DodgeFromLight.GameSettingsManager.GetInput(InputSettingsType.Right).IsPressed())
+        if (GameContext.GameSettingsManager.GetInput(InputSettingsType.Right).IsPressed())
             D.color = PressedKeyColor;
         else
             D.color = UnpressedKeyColor;
 
-        if (DodgeFromLight.GameSettingsManager.GetInput(InputSettingsType.Jump).IsPressed())
+        if (GameContext.GameSettingsManager.GetInput(InputSettingsType.Jump).IsPressed())
             Jump.color = PressedKeyColor;
         else
             Jump.color = UnpressedKeyColor;
@@ -83,7 +83,7 @@ public class TutorialController : MonoBehaviour
 
     private void Events_SetGear(GearType type)
     {
-        if (!DodgeFromLight.CurrentRules.Tutorial)
+        if (!GameContext.CurrentRules.Tutorial)
             return;
         HideAllpanels();
         switch (type)
@@ -123,7 +123,7 @@ public class TutorialController : MonoBehaviour
 
     private void Events_StartMap()
     {
-        if (!DodgeFromLight.CurrentRules.Tutorial)
+        if (!GameContext.CurrentRules.Tutorial)
             return;
         HideAllpanels();
         KeysPanel.SetActive(true);

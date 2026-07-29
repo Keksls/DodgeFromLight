@@ -19,11 +19,11 @@ public class Bomb : Gear
     public override bool UseGear()
     {
         // play VFX
-        GameObject vfx = GameObject.Instantiate(DodgeFromLight.GameManager.GearBombeVFXPrefab);
-        vfx.transform.position = DodgeFromLight.GameManager.PlayerController.transform.position;
+        GameObject vfx = GameObject.Instantiate(GameContext.GameManager.GearBombeVFXPrefab);
+        vfx.transform.position = GameContext.GameManager.PlayerController.transform.position;
         // destroy deco elements at player CAC
-        Grid grid = DodgeFromLight.CurrentMap.Grid;
-        CellPos cell = DodgeFromLight.GameManager.PlayerController.CurrentCell.GetCellPos();
+        Grid grid = GameContext.CurrentMap.Grid;
+        CellPos cell = GameContext.GameManager.PlayerController.CurrentCell.GetCellPos();
         if (grid != null)
         {
             grid.DestroyElementOnCell(grid.GetNeighbor(cell, Orientation.Up));
@@ -32,7 +32,7 @@ public class Bomb : Gear
             grid.DestroyElementOnCell(grid.GetNeighbor(cell, Orientation.Left));
         }
         // throw current gear
-        DodgeFromLight.GameManager._playerController.ThrowGear(Side);
+        GameContext.GameManager._playerController.ThrowGear(Side);
         return true;
     }
 }

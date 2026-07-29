@@ -15,7 +15,7 @@ public class EnvironmentController : MonoBehaviour
 
     private void Awake()
     {
-        DodgeFromLight.EnvironmentController = this;
+        GameContext.EnvironmentController = this;
     }
 
     public void SetEnvironment(EnvironmentSettings env)
@@ -62,19 +62,19 @@ public class EnvironmentController : MonoBehaviour
 
     public void SetFogSettings(EnvironmentSettings env)
     {
-        if (DodgeFromLight.GridController == null || DodgeFromLight.GridController.Fog == null)
+        if (GameContext.GridController == null || GameContext.GridController.Fog == null)
             return;
         Material fogMat = Instantiate(FogMaterial);
         fogMat.SetColor("_DepthGradientShallow", env.DepthShallow.ToColor());
         fogMat.SetColor("_DepthGradientDeep", env.DepthDeep.ToColor());
 
-        var renderer = DodgeFromLight.GridController.Fog.gameObject.GetComponent<Renderer>();
+        var renderer = GameContext.GridController.Fog.gameObject.GetComponent<Renderer>();
         renderer.material = fogMat;
 
         Material foamMat = Instantiate(FoamMaterial);
         foamMat.SetColor("_FoamColor", env.FoamColor.ToColor());
         foamMat.SetFloat("_SurfaceNoiseScale", env.FoamScale);
-        var rendererFoam = DodgeFromLight.GridController.Fog.transform.GetChild(1).GetComponent<Renderer>();
+        var rendererFoam = GameContext.GridController.Fog.transform.GetChild(1).GetComponent<Renderer>();
         rendererFoam.material = foamMat;
     }
 
@@ -231,15 +231,15 @@ public class EnvironmentSettings
         EquatorColor = new Serializable_Vector4(new Color(.133f, 0.114f, 0.125f, 1f));
         GroundColor = new Serializable_Vector4(new Color(0.047f, 0.043f, 0.035f, 1f));
 
-        Material fogMat = DodgeFromLight.EnvironmentController.FogMaterial;
+        Material fogMat = GameContext.EnvironmentController.FogMaterial;
         DepthShallow = new Serializable_Vector4(fogMat.GetColor("_DepthGradientShallow"));
         DepthDeep = new Serializable_Vector4(fogMat.GetColor("_DepthGradientDeep"));
 
-        Material foamMat = DodgeFromLight.EnvironmentController.FoamMaterial;
+        Material foamMat = GameContext.EnvironmentController.FoamMaterial;
         FoamColor = new Serializable_Vector4(foamMat.GetColor("_FoamColor"));
         FoamScale = foamMat.GetFloat("_SurfaceNoiseScale");
 
-        Material skyMat = DodgeFromLight.EnvironmentController.SkyboxMaterial;
+        Material skyMat = GameContext.EnvironmentController.SkyboxMaterial;
         Seed = skyMat.GetFloat("_Seed");
         Scale = skyMat.GetFloat("_Scale");
         Contrast = skyMat.GetFloat("_Contrast");

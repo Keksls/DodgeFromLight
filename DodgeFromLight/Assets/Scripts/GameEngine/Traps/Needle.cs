@@ -18,8 +18,8 @@ public class Needle : CellTrap
 
     public void Initialize(int arg)
     {
-        if (DodgeFromLight.GameManager != null)
-            nbTurns = DodgeFromLight.GameManager.NbTurn;
+        if (GameContext.GameManager != null)
+            nbTurns = GameContext.GameManager.NbTurn;
         if (arg == 0)
             mod = 0;
         else
@@ -34,9 +34,21 @@ public class Needle : CellTrap
         }
     }
 
+    /// <summary>
+    /// Applies an authoritative needle phase supplied by the deterministic simulation.
+    /// </summary>
+    public void SetActive(bool isActive)
+    {
+        // Presentation follows the resolved state without advancing its own counter.
+        if (isActive)
+            On();
+        else
+            Off();
+    }
+
     private void Events_TurnStart()
     {
-        if (DodgeFromLight.TimeStoped > 0)
+        if (GameContext.TimeStoped > 0)
             return;
         nbTurns++;
         if (nbTurns % 2 == mod)

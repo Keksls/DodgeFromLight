@@ -94,9 +94,9 @@ Chaque ennemi reçoit dans le nouveau système :
 | `gear.bomb` | Bomb | 11 | Détruit les décors sur les quatre cellules cardinales adjacentes | Conserver ; prévisualiser les décors détruits |
 | `gear.disco_ball` | Disco Ball | 3 | Se pose devant, dure cinq tours et étourdit le premier ennemi qui la voit | Conserver ; durée et stun configurés dans les données |
 | `gear.grapple` | Grapple | 6 | Tire le héros jusqu’à cinq cellules, au-dessus des trous, arrêté par éléments et ennemis | Conserver ; destination prévisualisée |
-| `gear.invisibility_cloak` | Invisibility Cloak | 0 | Positionne un booléen `Invisible`, mais la détection ne le consulte pas | Gear conservé, règle à concevoir et documenter |
-| `gear.mirror` | Mirror | 4 | Se pose devant, bloque mouvement et vision, puis disparaît | Conserver ; le code dure cinq tours alors que le glossaire en annonce trois |
-| `gear.powder_of_darkness` | Powder of Darkness | 0 | `UseGear()` ne produit aucun effet | Gear conservé, règle à concevoir autour de l’extinction ou de l’occultation de zones |
+| `gear.invisibility_cloak` | Invisibility Cloak | 0 | Positionne un booléen `Invisible`, mais la détection ne le consulte pas | Activée pendant deux tours ; bloque la détection lumineuse, pas les pièges physiques |
+| `gear.mirror` | Mirror | 4 | Se pose devant, bloque mouvement et vision, puis disparaît | Durée officielle de trois tours |
+| `gear.powder_of_darkness` | Powder of Darkness | 0 | `UseGear()` ne produit aucun effet | Nuage centré sur le joueur, rayon de Manhattan 2, bloque la vision pendant trois tours |
 | `gear.remote_control` | Remote Control | 2 | Inverse toutes les patrouilles d’ennemis et plateformes | Conserver ; prévisualiser les nouvelles trajectoires |
 | `gear.speed_boots` | Speed Boots | 3 | Donne deux cellules de déplacement pendant deux tours | Conserver ; préciser le traitement des cellules intermédiaires |
 | `gear.time_controller` | Time Controller | 2 | Fige mouvements et cycles de plusieurs systèmes pendant trois tours ; les zones de vue restent actives | Conserver, mais limiter clairement la liste des systèmes affectés |
@@ -109,17 +109,28 @@ Les deux gears inachevés restent dans le contrat de contenu. Ils ne doivent pas
 |---|---|---:|---|
 | `cell.floor` | Walkable | 751 | Sol traversable |
 | `cell.void` | NotWalkable | 215 | Trou ou absence de sol |
-| `cell.teleporter` | TP | 3 | Téléporte actuellement vers une cellule libre aléatoire ; remplacer par une destination déterministe ou un cycle prévisible |
+| `cell.teleporter` | TP | 3 | Téléporte vers une cellule libre aléatoire via le générateur déterministe de la partie |
 | `cell.collapse` | Collapsable | 1 | S’effondre après le départ du héros |
 | `cell.speed_boost` | FlipACoin | 3 | Donne deux cellules de déplacement pendant deux tours ; renommer selon sa vraie fonction |
 | `cell.checkpoint` | CheckPoint | 0 | Sauvegarde de reprise locale, hors classement |
 | `cell.spring` | Spring | 6 | Projette dans une direction sur une distance configurée, au-dessus des obstacles |
 | `cell.timed_bomb` | Bombe | 5 | Compte à rebours, détruit sa cellule et tue le héros présent |
 | `cell.needles` | Needle | 60 | Alterne actif/inactif avec une phase initiale configurable |
-| `cell.sword_socket` | SwordSocle | 0 | Possède un rendu, mais aucune règle détectée ; intention à retrouver ou redéfinir |
+| `cell.sword_socket` | SwordSocle | 0 | Cellule traversable neutre avec son rendu dédié |
 | `object.moving_platform` | MovingPlatform | 2 | Suit une route sur les cellules non marchables et peut transporter le héros |
 | `marker.start` | StartCell | 30 | Position initiale unique |
 | `marker.exit` | EndCell | 30 | Objectif de sortie unique |
+
+### Règles de plateau déjà figées dans le Core
+
+- Une cellule `cell.collapse` est détruite dès que le joueur la quitte. Attendre sur
+  place ne la détruit pas.
+- Les aiguilles changent de phase au début de chaque commande acceptée. La phase legacy
+  `0` est active dans l’état initial, la phase `1` est inactive, puis elles alternent.
+- Une bombe temporisée exige un compteur strictement positif, décrémente en fin de
+  tour, détruit sa propre cellule à zéro et tue le joueur s’il l’occupe.
+- Ces valeurs appartiennent à `BoardState` et au hash de simulation ; elles sont donc
+  restaurées par undo et reproduites par replay sans état Unity caché.
 
 ## Décors et environnements
 
@@ -174,19 +185,24 @@ Chaque import doit :
 7. sauvegarder une nouvelle map séparée ;
 8. vérifier le hash et la relecture.
 
-## Arbitrages de règles encore nécessaires
+## Décisions de règles appliquées
 
-Ces arbitrages changent réellement le design et ne doivent pas être décidés accidentellement pendant le code :
-
-1. Effet exact de l’Invisibility Cloak.
-2. Effet exact de la Powder of Darkness.
-3. Téléporteurs liés, cycliques ou pilotés par un seed visible.
-4. Distances fixes ou configurables de l’Oculte Trap.
-5. Durée officielle du Mirror.
-6. Saut : durée, invulnérabilités et disponibilité par map.
-7. Ancre d’arme et impulsion : capacités de base, loadout de map ou gears.
-8. Fonction du Sword Socle.
-9. Politique de collision entre plusieurs ennemis ou plateformes visant la même cellule.
-10. Ordre exact entre entrée de cellule, mouvement ennemi, pièges, visibilité et fin de tour.
-
-La recommandation produit est de choisir la version la plus déterministe et la plus prévisible de chaque règle.
+1. L’Invisibility Cloak bloque la détection lumineuse pendant deux tours. Les pièges
+   physiques et les collisions restent actifs.
+2. La Powder of Darkness crée pendant trois tours un nuage de rayon de Manhattan 2
+   centré sur le joueur. Il bloque la vision et pas les déplacements.
+3. Les téléporteurs conservent une destination libre aléatoire. Le tirage appartient à
+   l’état de simulation et se reproduit à l’identique dans un replay.
+4. L’Oculte Trap conserve les quatre bornes de distance de la map et utilise le même
+   générateur déterministe.
+5. Le Mirror dure officiellement trois tours.
+6. Le saut est une commande explicite qui protège de la vision ennemie pendant sa
+   résolution. Les autres dangers restent pilotés par leurs règles propres.
+7. L’ancre d’arme et son impulsion sont des capacités de base, découplées des skins.
+8. Le Sword Socle est une cellule traversable neutre.
+9. Les acteurs sont résolus dans l’ordre stable de leurs définitions. Un acteur bloqué
+   inverse sa route.
+10. Une commande résout l’entrée de cellule, les plateformes, les ennemis, les dangers
+    de fin de tour, puis la victoire.
+11. Les ressorts s’enchaînent automatiquement. Une cellule spéciale déjà visitée arrête
+    la chaîne pour empêcher toute boucle infinie.

@@ -19,7 +19,7 @@ public class Axe : Ennemy
 
     private void Events_TurnStart1()
     {
-        if (DodgeFromLight.TimeStoped > 0)
+        if (GameContext.TimeStoped > 0)
             return;
         nbTurn++;
         bool right = nbTurn % 2 == 0;

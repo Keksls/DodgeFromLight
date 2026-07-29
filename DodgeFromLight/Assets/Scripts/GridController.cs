@@ -58,7 +58,7 @@ public class GridController : MonoBehaviour
 
     private void Awake()
     {
-        DodgeFromLight.GridController = this;
+        GameContext.GridController = this;
 
         if (!lineMaterial)
         {
@@ -81,7 +81,7 @@ public class GridController : MonoBehaviour
     {
         if (reloadGridNextFrame && cellToReloadNextFrame != null)
         {
-            RefreshCrossCell(cellToReloadNextFrame, DodgeFromLight.CurrentMap.Grid, false);
+            RefreshCrossCell(cellToReloadNextFrame, GameContext.CurrentMap.Grid, false);
             cellToReloadNextFrame = null;
             reloadGridNextFrame = false;
         }
@@ -181,7 +181,7 @@ public class GridController : MonoBehaviour
             {
                 default:
                 case CellType.Walkable:
-                    cellGo = Instantiate(DodgeFromLight.Databases.ResourcesData.GetMapDeco(cell.FloorID).Prefab);
+                    cellGo = Instantiate(GameContext.Databases.ResourcesData.GetMapDeco(cell.FloorID).Prefab);
                     cellGo.transform.localPosition = Vector3.zero;
                     cellGo.transform.localEulerAngles = grid.GetOrientationVector(cell.FloorOrientation);
                     break;
@@ -200,7 +200,7 @@ public class GridController : MonoBehaviour
                     break;
 
                 case CellType.Bombe:
-                    cellGo = Instantiate(DodgeFromLight.Databases.ResourcesData.GetMapDeco(cell.FloorID).Prefab);
+                    cellGo = Instantiate(GameContext.Databases.ResourcesData.GetMapDeco(cell.FloorID).Prefab);
                     cellGo.transform.localPosition = Vector3.zero;
                     cellGo.transform.localEulerAngles = grid.GetOrientationVector(cell.FloorOrientation);
 
@@ -212,7 +212,7 @@ public class GridController : MonoBehaviour
                     break;
 
                 case CellType.CheckPoint:
-                    if (DodgeFromLight.GameManager != null && DodgeFromLight.GameManager.LastCheckPointReached != null && DodgeFromLight.GameManager.LastCheckPointReached.Equals(cell))
+                    if (GameContext.GameManager != null && GameContext.GameManager.LastCheckPointReached != null && GameContext.GameManager.LastCheckPointReached.Equals(cell))
                         cellGo = Instantiate(CheckPointTakenPrefab);
                     else
                         cellGo = Instantiate(CheckPointPrefab);
@@ -304,7 +304,7 @@ public class GridController : MonoBehaviour
         Cell c = grid.GetCell(x, y);
         if (!string.IsNullOrEmpty(c.ElementID))
         {
-            MapDecoData mdd = DodgeFromLight.Databases.ResourcesData.GetMapDeco(c.ElementID);
+            MapDecoData mdd = GameContext.Databases.ResourcesData.GetMapDeco(c.ElementID);
             if (mdd != null)
             {
                 GameObject elementGo = Instantiate(mdd.Prefab);
@@ -446,8 +446,8 @@ public class GridController : MonoBehaviour
         }
         Ennemies = new Dictionary<string, GameObject>();
         Platforms = new Dictionary<string, GameObject>();
-        DodgeFromLight.Ennemies = new List<Ennemy>();
-        DodgeFromLight.MovingPlatforms = new List<MovingPlatform>();
+        GameContext.Ennemies = new List<Ennemy>();
+        GameContext.MovingPlatforms = new List<MovingPlatform>();
     }
 
     public void UnSpawnGear(Cell cell)
@@ -513,7 +513,7 @@ public class GridController : MonoBehaviour
 
     public void AddEnnemiesColliders()
     {
-        foreach (Ennemy ennemy in DodgeFromLight.Ennemies)
+        foreach (Ennemy ennemy in GameContext.Ennemies)
             AddEnnemyCollider(ennemy);
     }
 
@@ -548,14 +548,14 @@ public class GridController : MonoBehaviour
         platGo.transform.SetParent(GridContainer);
         MovingPlatform plat = platform.ToMovingPlatform(platGo, grid);
         plat.PlaceOnFirstCell();
-        DodgeFromLight.MovingPlatforms.Add(plat);
+        GameContext.MovingPlatforms.Add(plat);
         Platforms.Add(plat.CurrentCell.ToString(), platGo);
         return plat;
     }
 
     public void SpawnPlatforms(Grid grid)
     {
-        DodgeFromLight.MovingPlatforms = new List<MovingPlatform>();
+        GameContext.MovingPlatforms = new List<MovingPlatform>();
         if (grid.MovingPlatforms != null && grid.MovingPlatforms.Count > 0)
             foreach (SerializableMovingPlatform platform in grid.MovingPlatforms)
                 SpawnPlatform(grid, platform);
@@ -572,9 +572,13 @@ public class GridController : MonoBehaviour
         Ennemies = new Dictionary<string, GameObject>();
     }
 
-    public void SpawnEnnemies(Grid grid)
+    /// <summary>
+    /// Spawns enemy prefabs and optionally initializes the historical runtime vision.
+    /// </summary>
+    public void SpawnEnnemies(Grid grid, bool initializeLegacyVision = true)
     {
-        DodgeFromLight.Ennemies = new List<Ennemy>();
+        // Core-driven sessions keep these components as presentation views only.
+        GameContext.Ennemies = new List<Ennemy>();
         if (grid.Ennemies != null && grid.Ennemies.Count > 0)
             foreach (SerializableEnnemy serializableEnnemy in grid.Ennemies)
             {
@@ -627,11 +631,14 @@ public class GridController : MonoBehaviour
                 ennemyGo.transform.SetParent(EnnemiesContainer);
                 Ennemy ennemy = serializableEnnemy.ToEnnemy(ennemyGo, grid);
                 ennemy.PlaceOnFirstCell();
-                ennemy.RefreshPO();
+                if (initializeLegacyVision)
+                    ennemy.RefreshPO();
+                else
+                    ennemy.CurrentPO = new List<CellPos>();
                 Animator animator = ennemyGo.GetComponentInChildren<Animator>();
                 if (animator != null)
                     ennemy.Animator = animator;
-                DodgeFromLight.Ennemies.Add(ennemy);
+                GameContext.Ennemies.Add(ennemy);
                 Ennemies.Add(ennemy.CurrentCell.ToString(), ennemyGo);
             }
         Events.Fire_EnnemiesSpawned();
@@ -693,7 +700,7 @@ public class GridController : MonoBehaviour
         Animator animator = ennemyGo.GetComponentInChildren<Animator>();
         if (animator != null)
             ennemy.Animator = animator;
-        DodgeFromLight.Ennemies.Add(ennemy);
+        GameContext.Ennemies.Add(ennemy);
         Ennemies.Add(ennemy.CurrentCell.ToString(), ennemyGo);
 
         DrawCellsPO();
@@ -712,14 +719,14 @@ public class GridController : MonoBehaviour
 
         // preprocess cell po to stack ennemies by cell
         Dictionary<string, CellPODataRuntime> CellPODataRuntime = new Dictionary<string, CellPODataRuntime>();
-        foreach (Ennemy ennemy in DodgeFromLight.Ennemies)
+        foreach (Ennemy ennemy in GameContext.Ennemies)
         {
             foreach (CellPos cell in ennemy.CurrentPO)
             {
                 if (!CellPODataRuntime.ContainsKey(cell.ToString()))
                     CellPODataRuntime.Add(cell.ToString(), new CellPODataRuntime(cell));
-                CellPODataRuntime[cell.ToString()].UpMaterials.Add(DodgeFromLight.Databases.CellPOData.GetUpMaterial(ennemy.Type));
-                CellPODataRuntime[cell.ToString()].DownMaterials.Add(DodgeFromLight.Databases.CellPOData.GetDownMaterial(ennemy.Type));
+                CellPODataRuntime[cell.ToString()].UpMaterials.Add(GameContext.Databases.CellPOData.GetUpMaterial(ennemy.Type));
+                CellPODataRuntime[cell.ToString()].DownMaterials.Add(GameContext.Databases.CellPOData.GetDownMaterial(ennemy.Type));
             }
 
             // add attraction PO
@@ -730,8 +737,8 @@ public class GridController : MonoBehaviour
                 {
                     if (!CellPODataRuntime.ContainsKey(cell.ToString()))
                         CellPODataRuntime.Add(cell.ToString(), new CellPODataRuntime(cell));
-                    CellPODataRuntime[cell.ToString()].UpMaterials.Add(DodgeFromLight.Databases.CellPOData.AttractionCellUpMaterial);
-                    CellPODataRuntime[cell.ToString()].DownMaterials.Add(DodgeFromLight.Databases.CellPOData.AttractionCellDownMaterial);
+                    CellPODataRuntime[cell.ToString()].UpMaterials.Add(GameContext.Databases.CellPOData.AttractionCellUpMaterial);
+                    CellPODataRuntime[cell.ToString()].DownMaterials.Add(GameContext.Databases.CellPOData.AttractionCellDownMaterial);
                 }
             }
         }

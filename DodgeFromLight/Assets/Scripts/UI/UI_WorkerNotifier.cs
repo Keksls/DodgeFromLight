@@ -11,7 +11,7 @@ public class UI_WorkerNotifier : MonoBehaviour
     {
         Hide();
         if (IsMain)
-            DodgeFromLight.UI_WorkerNotifier = this;
+            GameContext.UI_WorkerNotifier = this;
     }
 
     public void Show(string msg)

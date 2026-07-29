@@ -15,6 +15,6 @@ public class UI_EnvironmentButton : MonoBehaviour
     {
         GetComponentInParent<UI_MapCreator>().SetBuildinEnvironment(Environment);
         if (UI_EnvironmentSettings.Instance != null && UI_EnvironmentSettings.Instance.gameObject.activeInHierarchy)
-            UI_EnvironmentSettings.Instance.BindEnvironment(DodgeFromLight.CurrentMap.Grid.Environment);
+            UI_EnvironmentSettings.Instance.BindEnvironment(GameContext.CurrentMap.Grid.Environment);
     }
 }

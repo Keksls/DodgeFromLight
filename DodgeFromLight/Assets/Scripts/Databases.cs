@@ -67,7 +67,7 @@ public class Databases : MonoBehaviour
     private void Awake()
     {
         // Databases must be ready before the default local save grants cosmetics.
-        DodgeFromLight.Databases = this;
+        GameContext.Databases = this;
 
         GearData.Initialize();
         ResourcesData.Initialize();

@@ -45,7 +45,7 @@ public class PlayerPreparation : MonoBehaviour
             foreach (SkinType type in Enum.GetValues(typeof(SkinType)))
             {
                 if (type == SkinType.Ornament)
-                    save.Unlocked[SkinType.Ornament] = DodgeFromLight.Databases.OrnamentData.GetAllOrnamentsID();
+                    save.Unlocked[SkinType.Ornament] = GameContext.Databases.OrnamentData.GetAllOrnamentsID();
                 else
                 {
                     int nbSkins = backedData.Skins.Where(s => s.Type == type).ToList().Count;

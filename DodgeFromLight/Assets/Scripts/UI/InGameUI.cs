@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -26,9 +26,11 @@ public class InGameUI : MonoBehaviour
 
     public float HideCursorDuration = 5f;
     public float MouseMovementThreshold = 0.1f;
-    public bool AutoHideCursor = true;
-    private float lastFrameTime = 0f;
+
+#if !UNITY_EDITOR
+    private float lastMouseMovementTime;
     private Vector3 lastMousePosition;
+#endif
 
     void Awake()
     {
@@ -47,11 +49,11 @@ public class InGameUI : MonoBehaviour
         PressEnterCheckpointPanel.SetActive(false);
         PressAEGearPanel.SetActive(false);
         PressAEGearPanel.GetComponentInChildren<Text>().text = "Press <b>" +
-          DodgeFromLight.GameSettingsManager.GetNiceKeyString(DodgeFromLight.GameSettingsManager.GetInput(InputSettingsType.Gear1).Key) + "</b> or " +
-            "<b>" + DodgeFromLight.GameSettingsManager.GetNiceKeyString(DodgeFromLight.GameSettingsManager.GetInput(InputSettingsType.Gear2).Key) + "</b> to equip";
-        PressEnterCheckpointPanel.GetComponentInChildren<Text>().text = "Press <b>" + DodgeFromLight.GameSettingsManager.GetNiceKeyString(DodgeFromLight.GameSettingsManager.GetInput(InputSettingsType.TakeCheckPoint).Key) + "</b> to save Checkpoint";
-        GearAText.text = DodgeFromLight.GameSettingsManager.GetInput(InputSettingsType.Gear1).Key.ToString();
-        GearEText.text = DodgeFromLight.GameSettingsManager.GetInput(InputSettingsType.Gear2).Key.ToString();
+          GameContext.GameSettingsManager.GetNiceKeyString(GameContext.GameSettingsManager.GetInput(InputSettingsType.Gear1).Key) + "</b> or " +
+            "<b>" + GameContext.GameSettingsManager.GetNiceKeyString(GameContext.GameSettingsManager.GetInput(InputSettingsType.Gear2).Key) + "</b> to equip";
+        PressEnterCheckpointPanel.GetComponentInChildren<Text>().text = "Press <b>" + GameContext.GameSettingsManager.GetNiceKeyString(GameContext.GameSettingsManager.GetInput(InputSettingsType.TakeCheckPoint).Key) + "</b> to save Checkpoint";
+        GearAText.text = GameContext.GameSettingsManager.GetInput(InputSettingsType.Gear1).Key.ToString();
+        GearEText.text = GameContext.GameSettingsManager.GetInput(InputSettingsType.Gear2).Key.ToString();
     }
 
     private void Events_SetGear(GearType type)
@@ -62,8 +64,8 @@ public class InGameUI : MonoBehaviour
     private void Events_StartMap()
     {
         RefreshGears();
-        GridNameText.text = Path.GetFileNameWithoutExtension(DodgeFromLight.CurrentMap.Map.Name);
-        TurnText.text = "Turn : " + DodgeFromLight.GameManager.NbTurn;
+        GridNameText.text = Path.GetFileNameWithoutExtension(GameContext.CurrentMap.Map.Name);
+        TurnText.text = "Turn : " + GameContext.GameManager.NbTurn;
     }
 
     private void OnDestroy()
@@ -75,7 +77,7 @@ public class InGameUI : MonoBehaviour
 
     private void Events_TurnEnd()
     {
-        TurnText.text = "Turn : " + DodgeFromLight.GameManager.NbTurn;
+        TurnText.text = "Turn : " + GameContext.GameManager.NbTurn;
     }
 
     public void ShowUI()
@@ -96,34 +98,38 @@ public class InGameUI : MonoBehaviour
     public void NextMap()
     {
         // Continue the active local ruleset without leaderboard or voting gates.
-        if (DodgeFromLight.CurrentRules.Tutorial)
+        if (GameContext.CurrentRules.Tutorial)
             return;
         ClosePauseMenu();
-        DodgeFromLight.GameManager.NextMap();
+        GameContext.GameManager.NextMap();
     }
 
+    /// <summary>
+    /// Refreshes the run HUD, pause input, gear feedback and runtime cursor visibility.
+    /// </summary>
     private void Update()
     {
-        if (DodgeFromLight.GameManager != null)
-            DurationText.text = DodgeFromLight.GameManager.StopWatch.Elapsed.ToString(@"m\:ss\.ff");
+        // Keep the displayed run state synchronized with the local game manager.
+        if (GameContext.GameManager != null)
+            DurationText.text = GameContext.GameManager.StopWatch.Elapsed.ToString(@"m\:ss\.ff");
 
-        if (DodgeFromLight.GameSettingsManager.GetInput(InputSettingsType.Gear1).IsDown())
+        if (GameContext.GameSettingsManager.GetInput(InputSettingsType.Gear1).IsDown())
         {
             GearAText.color = GearPressedColor;
             GearAImage.transform.localScale = Vector3.one * 1.25f;
         }
-        else if (DodgeFromLight.GameSettingsManager.GetInput(InputSettingsType.Gear1).IsUp())
+        else if (GameContext.GameSettingsManager.GetInput(InputSettingsType.Gear1).IsUp())
         {
             GearAText.color = GearNormalColor;
             GearAImage.transform.localScale = Vector3.one;
         }
 
-        if (DodgeFromLight.GameSettingsManager.GetInput(InputSettingsType.Gear2).IsDown())
+        if (GameContext.GameSettingsManager.GetInput(InputSettingsType.Gear2).IsDown())
         {
             GearEText.color = GearPressedColor;
             GearEImage.transform.localScale = Vector3.one * 1.25f;
         }
-        else if (DodgeFromLight.GameSettingsManager.GetInput(InputSettingsType.Gear2).IsUp())
+        else if (GameContext.GameSettingsManager.GetInput(InputSettingsType.Gear2).IsUp())
         {
             GearEText.color = GearNormalColor;
             GearEImage.transform.localScale = Vector3.one;
@@ -131,34 +137,34 @@ public class InGameUI : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            if (!DodgeFromLight.GameManager.Paused)
+            if (!GameContext.GameManager.Paused)
             {
-                DodgeFromLight.GameManager.EnterPause();
+                GameContext.GameManager.EnterPause();
                 PauseMenu.SetActive(true);
                 foreach (var btn in PauseMenu.GetComponentsInChildren<UI_PointerHoverAnimations>())
                     btn.PlayExitClip();
             }
             else
             {
-                DodgeFromLight.GameManager.ExitPause();
+                GameContext.GameManager.ExitPause();
                 PauseMenu.SetActive(false);
             }
         }
 
 #if !UNITY_EDITOR
-        // auto hide cursor
-        if (DodgeFromLight.GameSettingsManager.CurrentSettings.Global.AutoHideCursor)
+        // Hide the cursor only in player builds after the configured inactivity delay.
+        if (GameContext.GameSettingsManager.CurrentSettings.Global.AutoHideCursor)
         {
             Vector3 mousePosition = Input.mousePosition;
             if (Vector3.Distance(mousePosition, lastMousePosition) > MouseMovementThreshold) // mouse move
             {
                 if (!Cursor.visible)
                     Cursor.visible = true;
-                lastFrameTime = Time.time;
+                lastMouseMovementTime = Time.time;
             }
             else // mouse don't move
             {
-                if (lastFrameTime + HideCursorDuration <= Time.time) // must hide the mouse cursor
+                if (lastMouseMovementTime + HideCursorDuration <= Time.time) // must hide the mouse cursor
                     if (Cursor.visible)
                         Cursor.visible = false;
             }
@@ -174,8 +180,8 @@ public class InGameUI : MonoBehaviour
 
     public void RefreshGears()
     {
-        if (DodgeFromLight.GameManager == null || DodgeFromLight.GameManager._playerController == null ||
-            DodgeFromLight.GameManager._playerController.GearA == null)
+        if (GameContext.GameManager == null || GameContext.GameManager._playerController == null ||
+            GameContext.GameManager._playerController.GearA == null)
         {
             GearAImage.enabled = false;
             GearAImageEmpty.SetActive(true);
@@ -184,12 +190,12 @@ public class InGameUI : MonoBehaviour
         {
             GearAImage.enabled = true;
             GearAImageEmpty.SetActive(false);
-            Texture2D tex = DodgeFromLight.Databases.GearData.GetGearData(DodgeFromLight.GameManager._playerController.GearA.Type).Image; ;
+            Texture2D tex = GameContext.Databases.GearData.GetGearData(GameContext.GameManager._playerController.GearA.Type).Image; ;
             GearAImage.sprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
         }
 
-        if (DodgeFromLight.GameManager == null || DodgeFromLight.GameManager._playerController == null ||
-            DodgeFromLight.GameManager._playerController.GearE == null)
+        if (GameContext.GameManager == null || GameContext.GameManager._playerController == null ||
+            GameContext.GameManager._playerController.GearE == null)
         {
             GearEImage.enabled = false;
             GearEImageEmpty.SetActive(true);
@@ -198,7 +204,7 @@ public class InGameUI : MonoBehaviour
         {
             GearEImage.enabled = true;
             GearEImageEmpty.SetActive(false);
-            Texture2D tex = DodgeFromLight.Databases.GearData.GetGearData(DodgeFromLight.GameManager._playerController.GearE.Type).Image;
+            Texture2D tex = GameContext.Databases.GearData.GetGearData(GameContext.GameManager._playerController.GearE.Type).Image;
             GearEImage.sprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
         }
     }
@@ -210,7 +216,7 @@ public class InGameUI : MonoBehaviour
     {
         // Return playtests to the editor and normal sessions to the main menu.
         PoolManager.Instance.PushBackAllPool(PoolName.POCell);
-        DodgeFromLight.GameManager.ExitPause();
+        GameContext.GameManager.ExitPause();
         PauseMenu.SetActive(false);
         if (PlayerPrefs.HasKey("ForceGrid"))
         {
@@ -230,24 +236,24 @@ public class InGameUI : MonoBehaviour
     {
         // Defer destruction by one frame so current UI callbacks can finish safely.
         yield return null;
-        Destroy(DodgeFromLight.GameManager.gameObject);
-        Destroy(DodgeFromLight.GameManager);
-        DodgeFromLight.GameManager = null;
-        DodgeFromLight.SceneTransitions.LoadScene(sceneName);
+        Destroy(GameContext.GameManager.gameObject);
+        Destroy(GameContext.GameManager);
+        GameContext.GameManager = null;
+        GameContext.SceneTransitions.LoadScene(sceneName);
     }
 
     public void RestartMap()
     {
-        DodgeFromLight.GameManager.ExitPause();
+        GameContext.GameManager.ExitPause();
         PauseMenu.SetActive(false);
-        if (DodgeFromLight.WaitForEndOfAction > 0)
+        if (GameContext.WaitForEndOfAction > 0)
             return;
-        DodgeFromLight.GameManager.RestartGrid();
+        GameContext.GameManager.RestartGrid();
     }
 
     public void ClosePauseMenu()
     {
-        DodgeFromLight.GameManager.ExitPause();
+        GameContext.GameManager.ExitPause();
         PauseMenu.SetActive(false);
     }
 }

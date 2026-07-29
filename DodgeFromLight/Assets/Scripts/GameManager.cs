@@ -1,7 +1,21 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
 using UnityEngine.SceneManagement;
+using Newtonsoft.Json;
+using CellTypeIds = global::DodgeFromLight.Core.Model.CellTypeIds;
+using CoreDirection = global::DodgeFromLight.Core.Model.Direction;
+using CoreGridPosition = global::DodgeFromLight.Core.Model.GridPosition;
+using CorePlayerState = global::DodgeFromLight.Core.Model.PlayerState;
+using CoreSimulationState = global::DodgeFromLight.Core.Model.SimulationState;
+using GearTypeIds = global::DodgeFromLight.Core.Model.GearTypeIds;
+using LegacyMapImporter = global::DodgeFromLight.Infrastructure.Maps.LegacyMapImporter;
+using PlacedObjectState = global::DodgeFromLight.Core.Model.PlacedObjectState;
+using PlayerCommand = global::DodgeFromLight.Core.Commands.PlayerCommand;
+using SimulationEngine = global::DodgeFromLight.Core.Simulation.SimulationEngine;
+using SimulationEvent = global::DodgeFromLight.Core.Events.SimulationEvent;
+using SimulationEventType = global::DodgeFromLight.Core.Events.SimulationEventType;
+using SimulationStatus = global::DodgeFromLight.Core.Model.SimulationStatus;
 
 public class GameManager : MonoBehaviour
 {
@@ -40,35 +54,45 @@ public class GameManager : MonoBehaviour
 
     public GameObject ItemPartPrefab;
 
+    private readonly SimulationEngine coreEngine = new SimulationEngine();
+    private readonly Dictionary<string, GameObject> corePlacedObjectViews =
+        new Dictionary<string, GameObject>();
+    private CoreSimulationState coreState;
+    private CoreGridPosition? pendingCoreCheckpoint;
+    private bool coreCommandRunning;
+    private bool wasTimerRunningBeforePause;
+    private GameObject coreAnchorView;
+
+    public bool UsesCoreSimulation => coreState != null;
+
+    /// <summary>
+    /// Registers the gameplay scene manager and its presentation debug callback.
+    /// </summary>
     void Awake()
     {
-        DodgeFromLight.GameManager = this;
-        DodgeFromLight.Initialize();
-        Events.EntityStartMove -= Events_EntityStartMove;
-        Events.EntityStartMove += Events_EntityStartMove;
-        Events.EntityEndMove -= Events_EntityEndMove;
-        Events.EntityEndMove += Events_EntityEndMove;
-        Events.EnnemySeePlayer -= Events_EnnemySeePlayer;
-        Events.EnnemySeePlayer += Events_EnnemySeePlayer;
-        Events.PlayerStartChangeCell -= OnPlayerStartChangeCell;
-        Events.PlayerStartChangeCell += OnPlayerStartChangeCell;
-        Events.PlayerEndChangeCell -= OnPlayerEndChangeCell;
-        Events.PlayerEndChangeCell += OnPlayerEndChangeCell;
+        // Register the scene services used by the deterministic runtime and its views.
+        GameContext.GameManager = this;
+        GameContext.Initialize();
 
         Follower.PostRenderCallback = () =>
         {
             if (Input.GetKey(KeyCode.P))
             {
-                foreach (Ennemy en in DodgeFromLight.Ennemies)
+                foreach (Ennemy en in GameContext.Ennemies)
                     en.DrawPath(transform);
-                foreach (MovingPlatform platform in DodgeFromLight.MovingPlatforms)
+                foreach (MovingPlatform platform in GameContext.MovingPlatforms)
                     platform.DrawPath(transform);
             }
         };
     }
 
+    /// <summary>
+    /// Starts map loading once the retained presentation pools are available.
+    /// </summary>
     private void Start()
     {
+        // Direct scene entry must own a valid map sequence before pool readiness starts gameplay.
+        EnsureGameplayRules();
         if (PoolManager.PoolReady)
             PoolManager_OnPoolingReady();
         else
@@ -77,539 +101,888 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Releases the presentation-pool readiness subscription.
+    /// </summary>
     private void OnDestroy()
     {
-        Events.EntityStartMove -= Events_EntityStartMove;
-        Events.EntityEndMove -= Events_EntityEndMove;
-        Events.EnnemySeePlayer -= Events_EnnemySeePlayer;
-        Events.PlayerStartChangeCell -= OnPlayerStartChangeCell;
-        Events.PlayerEndChangeCell -= OnPlayerEndChangeCell;
+        // Pool readiness is the only external lifecycle subscription owned here.
         PoolManager.OnPoolingReady -= PoolManager_OnPoolingReady;
     }
 
+    /// <summary>
+    /// Starts the gameplay session after the presentation pools finish loading.
+    /// </summary>
     private void PoolManager_OnPoolingReady()
     {
+        // Ignore readiness callbacks received in non-gameplay scenes.
         if (SceneManager.GetActiveScene().name != "Main")
             return;
         StartGame();
         NbTurn = 0;
     }
 
+    /// <summary>
+    /// Handles global restart and checkpoint input for the active simulation runtime.
+    /// </summary>
     private void Update()
     {
-        // restart map
-        if (DodgeFromLight.GameSettingsManager.GetInput(InputSettingsType.RestartMap).IsDown())
+        // Core sessions resolve global inputs without firing historical turn events.
+        if (UsesCoreSimulation)
+            HandleCoreGlobalInput();
+    }
+
+    /// <summary>
+    /// Handles restart, map traversal, and checkpoint activation for a core-driven run.
+    /// </summary>
+    private void HandleCoreGlobalInput()
+    {
+        // Global actions remain available independently of the player-view input component.
+        if (GameContext.GameSettingsManager.GetInput(InputSettingsType.RestartMap).IsDown())
         {
-            if (DodgeFromLight.WaitForEndOfAction > 0 && !playerJustDie)
-                return;
             if (Input.GetKey(KeyCode.LeftControl))
-                LastCheckPointReached = null;
+                pendingCoreCheckpoint = null;
             RestartGrid();
+            return;
         }
 
-        // next map
-        if (DodgeFromLight.GameSettingsManager.GetInput(InputSettingsType.NextMap).IsDown())
+        if (GameContext.GameSettingsManager.GetInput(InputSettingsType.NextMap).IsDown())
         {
-            if (DodgeFromLight.WaitForEndOfAction > 0 && !playerJustDie)
-                return;
-            if (DodgeFromLight.CurrentRules.Tutorial)
-                return;
-            NextMap();
+            if (!GameContext.CurrentRules.Tutorial)
+                NextMap();
+            return;
         }
 
-        // save checkpoint
-        if (DodgeFromLight.GameSettingsManager.GetInput(InputSettingsType.TakeCheckPoint).IsDown() && _playerController.CurrentCell.Type == CellType.CheckPoint)
+        if (GameContext.GameSettingsManager
+            .GetInput(InputSettingsType.TakeCheckPoint)
+            .IsDown())
         {
-            if (LastCheckPointReached != PlayerController.CurrentCell)
-            {
-                Cell c = null;
-                if (LastCheckPointReached != null)
-                    c = DodgeFromLight.CurrentMap.Grid.GetCell(LastCheckPointReached.GetCellPos());
-
-                LastCheckPointReached = PlayerController.CurrentCell;
-                _playerController.SaveCheckpointVFX();
-                InGameUI.PressEnterCheckpointPanel.SetActive(false);
-                DodgeFromLight.GridController.RefreshCrossCell(PlayerController.CurrentCell, DodgeFromLight.CurrentMap.Grid, false);
-                if (c != null)
-                    DodgeFromLight.GridController.RefreshCrossCell(c, DodgeFromLight.CurrentMap.Grid, false);
-            }
+            ExecuteCoreCommand(PlayerCommand.ActivateCheckpoint());
         }
     }
 
     /// <summary>
-    /// on player change cell
+    /// Creates the default local session when Main was opened without explicit rules.
     /// </summary>
-    /// <param name="lastCell"></param>
-    /// <param name="newCell"></param>
-    private void OnPlayerEndChangeCell(Cell lastCell, Cell newCell)
+    private static void EnsureGameplayRules()
     {
-        // last walking cell is collapsable
-        if (lastCell.Type == CellType.Collapsable)
+        // Editor playtests and menu launches keep their explicitly selected rules.
+        if (GameContext.CurrentRules != null &&
+            GameContext.CurrentRules.NbGrids > 0)
         {
-            lastCell.Walkable = false;
-            lastCell.SetType(CellType.NotWalkable);
-            DodgeFromLight.GridController.RefreshCrossCell(lastCell, DodgeFromLight.CurrentMap.Grid, false);
+            return;
         }
 
-        // just walk on Flip A Coin cell
-        if (newCell.Type == CellType.FlipACoin)
+        GameContext.CurrentRules = LocalGameSessionFactory.CreateDefault(
+            GameContext.TutorialController);
+    }
+
+    /// <summary>
+    /// Reads one player input and sends an explicit command to the deterministic simulation.
+    /// </summary>
+    public void HandleCorePlayerInput()
+    {
+        // Ignore view input while paused, resolving a command, or after a terminal result.
+        if (!UsesCoreSimulation ||
+            coreCommandRunning ||
+            Paused ||
+            coreState.Status != SimulationStatus.Running ||
+            Input.GetKey(KeyCode.LeftControl))
         {
-            Alteration alteration = new Alteration(AlterationType.PM, 1, 2);
-            PlayerController.AddAlteration(alteration);
+            return;
         }
 
-        // just walk on a TP cell
-        if (newCell.Type == CellType.TP)
+        Orientation direction = Orientation.None;
+        if (GameContext.GameSettingsManager.GetInput(InputSettingsType.Right).IsDown())
+            direction = Orientation.Right;
+        else if (GameContext.GameSettingsManager.GetInput(InputSettingsType.left).IsDown())
+            direction = Orientation.Left;
+        else if (GameContext.GameSettingsManager.GetInput(InputSettingsType.Forward).IsDown())
+            direction = Orientation.Up;
+        else if (GameContext.GameSettingsManager.GetInput(InputSettingsType.Backward).IsDown())
+            direction = Orientation.Down;
+
+        if (direction != Orientation.None)
         {
-            DodgeFromLight.StartWaitingAction();
-            StartCoroutine(TPCell(newCell));
+            ExecuteCoreCommand(PlayerCommand.Move(
+                ToCoreDirection(RotateInputForCamera(direction))));
+            return;
         }
 
-        // walk on needle
-        if (newCell.Type == CellType.Needle)
+        if (GameContext.GameSettingsManager.GetInput(InputSettingsType.Gear1).IsDown())
         {
-            GameObject go = DodgeFromLight.GridController.GetCellGameObject(newCell);
-            if (go != null)
-            {
-                Needle needle = go.GetComponentInChildren<Needle>();
-                if (needle != null)
+            ExecuteCoreCommand(GetCoreGearCommand(0));
+            return;
+        }
+        if (GameContext.GameSettingsManager.GetInput(InputSettingsType.Gear2).IsDown())
+        {
+            ExecuteCoreCommand(GetCoreGearCommand(1));
+            return;
+        }
+        if (GameContext.GameSettingsManager.GetInput(InputSettingsType.PlantSword).IsDown())
+        {
+            ExecuteCoreCommand(PlayerCommand.PlantOrSwapAnchor());
+            return;
+        }
+        if (GameContext.GameSettingsManager.GetInput(InputSettingsType.DeployShield).IsDown())
+        {
+            ExecuteCoreCommand(PlayerCommand.PushAnchor());
+            return;
+        }
+        if (GameContext.GameSettingsManager.GetInput(InputSettingsType.Jump).IsDown())
+            ExecuteCoreCommand(PlayerCommand.Jump());
+    }
+
+    /// <summary>
+    /// Chooses pickup or use for one inventory slot from the current cell state.
+    /// </summary>
+    private PlayerCommand GetCoreGearCommand(int slotIndex)
+    {
+        // Standing on an available authored gear gives pickup priority over slot use.
+        if (coreState.Map.TryGetCell(coreState.Player.Position, out var cell) &&
+            !string.IsNullOrEmpty(cell.GearId) &&
+            coreState.Board.IsGearAvailable(coreState.Player.Position))
+        {
+            return PlayerCommand.PickupGear(slotIndex);
+        }
+
+        return PlayerCommand.UseGear(slotIndex);
+    }
+
+    /// <summary>
+    /// Applies camera-relative movement mapping used by the historical isometric controls.
+    /// </summary>
+    private Orientation RotateInputForCamera(Orientation direction)
+    {
+        // Rotate the requested cardinal direction by the camera's current quarter-turn.
+        switch (Follower.Orientation)
+        {
+            case Orientation.Left:
+                switch (direction)
                 {
-                    if (needle.IsOn)
-                        GameOver(newCell);
+                    case Orientation.Up:
+                        return Orientation.Right;
+                    case Orientation.Right:
+                        return Orientation.Down;
+                    case Orientation.Down:
+                        return Orientation.Left;
+                    case Orientation.Left:
+                        return Orientation.Up;
                 }
-            }
+
+                break;
+            case Orientation.Down:
+                switch (direction)
+                {
+                    case Orientation.Up:
+                        return Orientation.Down;
+                    case Orientation.Right:
+                        return Orientation.Left;
+                    case Orientation.Down:
+                        return Orientation.Up;
+                    case Orientation.Left:
+                        return Orientation.Right;
+                }
+
+                break;
+            case Orientation.Right:
+                switch (direction)
+                {
+                    case Orientation.Up:
+                        return Orientation.Left;
+                    case Orientation.Right:
+                        return Orientation.Up;
+                    case Orientation.Down:
+                        return Orientation.Right;
+                    case Orientation.Left:
+                        return Orientation.Down;
+                }
+
+                break;
         }
 
-        // enter on checkpoint
-        if (newCell.Type == CellType.CheckPoint && (LastCheckPointReached == null || !LastCheckPointReached.Equals(newCell)))
-        {
-            InGameUI.PressEnterCheckpointPanel.SetActive(true);
-        }
-        else
-            InGameUI.PressEnterCheckpointPanel.SetActive(false);
-
-        // enter on gear cell
-        if (newCell.GearType != GearType.None)
-            InGameUI.PressAEGearPanel.SetActive(true);
-        else
-            InGameUI.PressAEGearPanel.SetActive(false);
-
-        // jump on spring
-        if (newCell.Type == CellType.Spring && newCell.Arg1 > 0)
-        {
-            CellPos targetCell = DodgeFromLight.CurrentMap.Grid.GetFarestCell(newCell.GetCellPos(), newCell.FloorOrientation, newCell.Arg1, InLineCellType.Jump);
-            bool sameCell = newCell.GetCellPos().Equals(targetCell);
-            DodgeFromLight.GridController.AnimateSpring(newCell.GetCellPos());
-            PlayerController.SetOrientation(newCell.FloorOrientation);
-            StartCoroutine(SpringJump(targetCell, sameCell));
-        }
-
-        // unspawn cell
-        if (lastCell.GearType != GearType.None)
-        {
-            lastCell.SetGear(GearType.None);
-            DodgeFromLight.GridController.UnSpawnGear(lastCell);
-        }
-
-        // walk on sword
-        if (!_playerController.IsCastingPet && _playerController.plantedSword != null && newCell.GetCellPos().Equals(_playerController.plantedSwordCell))
-        {
-            _playerController.RecoverSword();
-        }
+        return direction;
     }
 
-    IEnumerator TPCell(Cell cell)
+    /// <summary>
+    /// Converts a presentation orientation to the core cardinal direction.
+    /// </summary>
+    private static CoreDirection ToCoreDirection(Orientation orientation)
     {
-        // get random available cell
-        List<Cell> availableCells = new List<Cell>();
-        DodgeFromLight.GridController.AnimateTP(cell.GetCellPos());
-        for (int x = 0; x < DodgeFromLight.CurrentMap.Grid.Width; x++)
-            for (int y = 0; y < DodgeFromLight.CurrentMap.Grid.Height; y++)
-            {
-                Cell c = DodgeFromLight.CurrentMap.Grid.GetCell(x, y);
-                if (c.EntityOnCell == null &&
-                    !DodgeFromLight.CurrentMap.Grid.IsStart(c) &&
-                    !DodgeFromLight.CurrentMap.Grid.IsEnd(c) &&
-                    c.IsWalkable)
-                    availableCells.Add(DodgeFromLight.CurrentMap.Grid.GetCell(x, y));
-            }
-
-        if (availableCells.Count > 0)
+        // Both enums use the same semantic directions but remain dependency-separated.
+        switch (orientation)
         {
-            Cell tpCell = availableCells[Random.Range(0, availableCells.Count - 1)];
-            PlayerController.PlaceOnCell(tpCell, true);
-            yield return new WaitForSeconds(EntitiesMovementDuration);
-            Events.Fire_PlayerEndChangeCell(cell, tpCell);
+            case Orientation.Up:
+                return CoreDirection.Up;
+            case Orientation.Right:
+                return CoreDirection.Right;
+            case Orientation.Down:
+                return CoreDirection.Down;
+            case Orientation.Left:
+                return CoreDirection.Left;
+            default:
+                return CoreDirection.None;
         }
-        DodgeFromLight.StopWaitingAction();
     }
 
-    IEnumerator SpringJump(CellPos cell, bool sameCell)
+    /// <summary>
+    /// Executes one core command and applies its resolved state to presentation views.
+    /// </summary>
+    private void ExecuteCoreCommand(PlayerCommand command)
     {
-        DodgeFromLight.StartWaitingAction();
-        float duration = JumpDuration;
-        float enlapsed = 0f;
-        Vector3 startPos = PlayerController.transform.position;
-        Vector3 endPos = cell.ToVector3(0f);
-        Cell lastCell = PlayerController.CurrentCell;
-        while (enlapsed < duration)
-        {
-            Vector3 pos = Vector3.Lerp(startPos, endPos, enlapsed / duration);
-            pos.y = SpringAnimationCurve.Evaluate(enlapsed / duration) * YSpringJump;
-            PlayerController.transform.position = pos;
-            yield return null;
-            enlapsed += Time.deltaTime;
-        }
-        PlayerController.PlaceOnCell(DodgeFromLight.CurrentMap.Grid.GetCell(cell), true);
-        if (!sameCell)
-            Events.Fire_PlayerEndChangeCell(lastCell, DodgeFromLight.CurrentMap.Grid.GetCell(cell));
-        DodgeFromLight.StopWaitingAction();
+        // The simulation resolves synchronously; views consume only the returned facts.
+        if (!UsesCoreSimulation || coreCommandRunning || command == null)
+            return;
 
-        if (sameCell)
-            yield break;
-        foreach (Ennemy ennemy in DodgeFromLight.Ennemies)
+        coreCommandRunning = true;
+        var result = coreEngine.Step(coreState, command);
+        if (!result.IsAccepted)
         {
-            ennemy.RefreshPO();
-            ennemy.DoEffect();
+            Debug.Log("Command rejected: " + result.RejectionReason);
+            coreCommandRunning = false;
+            return;
         }
-        DodgeFromLight.GridController.DrawCellsPO();
+
+        StartTimer();
+        coreState = result.State;
+        NbTurn = coreState.TurnIndex;
+        ApplyCoreState(result.Events);
+        coreCommandRunning = false;
+
+        if (coreState.Status == SimulationStatus.Lost)
+            StartCoroutine(RestartCoreAfterDefeat());
+        else if (coreState.Status == SimulationStatus.Won)
+            PlayerReachEnd();
     }
 
+    /// <summary>
+    /// Briefly displays defeat before rebuilding the current deterministic attempt.
+    /// </summary>
+    private IEnumerator RestartCoreAfterDefeat()
+    {
+        // Keep the existing death animation while preventing any gameplay callback from firing.
+        coreCommandRunning = true;
+        StopWatch.Stop();
+        _playerController.Play("Die");
+        yield return new WaitForSeconds(0.35f);
+        coreCommandRunning = false;
+        RestartGrid();
+    }
+
+    /// <summary>
+    /// Starts the local run timer after the first accepted command.
+    /// </summary>
     public void StartTimer()
     {
+        // Rejected commands and loading screens never start timing.
         if (!StopWatch.IsRunning)
             StopWatch.Start();
     }
 
-    public bool TimerStarted()
-    {
-        return StopWatch.IsRunning;
-    }
-
     /// <summary>
-    /// on player start change cell
+    /// Starts the resolved victory presentation and local progression flow.
     /// </summary>
-    /// <param name="lastCell"></param>
-    /// <param name="newCell"></param>
-    private void OnPlayerStartChangeCell(Cell lastCell, Cell newCell)
-    {
-    }
-
-    private void Events_EnnemySeePlayer(Ennemy obj, Cell cell)
-    {
-        GameOver(cell);
-    }
-
-    private void Events_EntityEndMove(Entity entity)
-    {
-        DodgeFromLight.EntitiesMoving--;
-
-        if (entity.Name == PlayerController?.Name)
-        {
-            Events.Fire_PlayerEndChangeCell(entity.LastCell, entity.CurrentCell);
-        }
-    }
-
-    private void Events_EntityStartMove(Entity entity)
-    {
-        DodgeFromLight.EntitiesMoving++;
-
-        if (entity.Name == PlayerController?.Name)
-        {
-            Events.Fire_PlayerStartChangeCell(entity.LastCell, entity.CurrentCell);
-        }
-    }
-
     public void PlayerReachEnd()
     {
+        // Victory has already been validated by Core before this presentation begins.
         StopWatch.Stop();
-        DodgeFromLight.StartWaitingAction();
+        GameContext.StartWaitingAction();
         //Debug.Log("player reach end");
         StartCoroutine(AnimateWin());
     }
 
+    /// <summary>
+    /// Plays the retained victory animation before advancing local progression.
+    /// </summary>
     IEnumerator AnimateWin()
     {
+        // Keep animation timing out of the authoritative turn simulation.
         yield return null;
         PlayerController.Animator.Play("Win");
         yield return new WaitForSeconds(1f);
-        DodgeFromLight.StartWaitingAction();
+        GameContext.StartWaitingAction();
         StartCoroutine(EndOfGrid());
     }
 
+    /// <summary>
+    /// Requests movement or waiting from the active authoritative runtime.
+    /// </summary>
     public void PlayerMove(Orientation dir)
     {
-        StartCoroutine(PlayerMove_Routine(dir));
+        // Camera actions and remaining presentation callbacks route through Core only.
+        if (!UsesCoreSimulation)
+            return;
+        ExecuteCoreCommand(
+            dir == Orientation.None
+                ? PlayerCommand.Wait()
+                : PlayerCommand.Move(ToCoreDirection(dir)));
     }
 
-    IEnumerator PlayerMove_Routine(Orientation dir)
-    {
-        Cell targetCell = null;
-        PlayerController.Events_TurnStart();
-        if (dir != Orientation.None)
-            if (PlayerController != null && PlayerController.CurrentTA > 0)
-            {
-                targetCell = DodgeFromLight.CurrentMap.Grid.GetNextCell(PlayerController.CurrentCell.GetCellPos(), dir, PlayerController.GetCurrentPM(), true, true);
-
-                if (targetCell == null)
-                {
-                    targetCell = null;
-                    // can't go 
-                    if (PlayerController.Orientation == dir)
-                        yield break;
-                }
-            }
-
-        Events.Fire_TurnStart();
-
-        if (PlayerController != null && dir != Orientation.None)
-        {
-            if (PlayerController.CurrentTA > 0)
-            {
-                if (targetCell == null && PlayerController.Orientation == dir)
-                {
-                    Events.Fire_TurnEnd();
-                    yield break;
-                }
-
-                // move player
-                if (dir != Orientation.None)
-                    PlayerController.SetOrientation(dir);
-                if (targetCell != null && dir != Orientation.None)
-                    PlayerController.GoToCell(targetCell, EntitiesMovementDuration);
-                else
-                {
-                    Events.Fire_PlayerStartChangeCell(PlayerController.CurrentCell, PlayerController.CurrentCell);
-                    Events.Fire_PlayerEndChangeCell(PlayerController.CurrentCell, PlayerController.CurrentCell);
-                }
-            }
-        }
-
-        List<Ennemy> notMovedEnnemies = new List<Ennemy>();
-
-        // move ennemies
-        foreach (Ennemy ennemy in DodgeFromLight.Ennemies)
-            if (ennemy.GetCurrentPM() > 0 && ennemy.Patrol.NbCells > 0)
-                ennemy.UsePM(EntitiesMovementDuration / (float)ennemy.GetCurrentPM());
-            else
-                notMovedEnnemies.Add(ennemy);
-
-        // move platforms
-        foreach (MovingPlatform platform in DodgeFromLight.MovingPlatforms)
-            if (platform.CurrentTA > 0 && platform.Patrol.NbCells > 0)
-                platform.UsePM(EntitiesMovementDuration / (float)platform.CurrentTA);
-
-
-        while (DodgeFromLight.HasEntitiesMoving && !playerJustDie)
-            yield return null;
-
-        foreach (Ennemy ennemy in notMovedEnnemies)
-        {
-            ennemy.RefreshPO();
-            ennemy.DoEffect();
-        }
-
-        while (DodgeFromLight.HasEntitiesMoving && !playerJustDie)
-            yield return null;
-
-        // draw cell PO
-        DodgeFromLight.GridController.DrawCellsPO();
-
-        NbTurn++;
-        Events.Fire_TurnEnd();
-
-        // check if player fall into poinson
-        if (PlayerController.CurrentCell.Type == CellType.NotWalkable)
-        {
-            bool onplatform = false;
-            foreach (var platform in DodgeFromLight.MovingPlatforms)
-                if (platform.CurrentCell.GetCellPos().Equals(PlayerController.CurrentCell.GetCellPos()))
-                {
-                    onplatform = true;
-                    break;
-                }
-            if (!onplatform)
-                GameOver(PlayerController.CurrentCell, true);
-        }
-        // check if just walk on not walkable ennemy
-        else if (PlayerController.CurrentCell.EntityOnCell != null && PlayerController.CurrentCell.EntityOnCell is Ennemy)
-        {
-            if (PlayerController.CurrentCell.EntityOnCell.CantWalkOnMe)
-            {
-                Cell cell = PlayerController.LastCell;
-                if (cell.Equals(PlayerController.CurrentCell))
-                    cell = PlayerController.CurrentCell.EntityOnCell.LastCell;
-                if (cell.Equals(PlayerController.CurrentCell))
-                    cell = DodgeFromLight.CurrentMap.Grid.GetNextCell(PlayerController.CurrentCell, PlayerController.CurrentCell.EntityOnCell.Orientation, 1);
-                if (cell == null || cell.Equals(PlayerController.CurrentCell))
-                    cell = DodgeFromLight.CurrentMap.Grid.GetNextCell(PlayerController.CurrentCell, Orientation.Up, 1);
-                if (cell == null || cell.Equals(PlayerController.CurrentCell))
-                    cell = DodgeFromLight.CurrentMap.Grid.GetNextCell(PlayerController.CurrentCell, Orientation.Right, 1);
-                if (cell == null || cell.Equals(PlayerController.CurrentCell))
-                    cell = DodgeFromLight.CurrentMap.Grid.GetNextCell(PlayerController.CurrentCell, Orientation.Down, 1);
-                if (cell == null || cell.Equals(PlayerController.CurrentCell))
-                    cell = DodgeFromLight.CurrentMap.Grid.GetNextCell(PlayerController.CurrentCell, Orientation.Left, 1);
-
-                if (cell == null || cell.Equals(PlayerController.CurrentCell)) // we can't go anywhere
-                {
-                    GameOver(PlayerController.CurrentCell, false);
-                }
-                else // let's bounce on ennemy
-                    PlayerMove(DodgeFromLight.CurrentMap.Grid.GetOrientation(PlayerController.CurrentCell.GetCellPos(), cell.GetCellPos()));
-            }
-        }
-        // check if player reach end
-        else CheckIfReachEndCell();
-        playerJustDie = false;
-        DodgeFromLight.TimeStoped--;
-    }
-
+    /// <summary>
+    /// Preserves the historical presentation API while Core owns exit detection.
+    /// </summary>
     public void CheckIfReachEndCell()
     {
-        if (DodgeFromLight.CurrentMap.Grid.IsEnd(_playerController.CurrentCell) && !playerJustDie)
-        {
+        // This adapter cannot mutate state; it only reflects an already resolved win.
+        if (UsesCoreSimulation && coreState.Status == SimulationStatus.Won)
             PlayerReachEnd();
-        }
     }
 
-    IEnumerator SetGridRoutine(bool animate = true)
+    /// <summary>
+    /// Loads one local map and starts its deterministic simulation session.
+    /// </summary>
+    private IEnumerator SetGridRoutine(bool animate = true)
     {
-        DodgeFromLight.UI_WorkerNotifier.Show("Loading map...");
+        // Keep loading asynchronous for one frame so the existing worker overlay can render.
+        coreCommandRunning = true;
+        GameContext.UI_WorkerNotifier.Show("Loading map...");
         yield return null;
-        playerJustDie = false;
         NbTurn = 0;
         StopWatch.Stop();
         StopWatch.Reset();
         Time.timeScale = 1f;
-        DodgeFromLight.WaitForEndOfAction = 0;
-        DodgeFromLight.EntitiesMoving = 0;
+        GameContext.WaitForEndOfAction = 0;
+        GameContext.EntitiesMoving = 0;
 
-        DodgeFromLight.CurrentRules.GetCurrentFullMap((map) =>
+        GameContext.CurrentRules.GetCurrentFullMap((map) =>
         {
             if (map == null)
             {
-                DodgeFromLight.SceneTransitions.LoadScene("MainMenu");
+                GameContext.SceneTransitions.LoadScene("MainMenu");
             }
             else
             {
-                DodgeFromLight.CurrentMap = map;
-                DodgeFromLight.GridController.ClearGrid();
-                DodgeFromLight.GridController.DrawGrid(DodgeFromLight.CurrentMap.Grid);
-                Follower.Offset = Follower.BaseOffset;
-                _playerController.ThrowGear(GearSide.A);
-                _playerController.ThrowGear(GearSide.E);
-                _playerController.EndAllAlterations();
-                _playerController.TABase = 1;
-                _playerController.StartMap();
-                _playerController.StopAllCoroutines();
-                _playerController.UnlockAnimator();
-                _playerController.Play("Idle");
-                _playerController.CurrentCell = null;
-                _playerController.PlaceOnCell(DodgeFromLight.CurrentMap.Grid.StartCell, true);
-                _playerController.SetOrientation(Orientation.Up);
-                _playerController.ResetPlayer();
-                if (_petController != null)
-                    Destroy(_petController.gameObject);
-                DodgeFromLight.GridController.SpawnEnnemies(DodgeFromLight.CurrentMap.Grid);
-                DodgeFromLight.GridController.SpawnPlatforms(DodgeFromLight.CurrentMap.Grid);
-                Follower.Target = _playerController.transform;
-                Events.Fire_StartMap();
-                DodgeFromLight.UI_WorkerNotifier.Hide();
-                if (animate)
-                {
-                    Follower.AnimateCamera(DodgeFromLight.CurrentMap.Grid.EndCell.GetCellPos().ToVector3(2f),
-                        DodgeFromLight.CurrentMap.Grid.StartCell.GetCellPos().ToVector3(2f));
-                }
-                if (LastCheckPointReached != null)
-                    PlayerController.PlaceOnCell(LastCheckPointReached, true);
+                SetupCoreMap(map, animate);
             }
         });
     }
 
+    /// <summary>
+    /// Imports a loaded local map and initializes its core simulation and Unity views.
+    /// </summary>
+    private void SetupCoreMap(FullMap map, bool animate)
+    {
+        // Import the in-memory source without mutating its authored StreamingAssets files.
+        var importer = new LegacyMapImporter();
+        var import = importer.Import(
+            JsonConvert.SerializeObject(map.Grid),
+            JsonConvert.SerializeObject(map.Map),
+            map.Map?.Name ?? "Local map");
+        if (!import.IsSuccessful)
+        {
+            foreach (var issue in import.Issues)
+                Debug.LogError(issue.Code + ": " + issue.Message);
+            GameContext.UI_WorkerNotifier.Hide();
+            coreCommandRunning = false;
+            GameContext.SceneTransitions.LoadScene("MainMenu");
+            return;
+        }
+
+        GameContext.CurrentMap = map;
+        coreState = CoreSimulationState.CreateInitial(import.Package.Map);
+        var resumedCheckpoint = pendingCoreCheckpoint;
+        if (resumedCheckpoint.HasValue &&
+            coreState.Map.IsInside(resumedCheckpoint.Value))
+        {
+            var initialPlayer = new CorePlayerState(
+                resumedCheckpoint.Value,
+                CoreDirection.Up,
+                string.Empty,
+                string.Empty,
+                0,
+                0,
+                0,
+                null,
+                resumedCheckpoint.Value,
+                true);
+            coreState = new CoreSimulationState(
+                coreState.Map,
+                initialPlayer,
+                coreState.Board,
+                coreState.Enemies,
+                coreState.MovingPlatforms,
+                coreState.Random,
+                0,
+                SimulationStatus.Running);
+        }
+
+        pendingCoreCheckpoint = null;
+        LastCheckPointReached = resumedCheckpoint.HasValue
+            ? map.Grid.GetCell(resumedCheckpoint.Value.X, resumedCheckpoint.Value.Y)
+            : null;
+        NbTurn = 0;
+        GameContext.GridController.ClearGrid();
+        GameContext.GridController.DrawGrid(GameContext.CurrentMap.Grid);
+        Follower.Offset = Follower.BaseOffset;
+        _playerController.GearA = null;
+        _playerController.GearE = null;
+        _playerController.EndAllAlterations();
+        _playerController.TABase = 1;
+        _playerController.StopAllCoroutines();
+        _playerController.UnlockAnimator();
+        _playerController.ResetPlayer();
+        if (_petController != null)
+            Destroy(_petController.gameObject);
+
+        GameContext.GridController.SpawnEnnemies(
+            GameContext.CurrentMap.Grid,
+            false);
+        GameContext.GridController.SpawnPlatforms(GameContext.CurrentMap.Grid);
+        foreach (var enemy in GameContext.Ennemies)
+            enemy.enabled = false;
+        foreach (var platform in GameContext.MovingPlatforms)
+            platform.enabled = false;
+
+        Follower.Target = _playerController.transform;
+        Events.Fire_StartMap();
+        ApplyCoreState(System.Array.Empty<SimulationEvent>());
+        coreCommandRunning = false;
+        GameContext.UI_WorkerNotifier.Hide();
+        if (animate)
+        {
+            Follower.AnimateCamera(
+                GameContext.CurrentMap.Grid.EndCell.GetCellPos().ToVector3(2f),
+                GameContext.CurrentMap.Grid.StartCell.GetCellPos().ToVector3(2f));
+        }
+    }
+
+    /// <summary>
+    /// Applies one authoritative core state and its events to every active Unity view.
+    /// </summary>
+    private void ApplyCoreState(IReadOnlyList<SimulationEvent> events)
+    {
+        // Board mutations are applied before actor transforms and danger overlays.
+        ApplyCoreBoardEvents(events);
+        SyncCorePlayerView();
+        SyncCoreEnemyViews();
+        SyncCorePlatformViews();
+        SyncCoreCellViews();
+        SyncCorePlacedObjectViews();
+        SyncCoreAnchorView();
+        SyncCoreInventoryView();
+        GameContext.TimeStoped = coreState.Player.TimeStopTurns;
+
+        if (InGameUI != null)
+        {
+            InGameUI.TurnText.text = "Turn : " + coreState.TurnIndex;
+            InGameUI.PressAEGearPanel.SetActive(
+                coreState.Map.TryGetCell(coreState.Player.Position, out var cell) &&
+                !string.IsNullOrEmpty(cell.GearId) &&
+                coreState.Board.IsGearAvailable(coreState.Player.Position));
+            InGameUI.PressEnterCheckpointPanel.SetActive(
+                cell != null &&
+                cell.TypeId == CellTypeIds.Checkpoint &&
+                coreState.Player.CheckpointPosition != coreState.Player.Position);
+        }
+    }
+
+    /// <summary>
+    /// Applies resolved board events to the retained visual grid data and VFX.
+    /// </summary>
+    private void ApplyCoreBoardEvents(IReadOnlyList<SimulationEvent> events)
+    {
+        // Legacy grid objects are presentation data only and never feed results back into Core.
+        foreach (var simulationEvent in events)
+        {
+            var targetCell = GameContext.CurrentMap.Grid.GetCell(
+                simulationEvent.To.X,
+                simulationEvent.To.Y);
+            switch (simulationEvent.Type)
+            {
+                case SimulationEventType.CellCollapsed:
+                case SimulationEventType.TimedBombExploded:
+                    if (targetCell != null)
+                    {
+                        targetCell.SetType(CellType.NotWalkable);
+                        targetCell.SetWalkable(false);
+                        GameContext.GridController.RefreshCrossCell(
+                            targetCell,
+                            GameContext.CurrentMap.Grid,
+                            false);
+                    }
+
+                    break;
+                case SimulationEventType.ElementDestroyed:
+                    if (targetCell != null)
+                    {
+                        targetCell.HasElement = false;
+                        targetCell.RemoveElement();
+                        GameContext.GridController.RemoveElement(targetCell);
+                    }
+
+                    break;
+                case SimulationEventType.GearPickedUp:
+                    if (targetCell != null)
+                    {
+                        targetCell.SetGear(GearType.None);
+                        GameContext.GridController.UnSpawnGear(targetCell);
+                    }
+
+                    break;
+                case SimulationEventType.CheckpointActivated:
+                    LastCheckPointReached = targetCell;
+                    _playerController.SaveCheckpointVFX();
+                    if (targetCell != null)
+                    {
+                        GameContext.GridController.RefreshCrossCell(
+                            targetCell,
+                            GameContext.CurrentMap.Grid,
+                            false);
+                    }
+
+                    break;
+                case SimulationEventType.PlayerSpringLaunched:
+                    GameContext.GridController.AnimateSpring(
+                        new CellPos(simulationEvent.From.X, simulationEvent.From.Y));
+                    break;
+                case SimulationEventType.PlayerTeleported:
+                    GameContext.GridController.AnimateTP(
+                        new CellPos(simulationEvent.From.X, simulationEvent.From.Y));
+                    break;
+                case SimulationEventType.EnemyStunned:
+                    if (simulationEvent.EntityIndex >= 0 &&
+                        simulationEvent.EntityIndex < GameContext.Ennemies.Count)
+                    {
+                        var stunView = Instantiate(GearDiscoballStunVFXPrefab);
+                        stunView.transform.position =
+                            GameContext.Ennemies[simulationEvent.EntityIndex].transform.position;
+                        Destroy(stunView, Mathf.Max(0.25f, simulationEvent.Value));
+                    }
+
+                    break;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Synchronizes the hero transform and logical view cell from the core state.
+    /// </summary>
+    private void SyncCorePlayerView()
+    {
+        // Direct view assignment avoids invoking historical movement or cell callbacks.
+        var position = coreState.Player.Position;
+        _playerController.LastCell = _playerController.CurrentCell;
+        _playerController.CurrentCell =
+            GameContext.CurrentMap.Grid.GetCell(position.X, position.Y);
+        _playerController.Orientation = ToLegacyOrientation(coreState.Player.Direction);
+        _playerController.transform.position = new Vector3(position.X, 0f, position.Y);
+        _playerController.transform.localEulerAngles =
+            GameContext.CurrentMap.Grid.GetOrientationVector(
+                _playerController.Orientation);
+        if (coreState.Status == SimulationStatus.Running)
+            _playerController.Play("Idle");
+    }
+
+    /// <summary>
+    /// Synchronizes all enemy prefab transforms, phases, and danger overlays.
+    /// </summary>
+    private void SyncCoreEnemyViews()
+    {
+        // Spawn order and core definition order are both the authored enemy order.
+        var count = Mathf.Min(coreState.Enemies.Count, GameContext.Ennemies.Count);
+        for (var index = 0; index < count; index++)
+        {
+            var state = coreState.Enemies[index];
+            var view = GameContext.Ennemies[index];
+            view.LastCell = view.CurrentCell;
+            view.CurrentCell = GameContext.CurrentMap.Grid.GetCell(
+                state.Position.X,
+                state.Position.Y);
+            view.Orientation = ToLegacyOrientation(state.Direction);
+            view.transform.position = new Vector3(
+                state.Position.X,
+                0f,
+                state.Position.Y);
+            view.transform.localEulerAngles =
+                GameContext.CurrentMap.Grid.GetOrientationVector(view.Orientation);
+            view.CurrentPO = new List<CellPos>();
+            foreach (var dangerCell in coreEngine.GetEnemyDangerCells(coreState, index))
+                view.CurrentPO.Add(new CellPos(dangerCell.X, dangerCell.Y));
+            if (view is Gloutton gloutton)
+            {
+                gloutton.AttractionPOCells = new List<CellPos>();
+                foreach (var effectCell in
+                         coreEngine.GetEnemySecondaryEffectCells(coreState, index))
+                {
+                    gloutton.AttractionPOCells.Add(
+                        new CellPos(effectCell.X, effectCell.Y));
+                }
+            }
+            if (view is Thunderbird && view.transform.childCount > 0)
+            {
+                var childPosition = view.transform.GetChild(0).localPosition;
+                childPosition.y = state.PhaseIndex % 4 >= 2 ? 1.5f : 0f;
+                view.transform.GetChild(0).localPosition = childPosition;
+            }
+
+            view.Play("Idle");
+        }
+
+        GameContext.GridController.DrawCellsPO();
+    }
+
+    /// <summary>
+    /// Synchronizes every moving-platform transform from its authoritative route state.
+    /// </summary>
+    private void SyncCorePlatformViews()
+    {
+        // Platform spawn order follows map-definition order.
+        var count = Mathf.Min(
+            coreState.MovingPlatforms.Count,
+            GameContext.MovingPlatforms.Count);
+        for (var index = 0; index < count; index++)
+        {
+            var state = coreState.MovingPlatforms[index];
+            var view = GameContext.MovingPlatforms[index];
+            view.LastCell = view.CurrentCell;
+            view.CurrentCell = GameContext.CurrentMap.Grid.GetCell(
+                state.Position.X,
+                state.Position.Y);
+            view.Orientation = ToLegacyOrientation(state.Direction);
+            view.transform.position = new Vector3(
+                state.Position.X,
+                0f,
+                state.Position.Y);
+            view.transform.localEulerAngles =
+                GameContext.CurrentMap.Grid.GetOrientationVector(view.Orientation);
+        }
+    }
+
+    /// <summary>
+    /// Synchronizes needle phases and timed-bomb countdown labels.
+    /// </summary>
+    private void SyncCoreCellViews()
+    {
+        // Cell view components receive resolved values and do not advance private timers.
+        foreach (var needleState in coreState.Board.Needles)
+        {
+            var cell = GameContext.CurrentMap.Grid.GetCell(
+                needleState.Position.X,
+                needleState.Position.Y);
+            var cellView = GameContext.GridController.GetCellGameObject(cell);
+            var needle = cellView == null
+                ? null
+                : cellView.GetComponentInChildren<Needle>();
+            if (needle != null)
+                needle.SetActive(needleState.IsActive);
+        }
+
+        foreach (var bombState in coreState.Board.TimedBombs)
+        {
+            if (bombState.HasExploded)
+                continue;
+            var cell = GameContext.CurrentMap.Grid.GetCell(
+                bombState.Position.X,
+                bombState.Position.Y);
+            var cellView = GameContext.GridController.GetCellGameObject(cell);
+            var bomb = cellView == null
+                ? null
+                : cellView.GetComponentInChildren<BmbeController>();
+            if (bomb != null)
+                bomb.SetRemainingTurns(bombState.RemainingTurns);
+        }
+    }
+
+    /// <summary>
+    /// Rebuilds temporary mirror, disco-ball, and darkness presentation objects.
+    /// </summary>
+    private void SyncCorePlacedObjectViews()
+    {
+        // Rebuilding a very small collection prevents presentation objects owning hidden timers.
+        foreach (var view in corePlacedObjectViews.Values)
+        {
+            if (view != null)
+                Destroy(view);
+        }
+        corePlacedObjectViews.Clear();
+
+        foreach (var placedObject in coreState.Board.PlacedObjects)
+        {
+            var view = CreateCorePlacedObjectView(placedObject);
+            if (view == null)
+                continue;
+            view.transform.SetParent(GameContext.GridController.GridContainer);
+            view.transform.position = new Vector3(
+                placedObject.Position.X,
+                0f,
+                placedObject.Position.Y);
+            corePlacedObjectViews.Add(
+                placedObject.ObjectId + "@" + placedObject.Position,
+                view);
+        }
+    }
+
+    /// <summary>
+    /// Creates one temporary-object view from the retained asset catalogue.
+    /// </summary>
+    private GameObject CreateCorePlacedObjectView(PlacedObjectState placedObject)
+    {
+        // Existing mirror and disco assets are reused; darkness gets a lightweight readable zone.
+        if (placedObject.ObjectId == GearTypeIds.PlacedMirror)
+            return Instantiate(GearMirrorPrefab);
+        if (placedObject.ObjectId == GearTypeIds.PlacedDiscoBall)
+        {
+            var discoBall = Instantiate(GearDiscoballPrefab);
+            var controller = discoBall.GetComponent<DiscoballController>();
+            if (controller != null)
+                controller.enabled = false;
+            return discoBall;
+        }
+        if (placedObject.ObjectId != GearTypeIds.DarknessCloud)
+            return null;
+
+        var darkness = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        darkness.name = "Darkness Cloud";
+        darkness.transform.localScale = new Vector3(4.5f, 0.025f, 4.5f);
+        var collider = darkness.GetComponent<Collider>();
+        if (collider != null)
+            Destroy(collider);
+        var renderer = darkness.GetComponent<Renderer>();
+        var shader = Shader.Find("Universal Render Pipeline/Lit") ??
+                     Shader.Find("Standard");
+        if (renderer != null && shader != null)
+        {
+            renderer.material = new Material(shader);
+            renderer.material.color = new Color(0.08f, 0.02f, 0.15f, 0.65f);
+        }
+
+        return darkness;
+    }
+
+    /// <summary>
+    /// Synchronizes the decoupled weapon anchor with a simple world-space marker.
+    /// </summary>
+    private void SyncCoreAnchorView()
+    {
+        // The marker is cosmetic and never participates in collision or simulation.
+        if (!coreState.Player.AnchorPosition.HasValue)
+        {
+            if (coreAnchorView != null)
+                Destroy(coreAnchorView);
+            coreAnchorView = null;
+            return;
+        }
+
+        if (coreAnchorView == null)
+        {
+            coreAnchorView = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            coreAnchorView.name = "Weapon Anchor";
+            coreAnchorView.transform.localScale = new Vector3(0.12f, 0.45f, 0.12f);
+            var collider = coreAnchorView.GetComponent<Collider>();
+            if (collider != null)
+                Destroy(collider);
+        }
+
+        var position = coreState.Player.AnchorPosition.Value;
+        coreAnchorView.transform.position = new Vector3(
+            position.X,
+            0.35f,
+            position.Y);
+        coreAnchorView.transform.localEulerAngles = new Vector3(0f, 0f, 35f);
+    }
+
+    /// <summary>
+    /// Synchronizes the retained HUD gear views with the two core inventory slots.
+    /// </summary>
+    private void SyncCoreInventoryView()
+    {
+        // Legacy Gear instances are passive icon adapters and never execute gameplay.
+        _playerController.GearA = CreateLegacyGearView(coreState.Player.GearSlotOne);
+        _playerController.GearE = CreateLegacyGearView(coreState.Player.GearSlotTwo);
+        if (InGameUI != null)
+            InGameUI.RefreshGears();
+    }
+
+    /// <summary>
+    /// Creates a passive icon adapter for one stable core gear ID.
+    /// </summary>
+    private static Gear CreateLegacyGearView(string gearId)
+    {
+        // Empty or unknown IDs intentionally produce an empty HUD slot.
+        var gearType = ToLegacyGearType(gearId);
+        return gearType == GearType.None ? null : Gear.GetGear(gearType);
+    }
+
+    /// <summary>
+    /// Converts a stable core gear ID to the retained visual database enum.
+    /// </summary>
+    private static GearType ToLegacyGearType(string gearId)
+    {
+        // This mapping exists only at the presentation boundary.
+        switch (gearId)
+        {
+            case GearTypeIds.Bomb:
+                return GearType.Bomb;
+            case GearTypeIds.DiscoBall:
+                return GearType.DiscoBall;
+            case GearTypeIds.Grapple:
+                return GearType.Grapple;
+            case GearTypeIds.InvisibilityCloak:
+                return GearType.InvisibilityCloak;
+            case GearTypeIds.Mirror:
+                return GearType.Mirror;
+            case GearTypeIds.PowderOfDarkness:
+                return GearType.PowderOfDarkness;
+            case GearTypeIds.RemoteControl:
+                return GearType.RemoteControl;
+            case GearTypeIds.SpeedBoots:
+                return GearType.SpeedBoots;
+            case GearTypeIds.TimeController:
+                return GearType.TimeController;
+            default:
+                return GearType.None;
+        }
+    }
+
+    /// <summary>
+    /// Converts a core cardinal direction to the retained presentation orientation.
+    /// </summary>
+    private static Orientation ToLegacyOrientation(CoreDirection direction)
+    {
+        // Conversion is explicit so neither enum becomes a serialized cross-layer contract.
+        switch (direction)
+        {
+            case CoreDirection.Up:
+                return Orientation.Up;
+            case CoreDirection.Right:
+                return Orientation.Right;
+            case CoreDirection.Down:
+                return Orientation.Down;
+            case CoreDirection.Left:
+                return Orientation.Left;
+            default:
+                return Orientation.None;
+        }
+    }
+
+    /// <summary>
+    /// Starts asynchronous loading of the current local map.
+    /// </summary>
     public void SetGrid(bool animate = true)
     {
+        // Loading always rebuilds a fresh deterministic state.
         StartCoroutine(SetGridRoutine(animate));
     }
 
-    bool playerJustDie = false;
+    /// <summary>
+    /// Accepts obsolete presentation death callbacks without creating a second loss path.
+    /// </summary>
     public void GameOver(Cell cell, bool fall = false)
     {
-        if (playerJustDie)
-            return;
-
-        if (_playerController.IsCastingPet && cell.EntityOnCell == _petController) // pet just die
-        {
-            DodgeFromLight.StartWaitingAction();
-            StartCoroutine(ReduceTimeScale(fall, true));
-            _petController.Dead = true;
-        }
-        else // player just die
-        {
-            StopWatch.Stop();
-            playerJustDie = true;
-            PoolManager.Instance.PushBackAllPool(PoolName.POCell);
-            DodgeFromLight.WaitForEndOfAction = 9999;
-            StartCoroutine(ReduceTimeScale(fall, false));
-        }
+        // Authoritative losses are emitted by SimulationEngine and handled in ExecuteCoreCommand.
     }
 
-    IEnumerator ReduceTimeScale(bool fall, bool pet)
-    {
-        yield return null;
-        playerJustDie = true;
-        if (pet)
-            _petController.Play("Die");
-        else
-        {
-            _playerController.Play("Die");
-            Follower.Target = _playerController.transform;
-        }
-        if (!fall)
-            yield return new WaitForSeconds(.5f);
-        else
-        {
-            float dur = 0.1f;
-            float enl = 0f;
-            Vector3 s = pet ? _petController.transform.position : _playerController.transform.position;
-            Vector3 e = s;
-            e.y -= 0.8f;
-            while (enl < dur)
-            {
-                if (pet)
-                    _petController.transform.position = Vector3.Lerp(s, e, enl / dur);
-                else
-                    _playerController.transform.position = Vector3.Lerp(s, e, enl / dur);
-                yield return null;
-                enl += Time.deltaTime;
-            }
-        }
-        float duration = 1f;
-        float enlapsed = 0f;
-        Vector3 start = Follower.Offset;
-        Vector3 end = Follower.Offset / 2f;
-        while (enlapsed < duration)
-        {
-            Time.timeScale = Mathf.Lerp(1f, 0.5f, enlapsed / duration);
-            Follower.Offset = Vector3.Lerp(start, end, enlapsed / duration);
-            yield return null;
-            enlapsed += Time.unscaledDeltaTime;
-        }
-
-        _playerController.UncastPet(false, false);
-        Time.timeScale = 1f;
-        if (!pet)
-            RestartGrid();
-        else
-        {
-            Follower.Offset = Follower.BaseOffset;
-            DodgeFromLight.StopWaitingAction();
-        }
-    }
-
+    /// <summary>
+    /// Restarts the current map from its initial state or activated checkpoint.
+    /// </summary>
     public void RestartGrid()
     {
+        // Reloading the authored map restores destroyed cells, elements, actors, and gears.
+        if (UsesCoreSimulation)
+            pendingCoreCheckpoint = coreState.Player.CheckpointPosition;
         StopAllCoroutines();
-        DodgeFromLight.WaitForEndOfAction = 0;
+        GameContext.WaitForEndOfAction = 0;
+        coreCommandRunning = false;
         SetGrid(false);
     }
 
@@ -619,29 +992,29 @@ public class GameManager : MonoBehaviour
     public void NextMap()
     {
         // Tutorial progression remains separate from authored local-map traversal.
-        if (DodgeFromLight.CurrentRules.Tutorial)
+        if (GameContext.CurrentRules.Tutorial)
         {
-            DodgeFromLight.TutorialController.FinishCurrentMap();
-            if (DodgeFromLight.TutorialController.HasFinishTutorial())
+            GameContext.TutorialController.FinishCurrentMap();
+            if (GameContext.TutorialController.HasFinishTutorial())
                 FinishTutorial();
             else
             {
-                DodgeFromLight.CurrentRules.NextGrid();
+                GameContext.CurrentRules.NextGrid();
                 SetGrid();
             }
 
             return;
         }
 
-        if (!DodgeFromLight.CurrentRules.Endless &&
-            DodgeFromLight.CurrentRules.CurrentGrid + 1 >= DodgeFromLight.CurrentRules.NbGrids)
+        if (!GameContext.CurrentRules.Endless &&
+            GameContext.CurrentRules.CurrentGrid + 1 >= GameContext.CurrentRules.NbGrids)
         {
             // Finite local sessions return to the main menu after their last map.
             InGameUI.Exit();
             return;
         }
 
-        DodgeFromLight.CurrentRules.NextGrid();
+        GameContext.CurrentRules.NextGrid();
         SetGrid();
     }
 
@@ -662,17 +1035,17 @@ public class GameManager : MonoBehaviour
         // Complete local progression without any remote score or vote request.
         LastCheckPointReached = null;
         StopWatch.Stop();
-        if (!DodgeFromLight.CurrentRules.Tutorial &&
-            DodgeFromLight.CurrentMap?.Map != null)
+        if (!GameContext.CurrentRules.Tutorial &&
+            GameContext.CurrentMap?.Map != null)
         {
-            bool firstCompletion = !DodgeFromLight.CurrentMap.Map.IsFinished();
-            DodgeFromLight.CurrentMap.Map.AlreadyFinished = 1;
-            DodgeFromLight.CurrentMap.Map.SetState(MapState.Playable);
-            LocalMapRepository.UpdateMetadata(DodgeFromLight.CurrentMap.Map);
+            bool firstCompletion = !GameContext.CurrentMap.Map.IsFinished();
+            GameContext.CurrentMap.Map.AlreadyFinished = 1;
+            GameContext.CurrentMap.Map.SetState(MapState.Playable);
+            LocalMapRepository.UpdateMetadata(GameContext.CurrentMap.Map);
             if (firstCompletion)
             {
                 SaveManager.AddExperience(
-                    DodgeFromLight.Databases.RewardData.XPForFirstFinishingMap);
+                    GameContext.Databases.RewardData.XPForFirstFinishingMap);
             }
         }
 
@@ -680,29 +1053,39 @@ public class GameManager : MonoBehaviour
         NextMap();
     }
 
-    public void WinGame()
-    {
-        Debug.Log("End Of Game");
-    }
-
+    /// <summary>
+    /// Initializes the current local gameplay session.
+    /// </summary>
     public void StartGame()
     {
-        DodgeFromLight.WaitForEndOfAction = 0;
-        DodgeFromLight.EntitiesMoving = 0;
+        // Reset presentation wait counters before loading the authoritative map.
+        GameContext.WaitForEndOfAction = 0;
+        GameContext.EntitiesMoving = 0;
         SetGrid();
     }
 
+    /// <summary>
+    /// Pauses presentation and local run timing.
+    /// </summary>
     public void EnterPause()
     {
+        // Simulation commands are rejected while Paused is true.
         Paused = true;
+        wasTimerRunningBeforePause = StopWatch.IsRunning;
         Time.timeScale = 0f;
         StopWatch.Stop();
     }
 
+    /// <summary>
+    /// Resumes presentation and local run timing.
+    /// </summary>
     public void ExitPause()
     {
+        // Resume time only after the UI has released the pause state.
         Paused = false;
         Time.timeScale = 1f;
-        StopWatch.Start();
+        if (wasTimerRunningBeforePause)
+            StopWatch.Start();
+        wasTimerRunningBeforePause = false;
     }
 }

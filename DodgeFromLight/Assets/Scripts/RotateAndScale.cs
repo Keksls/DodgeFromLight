@@ -61,22 +61,22 @@ public class RotateAndScale : MonoBehaviour
         dragging = true;
         type = RotateAndScaleType.None;
         lastMousePosition = Input.mousePosition;
-        DodgeFromLight.CursorManager.SetCursor(CursorType.RotationAndScale);
-        DodgeFromLight.CursorManager.Lock();
+        GameContext.CursorManager.SetCursor(CursorType.RotationAndScale);
+        GameContext.CursorManager.Lock();
 
     }
 
     private void OnMouseEnter()
     {
-        DodgeFromLight.CursorManager.SetCursor(CursorType.RotationAndScale);
-        DodgeFromLight.CursorManager.Lock();
+        GameContext.CursorManager.SetCursor(CursorType.RotationAndScale);
+        GameContext.CursorManager.Lock();
     }
 
     private void OnMouseExit()
     {
         if (dragging) return;
-        DodgeFromLight.CursorManager.UnLock();
-        DodgeFromLight.CursorManager.SetCursor(CursorType.Arrow);
+        GameContext.CursorManager.UnLock();
+        GameContext.CursorManager.SetCursor(CursorType.Arrow);
     }
 
     private void OnMouseDown()
@@ -90,8 +90,8 @@ public class RotateAndScale : MonoBehaviour
         {
             dragging = false;
             type = RotateAndScaleType.None;
-            DodgeFromLight.CursorManager.UnLock();
-            DodgeFromLight.CursorManager.SetCursor(CursorType.Arrow);
+            GameContext.CursorManager.UnLock();
+            GameContext.CursorManager.SetCursor(CursorType.Arrow);
         }
     }
 
@@ -104,8 +104,8 @@ public class RotateAndScale : MonoBehaviour
         {
             dragging = false;
             type = RotateAndScaleType.None;
-            DodgeFromLight.CursorManager.UnLock();
-            DodgeFromLight.CursorManager.SetCursor(CursorType.Arrow);
+            GameContext.CursorManager.UnLock();
+            GameContext.CursorManager.SetCursor(CursorType.Arrow);
             return;
         }
 
@@ -118,17 +118,17 @@ public class RotateAndScale : MonoBehaviour
                 {
                     type = RotateAndScaleType.Rotate;
                     lastMousePosition = Input.mousePosition;
-                    DodgeFromLight.CursorManager.UnLock();
-                    DodgeFromLight.CursorManager.SetCursor(CursorType.Rotation);
-                    DodgeFromLight.CursorManager.Lock();
+                    GameContext.CursorManager.UnLock();
+                    GameContext.CursorManager.SetCursor(CursorType.Rotation);
+                    GameContext.CursorManager.Lock();
                 }
                 else if (Mathf.Abs(delta.y) >= AxisDeterminationThreshold && EnableScale)
                 {
                     type = RotateAndScaleType.Scale;
                     lastMousePosition = Input.mousePosition;
-                    DodgeFromLight.CursorManager.UnLock();
-                    DodgeFromLight.CursorManager.SetCursor(CursorType.Scale);
-                    DodgeFromLight.CursorManager.Lock();
+                    GameContext.CursorManager.UnLock();
+                    GameContext.CursorManager.SetCursor(CursorType.Scale);
+                    GameContext.CursorManager.Lock();
                 }
                 break;
 

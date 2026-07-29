@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using UnityEngine;
-using UnityEngine.Rendering.PostProcessing;
+using UnityEngine.Rendering.Universal;
 
 public class ScreenShot : MonoBehaviour
 {
@@ -21,15 +21,19 @@ public class ScreenShot : MonoBehaviour
 
 public static class ScreenShoter
 {
+    /// <summary>
+    /// Captures a square screenshot while temporarily disabling URP anti-aliasing.
+    /// </summary>
     public static IEnumerator Screenshot(int width, int height, Action<Texture2D> Callback)
     {
-        PostProcessLayer.Antialiasing aa = PostProcessLayer.Antialiasing.None;
-        if (DodgeFromLight.GameSettingsManager != null)
+        // Preserve the configured mode so the capture does not change player settings.
+        AntialiasingMode aa = AntialiasingMode.None;
+        if (GameContext.GameSettingsManager != null)
         {
             try
             {
-                aa = DodgeFromLight.GameSettingsManager.CurrentSettings.Graphics.Antialiasing;
-                DodgeFromLight.GameSettingsManager.SetAntialiasing(PostProcessLayer.Antialiasing.None, false);
+                aa = GameContext.GameSettingsManager.CurrentSettings.Graphics.Antialiasing;
+                GameContext.GameSettingsManager.SetAntialiasing(AntialiasingMode.None, false);
             }
             catch { }
         }
@@ -85,11 +89,11 @@ public static class ScreenShoter
 
         screenShot.Apply();
 
-        if (DodgeFromLight.GameSettingsManager != null)
+        if (GameContext.GameSettingsManager != null)
         {
             try
             {
-                DodgeFromLight.GameSettingsManager.SetAntialiasing(aa, false);
+                GameContext.GameSettingsManager.SetAntialiasing(aa, false);
             }
             catch { }
         }

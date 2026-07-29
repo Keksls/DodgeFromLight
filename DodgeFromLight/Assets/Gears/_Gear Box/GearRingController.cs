@@ -8,7 +8,7 @@ public class GearRingController : MonoBehaviour
 
     public void SetGear(GearType type)
     {
-        Texture2D tex = DodgeFromLight.Databases.GearData.GetGearData(type).Image;
+        Texture2D tex = GameContext.Databases.GearData.GetGearData(type).Image;
         Material mat = Instantiate(baseMat);
         mat.SetTexture("_MainTex", tex);
         mat.SetTexture("_EmissionMap", tex);

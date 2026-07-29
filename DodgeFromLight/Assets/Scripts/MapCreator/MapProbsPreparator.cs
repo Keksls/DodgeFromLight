@@ -61,7 +61,7 @@ public class MapProbsPreparator : MonoBehaviour
     void AssignateTextures()
     {
         string folderPath = @"MapAssets/previews/";
-        foreach (var mdd in DodgeFromLight.Databases.ResourcesData.Data)
+        foreach (var mdd in GameContext.Databases.ResourcesData.Data)
         {
             mdd.Texture = Resources.Load<Texture2D>(folderPath + mdd.ID);
         }
@@ -182,13 +182,13 @@ public class MapProbsPreparator : MonoBehaviour
 #if UNITY_EDITOR
     private void OnDisable()
     {
-        EditorUtility.SetDirty(DodgeFromLight.Databases.ResourcesData);
+        EditorUtility.SetDirty(GameContext.Databases.ResourcesData);
         AssetDatabase.SaveAssets();
     }
 
     private void OnDestroy()
     {
-        EditorUtility.SetDirty(DodgeFromLight.Databases.ResourcesData);
+        EditorUtility.SetDirty(GameContext.Databases.ResourcesData);
         AssetDatabase.SaveAssets();
     }
 #endif
@@ -198,11 +198,11 @@ public class MapProbsPreparator : MonoBehaviour
         if (CurrentItem != null)
             Destroy(CurrentItem);
 
-        CurrentItem = Instantiate(DodgeFromLight.Databases.ResourcesData.Data[currentDataItem].Prefab);
+        CurrentItem = Instantiate(GameContext.Databases.ResourcesData.Data[currentDataItem].Prefab);
         CurrentItem.transform.position = Vector3.zero;
         CurrentItem.transform.SetParent(DataItemContainer);
         CurrentItem.isStatic = false;
-        CurrentItemData = DodgeFromLight.Databases.ResourcesData.Data[currentDataItem];
+        CurrentItemData = GameContext.Databases.ResourcesData.Data[currentDataItem];
         CurrentItem.transform.localScale = Vector3.one * CurrentItemData.BaseScale;
 
         DrawUnwalkableFeedback();
@@ -241,7 +241,7 @@ public class MapProbsPreparator : MonoBehaviour
 
     IEnumerator ScreenShot(string folderPath)
     {
-        foreach (var mdd in DodgeFromLight.Databases.ResourcesData.Data)
+        foreach (var mdd in GameContext.Databases.ResourcesData.Data)
         {
             GameObject item = Instantiate(mdd.Prefab);
             item.name = mdd.ID;
@@ -292,8 +292,8 @@ public class MapProbsPreparator : MonoBehaviour
 
         string prevPath = "MapAssets/previews/";
         foreach (var go in Deco)
-            if (!DodgeFromLight.Databases.ResourcesData.HasMapDeco(go.name))
-                DodgeFromLight.Databases.ResourcesData.Data.Add(new MapDecoData()
+            if (!GameContext.Databases.ResourcesData.HasMapDeco(go.name))
+                GameContext.Databases.ResourcesData.Data.Add(new MapDecoData()
                 {
                     BaseScale = 1,
                     ID = go.name,

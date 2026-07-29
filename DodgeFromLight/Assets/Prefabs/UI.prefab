@@ -2440,7 +2440,6 @@ MonoBehaviour:
   - {fileID: 1401667453}
   HideCursorDuration: 5
   MouseMovementThreshold: 0.1
-  AutoHideCursor: 1
 --- !u!1 &5627978971489507273
 GameObject:
   m_ObjectHideFlags: 0

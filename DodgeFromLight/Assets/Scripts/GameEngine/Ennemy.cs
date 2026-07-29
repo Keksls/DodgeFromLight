@@ -47,13 +47,13 @@ public abstract class Ennemy : Entity
     {
         if (Patrol.NbCells == 0)
         {
-            Cell cell = DodgeFromLight.CurrentMap.Grid.GetCell(StartCell);
+            Cell cell = GameContext.CurrentMap.Grid.GetCell(StartCell);
             PlaceOnCell(cell, true);
             SetOrientation(StartOrientation);
         }
         else
         {
-            Cell cell = DodgeFromLight.CurrentMap.Grid.GetCell(Patrol.FirstCell);
+            Cell cell = GameContext.CurrentMap.Grid.GetCell(Patrol.FirstCell);
             PlaceOnCell(cell, true);
             SetOrientation(Patrol.FirstOrientation);
         }
@@ -87,8 +87,8 @@ public abstract class Ennemy : Entity
 
             if (nextCell.IsInOrientation(CurrentCell.GetCellPos(), Orientation)) // next cell is in ennemy orientation, just walk toward
             { // if ennemy at less than 2 cell, switch my orientation
-                bool EnnemyOnMyOrientation = DodgeFromLight.CurrentMap.Grid.IsThereEnnemyOnCell(nextCell);
-                if (EnnemyOnMyOrientation || !DodgeFromLight.CurrentMap.Grid.GetCell(nextCell).IsWalkable)
+                bool EnnemyOnMyOrientation = GameContext.CurrentMap.Grid.IsThereEnnemyOnCell(nextCell);
+                if (EnnemyOnMyOrientation || !GameContext.CurrentMap.Grid.GetCell(nextCell).IsWalkable)
                 {
                     Events.Fire_EntityStartMove(this);
                     Patrol.Inverse();
@@ -102,7 +102,7 @@ public abstract class Ennemy : Entity
                 }
                 else
                 {
-                    Cell cell = DodgeFromLight.CurrentMap.Grid.GetCell(nextCell);
+                    Cell cell = GameContext.CurrentMap.Grid.GetCell(nextCell);
                     if (cell == null)
                         yield break;
 
@@ -118,7 +118,7 @@ public abstract class Ennemy : Entity
 
                     RefreshPO();
                     if (refreshAllPO && CurrentTA > 0)
-                        DodgeFromLight.GridController.DrawCellsPO();
+                        GameContext.GridController.DrawCellsPO();
                     DoEffect();
                 }
             }
@@ -128,8 +128,8 @@ public abstract class Ennemy : Entity
                 Events.Fire_EntityStartMove(this);
                 float enlapsed = 0f;
                 Vector3 startRot = transform.localEulerAngles;
-                Vector3 endRot = DodgeFromLight.CurrentMap.Grid.GetOrientationVector(
-                    DodgeFromLight.CurrentMap.Grid.GetOrientation(CurrentCell.GetCellPos(), nextCell));
+                Vector3 endRot = GameContext.CurrentMap.Grid.GetOrientationVector(
+                    GameContext.CurrentMap.Grid.GetOrientation(CurrentCell.GetCellPos(), nextCell));
                 float rotWeight = Mathf.Abs(endRot.y - startRot.y);
                 float inversedRotWeight = Mathf.Abs((360 + endRot.y) - startRot.y);
                 if (inversedRotWeight < rotWeight)
@@ -140,7 +140,7 @@ public abstract class Ennemy : Entity
                     enlapsed += Time.deltaTime;
                     yield return null;
                 }
-                SetOrientation(DodgeFromLight.CurrentMap.Grid.GetOrientation(CurrentCell.GetCellPos(), nextCell));
+                SetOrientation(GameContext.CurrentMap.Grid.GetOrientation(CurrentCell.GetCellPos(), nextCell));
                 CurrentTA--;
                 RefreshPO();
                 DoEffect();
@@ -156,7 +156,7 @@ public abstract class Ennemy : Entity
     public void DrawPath(Transform tfrm)
     {
         GL.PushMatrix();
-        DodgeFromLight.GridController.lineMaterial.SetPass(0);
+        GameContext.GridController.lineMaterial.SetPass(0);
         GL.MultMatrix(tfrm.localToWorldMatrix);
 
         // Draw lines
@@ -165,7 +165,7 @@ public abstract class Ennemy : Entity
             GL.Begin(GL.LINES);
             for (int i = 0; i < WayPoints.Count; i++)
             {
-                GL.Color(DodgeFromLight.Databases.CellPOData.GetEnnemyColor(Type).UpColor);
+                GL.Color(GameContext.Databases.CellPOData.GetEnnemyColor(Type).UpColor);
                 CellPos startCell = WayPoints[i % WayPoints.Count];
                 CellPos endCell = WayPoints[(i + 1) % WayPoints.Count];
                 GL.Vertex(new Vector3(startCell.X, .04f, startCell.Y));
@@ -176,13 +176,13 @@ public abstract class Ennemy : Entity
 
         // Draw Quad
         GL.Begin(GL.QUADS);
-        float minSize = DodgeFromLight.GridController.PathSquareSize / DodgeFromLight.GridController.PathSquareOffsetSize / 6f;
-        float maxSize = DodgeFromLight.GridController.PathSquareSize * DodgeFromLight.GridController.PathSquareOffsetSize / 6f;
+        float minSize = GameContext.GridController.PathSquareSize / GameContext.GridController.PathSquareOffsetSize / 6f;
+        float maxSize = GameContext.GridController.PathSquareSize * GameContext.GridController.PathSquareOffsetSize / 6f;
         for (float i = 0; i < WayPoints.Count; i++)
         {
             float size = Mathf.Lerp(minSize, maxSize, i / (float)WayPoints.Count);
 
-            GL.Color(DodgeFromLight.Databases.CellPOData.GetEnnemyColor(Type).UpColor);
+            GL.Color(GameContext.Databases.CellPOData.GetEnnemyColor(Type).UpColor);
             CellPos startCell = WayPoints[(int)i];
 
             GL.Vertex(new Vector3(startCell.X - size, .04f, startCell.Y + size));
@@ -209,8 +209,8 @@ public abstract class Ennemy : Entity
     /// </summary>
     public bool CheckLightView()
     {
-        Grid grid = DodgeFromLight.CurrentMap.Grid;
-        if (DodgeFromLight.GameManager == null || DodgeFromLight.GameManager.PlayerController == null || DodgeFromLight.GameManager.PlayerController.CurrentCell == null)
+        Grid grid = GameContext.CurrentMap.Grid;
+        if (GameContext.GameManager == null || GameContext.GameManager.PlayerController == null || GameContext.GameManager.PlayerController.CurrentCell == null)
             return false;
         CurrentPO.Add(CurrentCell.GetCellPos());
         Cell cell;
@@ -218,7 +218,7 @@ public abstract class Ennemy : Entity
         foreach (CellPos p in CurrentPO)
         {
             cell = grid.GetCell(p);
-            if (cell.Equals(DodgeFromLight.GameManager._playerController.CurrentCell))
+            if (cell.Equals(GameContext.GameManager._playerController.CurrentCell))
             {
                 // move to player and attack
                 Attack(grid, p, false);
@@ -240,12 +240,12 @@ public abstract class Ennemy : Entity
             }
         }
 
-        if (DodgeFromLight.GameManager._playerController.IsCastingPet) // check for killing pet
+        if (GameContext.GameManager._playerController.IsCastingPet) // check for killing pet
         {
             foreach (CellPos p in CurrentPO)
             {
                 cell = grid.GetCell(p);
-                if (cell.Equals(DodgeFromLight.GameManager._petController.CurrentCell))
+                if (cell.Equals(GameContext.GameManager._petController.CurrentCell))
                 {
                     // move to player and attack
                     Attack(grid, p, true);
@@ -262,7 +262,7 @@ public abstract class Ennemy : Entity
 
     public void Stun(int nbTurn)
     {
-        GameObject stunVFX = Instantiate(DodgeFromLight.GameManager.GearDiscoballStunVFXPrefab);
+        GameObject stunVFX = Instantiate(GameContext.GameManager.GearDiscoballStunVFXPrefab);
         stunVFX.transform.position = transform.position;
         AddAlteration(new Alteration(AlterationType.PO, -9999, nbTurn));
         AddAlteration(new Alteration(AlterationType.PM, -9999, nbTurn, () => { Destroy(stunVFX); }));
@@ -277,14 +277,14 @@ public abstract class Ennemy : Entity
         {
             CellPos startCell = CurrentCell.GetCellPos();
             SetOrientation(grid.GetCellOrientation(CurrentCell, grid.GetCell(p)));
-            CellPos closestCell = DodgeFromLight.CurrentMap.Grid.GetNearestCell(p, CurrentPO.Concat(new List<CellPos>() { CurrentCell.GetCellPos() }).ToList());
+            CellPos closestCell = GameContext.CurrentMap.Grid.GetNearestCell(p, CurrentPO.Concat(new List<CellPos>() { CurrentCell.GetCellPos() }).ToList());
             Events.Fire_EnnemySeePlayer(this, grid.GetCell(p));
-            GoToCell(grid.GetCell(closestCell), DodgeFromLight.GameManager.EntitiesMovementDuration, () =>
+            GoToCell(grid.GetCell(closestCell), GameContext.GameManager.EntitiesMovementDuration, () =>
             {
-                DodgeFromLight.GridController.DrawCellsPO();
+                GameContext.GridController.DrawCellsPO();
                 LookAtCell(p);
                 if (recoverPlace)
-                    PlaceOnCell(DodgeFromLight.CurrentMap.Grid.GetCell(startCell), true);
+                    PlaceOnCell(GameContext.CurrentMap.Grid.GetCell(startCell), true);
             }, () =>
             {
                 LookAtCell(p);
@@ -318,8 +318,8 @@ public abstract class Ennemy : Entity
     public List<CellPos> CleanPO(List<CellPos> po)
     {
         List<CellPos> clean = new List<CellPos>();
-        Grid grid = DodgeFromLight.CurrentMap.Grid;
-        string playerName = DodgeFromLight.GameManager?.PlayerController?.Name;
+        Grid grid = GameContext.CurrentMap.Grid;
+        string playerName = GameContext.GameManager?.PlayerController?.Name;
         Cell c;
         foreach (CellPos p in po)
         {
@@ -333,7 +333,7 @@ public abstract class Ennemy : Entity
             }
         }
         if (!NoLineView)
-            ProcessLigneDeVue(DodgeFromLight.CurrentMap.Grid, clean);
+            ProcessLigneDeVue(GameContext.CurrentMap.Grid, clean);
         if (DisplaySelfPO)
             clean.Add(CurrentCell.GetCellPos());
         return clean;

@@ -4,8 +4,10 @@
     "references": [
         "UnityEngine.UI",
         "Unity.TextMeshPro",
-        "Unity.Postprocessing.Runtime",
-        "Unity.Collections"
+        "Unity.RenderPipelines.Universal.Runtime",
+        "Unity.Collections",
+        "DodgeFromLight.Core",
+        "DodgeFromLight.Infrastructure.Maps"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
