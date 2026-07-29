@@ -26,6 +26,7 @@ public class InGameUI : MonoBehaviour
 
     public float HideCursorDuration = 5f;
     public float MouseMovementThreshold = 0.1f;
+    private bool useFuguiHud;
 
 #if !UNITY_EDITOR
     private float lastMouseMovementTime;
@@ -80,16 +81,37 @@ public class InGameUI : MonoBehaviour
         TurnText.text = "Turn : " + GameContext.GameManager.NbTurn;
     }
 
+    /// <summary>
+    /// Shows retained in-game widgets when the Fugui replacement is not active.
+    /// </summary>
     public void ShowUI()
     {
+        // Camera presentations must not revive HUD widgets replaced by Fugui.
+        if (useFuguiHud)
+            return;
+
         foreach (var go in InGameUIElements)
-            gameObject.SetActive(true);
+            go.SetActive(true);
     }
 
+    /// <summary>
+    /// Hides retained in-game widgets without disabling the pause-menu controller.
+    /// </summary>
     public void HideUI()
     {
+        // Keep this MonoBehaviour alive because it still owns the transitional pause menu.
         foreach (var go in InGameUIElements)
-            gameObject.SetActive(false);
+            go.SetActive(false);
+    }
+
+    /// <summary>
+    /// Hands HUD rendering to Fugui while retaining legacy pause navigation temporarily.
+    /// </summary>
+    public void UseFuguiHud()
+    {
+        // The migration flag prevents later camera callbacks from restoring duplicate widgets.
+        useFuguiHud = true;
+        HideUI();
     }
 
     /// <summary>

@@ -13,27 +13,53 @@ namespace DodgeFromLight.Core.Replays
         private readonly List<PlayerCommand> _commands;
         private readonly IReadOnlyList<PlayerCommand> _commandsView;
         private readonly List<SimulationState> _states;
+        private readonly bool _canCreateReplay;
 
         public SimulationState CurrentState => _states[_states.Count - 1];
         public bool CanUndo => _commands.Count > 0;
+        public bool CanCreateReplay => _canCreateReplay;
         public IReadOnlyList<PlayerCommand> Commands => _commandsView;
 
         /// <summary>
         /// Creates a command history from a map's initial state.
         /// </summary>
         public SimulationHistory(MapDefinition map, SimulationEngine engine)
+            : this(SimulationState.CreateInitial(map), engine, true)
+        {
+            // Full-map histories can be exported as self-contained replays.
+        }
+
+        /// <summary>
+        /// Creates an undo history from an explicit restored state.
+        /// </summary>
+        public SimulationHistory(
+            SimulationState restoredState,
+            SimulationEngine engine)
+            : this(restoredState, engine, false)
+        {
+            // Restored histories lack the commands preceding their initial snapshot.
+        }
+
+        /// <summary>
+        /// Initializes history storage around one immutable starting snapshot.
+        /// </summary>
+        private SimulationHistory(
+            SimulationState initialState,
+            SimulationEngine engine,
+            bool canCreateReplay)
         {
             // Retain immutable states so undo never reconstructs partial mutable objects.
-            if (map == null)
-                throw new ArgumentNullException(nameof(map));
+            if (initialState == null)
+                throw new ArgumentNullException(nameof(initialState));
 
             _engine = engine ?? throw new ArgumentNullException(nameof(engine));
             _commands = new List<PlayerCommand>();
             _commandsView = new ReadOnlyCollection<PlayerCommand>(_commands);
             _states = new List<SimulationState>
             {
-                SimulationState.CreateInitial(map)
+                initialState
             };
+            _canCreateReplay = canCreateReplay;
         }
 
         /// <summary>
@@ -76,6 +102,12 @@ namespace DodgeFromLight.Core.Replays
         public ReplayDefinition CreateReplay()
         {
             // Bind the replay to the exact map, ruleset, and final state hash.
+            if (!CanCreateReplay)
+            {
+                throw new InvalidOperationException(
+                    "A history restored from a checkpoint cannot create a full-map replay.");
+            }
+
             return new ReplayDefinition(
                 CurrentState.Map.MapId,
                 CurrentState.Map.RevisionId,

@@ -2,7 +2,9 @@
   <Project Path="DodgeFromLight.Infrastructure.Maps.csproj" />
   <Project Path="DodgeFromLight.Unity.csproj" />
   <Project Path="DodgeFromLight.Core.csproj" />
+  <Project Path="DodgeFromLight.FuguiUI.csproj" />
   <Project Path="DodgeFromLight.Core.Tests.csproj" />
+  <Project Path="DodgeFromLight.Application.csproj" />
   <Project Path="DodgeFromLight.Unity.HsvPickerEditor.csproj" />
   <Project Path="Unity.Nuget.NewtonsoftJson.EditorTests.csproj" />
   <Project Path="DodgeFromLight.Unity.CfxEditor.csproj" />

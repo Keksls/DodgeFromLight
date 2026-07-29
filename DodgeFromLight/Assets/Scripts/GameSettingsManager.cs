@@ -257,12 +257,24 @@ public class GameSettingsManager : MonoBehaviour
         File.WriteAllText(settingsPath, json);
     }
 
+    /// <summary>
+    /// Loads persisted settings and adds defaults introduced by newer versions.
+    /// </summary>
     public void LoadSettings()
     {
+        // Missing files are initialized before the normalized settings are read back.
         if (!File.Exists(settingsPath))
             CreateDefaultSettings();
         CurrentSettings = JsonConvert.DeserializeObject<GameSettings>(File.ReadAllText(settingsPath));
         CurrentSettings.Inputs.Initialize();
+        if (CurrentSettings.Inputs.EnsureInput(
+                InputSettingsType.Undo,
+                KeyCode.Z,
+                true,
+                false))
+        {
+            SaveSettings();
+        }
     }
 
     /// <summary>
@@ -281,9 +293,12 @@ public class GameSettingsManager : MonoBehaviour
         CurrentSettings.Graphics.VSync = true;
     }
 
+    /// <summary>
+    /// Creates the complete default keyboard bindings for a new local profile.
+    /// </summary>
     public void CreateDefaultInputSettings()
     {
-        // default input settings
+        // Keep the established AZERTY layout and use the conventional undo shortcut.
         CurrentSettings.Inputs = new InputSettings();
         CurrentSettings.Inputs.SetInput(InputSettingsType.Backward, KeyCode.S, false, false);
         CurrentSettings.Inputs.SetInput(InputSettingsType.Forward, KeyCode.Z, false, false);
@@ -300,6 +315,7 @@ public class GameSettingsManager : MonoBehaviour
         CurrentSettings.Inputs.SetInput(InputSettingsType.NextMap, KeyCode.N, false, false);
         CurrentSettings.Inputs.SetInput(InputSettingsType.TurnCameraLeft, KeyCode.Q, true, false);
         CurrentSettings.Inputs.SetInput(InputSettingsType.TurnCameraRight, KeyCode.D, true, false);
+        CurrentSettings.Inputs.SetInput(InputSettingsType.Undo, KeyCode.Z, true, false);
         CurrentSettings.Inputs.Initialize();
     }
 
@@ -391,6 +407,28 @@ public class InputSettings
         Initialize();
     }
 
+    /// <summary>
+    /// Adds a default binding only when persisted settings do not already define it.
+    /// </summary>
+    public bool EnsureInput(
+        InputSettingsType type,
+        KeyCode key,
+        bool ctrl,
+        bool shift)
+    {
+        // Settings migrations preserve every binding explicitly chosen by the player.
+        if (Inputs == null)
+            Inputs = new List<InputSettingsData>();
+        foreach (var input in Inputs)
+        {
+            if (input.Type == type)
+                return false;
+        }
+
+        SetInput(type, key, ctrl, shift);
+        return true;
+    }
+
     public void Remove(InputSettingsType type)
     {
         int toRem = -1;
@@ -479,5 +517,6 @@ public enum InputSettingsType
     RestartMap,
     NextMap,
     TurnCameraLeft,
-    TurnCameraRight
+    TurnCameraRight,
+    Undo
 }

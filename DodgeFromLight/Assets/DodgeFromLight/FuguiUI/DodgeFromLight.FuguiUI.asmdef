@@ -1,0 +1,17 @@
+{
+    "name": "DodgeFromLight.FuguiUI",
+    "rootNamespace": "DodgeFromLight.FuguiUI",
+    "references": [
+        "DodgeFromLight.Application",
+        "Fugui"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

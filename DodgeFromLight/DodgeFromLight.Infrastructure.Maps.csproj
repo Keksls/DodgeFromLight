@@ -67,7 +67,7 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Newtonsoft.Json">
-      <HintPath>Library\PackageCache\com.keksls.fugui@4c45601fa8b2\Runtime\Plugins\Newtonsoft.Json.dll</HintPath>
+      <HintPath>Library\PackageCache\com.keksls.fugui@2591cd1b867b\Runtime\Plugins\Newtonsoft.Json.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEditor.iOS.Extensions.Xcode">

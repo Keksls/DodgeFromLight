@@ -61,22 +61,22 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _AnimationSpeed: 0.015086207
+    - _AnimationSpeed: 0.017243518
     - _BumpScale: 1
-    - _Contrast: 0.375625
+    - _Contrast: 0.35410336
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
-    - _DustAmount: 0
+    - _DustAmount: 0.28448275
     - _Float7: 0.934
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
     - _Metallic: 0
     - _Mode: 0
-    - _Nebular1Strength: 0.18529412
+    - _Nebular1Strength: 0
     - _Nebular1scale: 1
-    - _Nebular2Strength: 0.45588234
+    - _Nebular2Strength: 1
     - _NumStars: 0.157
     - _OcclusionStrength: 1
     - _Parallax: 0.02
@@ -86,9 +86,9 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _SunHorirontal: 1
-    - _SunHorizontal: 1
-    - _SunIntensity: 25
-    - _SunUp: 0.3617648
+    - _SunHorizontal: 0.11207752
+    - _SunIntensity: 0.9390043
+    - _SunUp: 0.08622396
     - _Sunsize: 0
     - _UVSec: 0
     - _ZWrite: 1
@@ -98,14 +98,14 @@ Material:
     - _Color4: {r: 0.107794285, g: 0, b: 1, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _Nebular: {r: 0.245283, g: 0.08214667, b: 0.08214667, a: 0}
-    - _Nebular1ColorMain: {r: 0.7058824, g: 0.41480878, b: 0, a: 1}
-    - _Nebular1ColorMid: {r: 0.5764706, g: 0.4692499, b: 0.2627451, a: 1}
-    - _Nebular2Color1: {r: 0.6, g: 0.37376395, b: 0, a: 1}
-    - _Nebular2Color2: {r: 1, g: 0.63643074, b: 0.50196075, a: 1}
+    - _Nebular1ColorMain: {r: 0.47674417, g: 0.9505814, b: 1, a: 1}
+    - _Nebular1ColorMid: {r: 0.82431275, g: 0.37173635, b: 0.8758719, a: 1}
+    - _Nebular2Color1: {r: 0, g: 1, b: 0.983871, a: 1}
+    - _Nebular2Color2: {r: 0.6292358, g: 0, b: 0.80029047, a: 1}
     - _StarColor: {r: 1, g: 0, b: 0, a: 0}
     - _StarColor1: {r: 1, g: 0.28026652, b: 0, a: 1}
     - _StarColor2: {r: 0.52358484, g: 0.9075483, b: 1, a: 1}
-    - _SunColor: {r: 1, g: 0.48176342, b: 0, a: 1}
+    - _SunColor: {r: 1, g: 0.654902, b: 0, a: 1}
     - _SunPosition: {r: 1, g: 0.2, b: 1.1, a: 0}
     - _dNebular2Color1: {r: 0.08884287, g: 1, b: 0, a: 0}
     - _dNebular2Color2: {r: 0.8679245, g: 0.1269135, b: 0.7459093, a: 0}

@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Collections;
 using UnityEngine.SceneManagement;
 using Newtonsoft.Json;
+using GameSession = global::DodgeFromLight.Application.Game.GameSession;
+using GameSessionReadModel =
+    global::DodgeFromLight.Application.Game.GameSessionReadModel;
 using CellTypeIds = global::DodgeFromLight.Core.Model.CellTypeIds;
 using CoreDirection = global::DodgeFromLight.Core.Model.Direction;
 using CoreGridPosition = global::DodgeFromLight.Core.Model.GridPosition;
@@ -12,7 +15,6 @@ using GearTypeIds = global::DodgeFromLight.Core.Model.GearTypeIds;
 using LegacyMapImporter = global::DodgeFromLight.Infrastructure.Maps.LegacyMapImporter;
 using PlacedObjectState = global::DodgeFromLight.Core.Model.PlacedObjectState;
 using PlayerCommand = global::DodgeFromLight.Core.Commands.PlayerCommand;
-using SimulationEngine = global::DodgeFromLight.Core.Simulation.SimulationEngine;
 using SimulationEvent = global::DodgeFromLight.Core.Events.SimulationEvent;
 using SimulationEventType = global::DodgeFromLight.Core.Events.SimulationEventType;
 using SimulationStatus = global::DodgeFromLight.Core.Model.SimulationStatus;
@@ -54,17 +56,24 @@ public class GameManager : MonoBehaviour
 
     public GameObject ItemPartPrefab;
 
-    private readonly SimulationEngine coreEngine = new SimulationEngine();
     private readonly Dictionary<string, GameObject> corePlacedObjectViews =
         new Dictionary<string, GameObject>();
-    private CoreSimulationState coreState;
+    private GameSession coreSession;
     private CoreGridPosition? pendingCoreCheckpoint;
     private bool coreCommandRunning;
     private bool wasTimerRunningBeforePause;
     private GameObject coreGrappleView;
     private CoreWeaponAnchorPresenter coreWeaponAnchorPresenter;
+    private string coreSourceGridJson;
+    private string coreSourceMapJson;
 
-    public bool UsesCoreSimulation => coreState != null;
+    private CoreSimulationState coreState => coreSession?.CurrentState;
+    public bool UsesCoreSimulation => coreSession != null;
+    public bool CanUseSoloHudActions =>
+        UsesCoreSimulation &&
+        !coreCommandRunning &&
+        !Paused &&
+        coreState.Status == SimulationStatus.Running;
 
     /// <summary>
     /// Registers the gameplay scene manager and its presentation debug callback.
@@ -141,10 +150,19 @@ public class GameManager : MonoBehaviour
     private void HandleCoreGlobalInput()
     {
         // Global actions remain available independently of the player-view input component.
+        if (GameContext.GameSettingsManager.GetInput(InputSettingsType.Undo).IsDown())
+        {
+            TryUndoLastCommand();
+            return;
+        }
+
         if (GameContext.GameSettingsManager.GetInput(InputSettingsType.RestartMap).IsDown())
         {
-            if (Input.GetKey(KeyCode.LeftControl))
+            if (Input.GetKey(KeyCode.LeftControl) ||
+                Input.GetKey(KeyCode.RightControl))
+            {
                 pendingCoreCheckpoint = null;
+            }
             RestartGrid();
             return;
         }
@@ -162,6 +180,173 @@ public class GameManager : MonoBehaviour
         {
             ExecuteCoreCommand(PlayerCommand.ActivateCheckpoint());
         }
+    }
+
+    /// <summary>
+    /// Restores the state preceding the latest accepted Core command.
+    /// </summary>
+    public bool TryUndoLastCommand()
+    {
+        // Terminal, paused, and animated states cannot be safely replaced mid-presentation.
+        if (!CanUseSoloHudActions ||
+            !coreSession.CanUndo)
+        {
+            return false;
+        }
+
+        if (!coreSession.TryUndo(out _))
+            return false;
+
+        coreCommandRunning = true;
+        NbTurn = coreState.TurnIndex;
+        DestroyCoreGrappleView();
+        ClearCoreWeaponAnchorPresentation();
+        RebuildCorePresentationFromSource();
+        coreCommandRunning = false;
+        return true;
+    }
+
+    /// <summary>
+    /// Restarts the current deterministic attempt when presentation is idle.
+    /// </summary>
+    public bool TryRestartCurrentRun()
+    {
+        // UI callers share the same animation and pause guard as undo.
+        if (!CanUseSoloHudActions)
+            return false;
+
+        RestartGrid();
+        return true;
+    }
+
+    /// <summary>
+    /// Gets the application-owned read model consumed by the solo HUD.
+    /// </summary>
+    public GameSessionReadModel GetSoloSessionReadModel()
+    {
+        // The Fugui bridge receives application data without reading Core fields itself.
+        return UsesCoreSimulation
+            ? coreSession.GetReadModel()
+            : null;
+    }
+
+    /// <summary>
+    /// Rebuilds every Unity view from the pristine authored map and current Core snapshot.
+    /// </summary>
+    private void RebuildCorePresentationFromSource()
+    {
+        // Undo never reverses individual VFX; it renders one complete authoritative snapshot.
+        if (string.IsNullOrWhiteSpace(coreSourceGridJson) ||
+            string.IsNullOrWhiteSpace(coreSourceMapJson))
+        {
+            Debug.LogError(
+                "Cannot rebuild the Core presentation because the source map snapshot is missing.");
+            return;
+        }
+
+        var sourceGrid = JsonConvert.DeserializeObject<Grid>(coreSourceGridJson);
+        var sourceMap = JsonConvert.DeserializeObject<Map>(coreSourceMapJson);
+        if (sourceGrid == null || sourceMap == null)
+        {
+            Debug.LogError(
+                "Cannot rebuild the Core presentation because the source map snapshot is invalid.");
+            return;
+        }
+
+        GameContext.CurrentMap = new FullMap(sourceGrid, sourceMap);
+        ApplyCoreBoardSnapshotToLegacyGrid(sourceGrid);
+        var checkpoint = coreState.Player.CheckpointPosition;
+        LastCheckPointReached = checkpoint.HasValue
+            ? sourceGrid.GetCell(checkpoint.Value.X, checkpoint.Value.Y)
+            : null;
+        GameContext.GridController.ClearGrid();
+        GameContext.GridController.DrawGrid(sourceGrid);
+        GameContext.GridController.SpawnEnnemies(sourceGrid, false);
+        GameContext.GridController.SpawnPlatforms(sourceGrid);
+        foreach (var enemy in GameContext.Ennemies)
+            enemy.enabled = false;
+        foreach (var platform in GameContext.MovingPlatforms)
+            platform.enabled = false;
+
+        Follower.Target = _playerController.transform;
+        ApplyCoreState(System.Array.Empty<SimulationEvent>());
+    }
+
+    /// <summary>
+    /// Projects persistent Core board mutations onto a fresh legacy grid used for rendering.
+    /// </summary>
+    private void ApplyCoreBoardSnapshotToLegacyGrid(Grid grid)
+    {
+        // Mutations are applied before drawing so removed objects never flash for one frame.
+        foreach (var position in coreState.Board.CollapsedCells)
+            MarkLegacyCellDestroyed(grid, position);
+        foreach (var bomb in coreState.Board.TimedBombs)
+        {
+            if (bomb.HasExploded)
+                MarkLegacyCellDestroyed(grid, bomb.Position);
+        }
+
+        foreach (var position in coreState.Board.RemovedGearCells)
+        {
+            var cell = grid.GetCell(position.X, position.Y);
+            if (cell != null)
+                cell.SetGear(GearType.None);
+        }
+
+        foreach (var position in coreState.Board.DestroyedElementCells)
+        {
+            RemoveLegacyElementFromGrid(
+                grid,
+                grid.GetCell(position.X, position.Y));
+        }
+    }
+
+    /// <summary>
+    /// Marks one fresh legacy cell as visually destroyed.
+    /// </summary>
+    private static void MarkLegacyCellDestroyed(
+        Grid grid,
+        CoreGridPosition position)
+    {
+        // The Core retains the original definition while the view uses a non-walkable tile.
+        var cell = grid.GetCell(position.X, position.Y);
+        if (cell == null)
+            return;
+
+        cell.SetType(CellType.NotWalkable);
+        cell.SetWalkable(false);
+    }
+
+    /// <summary>
+    /// Removes one authored decoration and its rotated footprint from a fresh legacy grid.
+    /// </summary>
+    private static void RemoveLegacyElementFromGrid(Grid grid, Cell anchorCell)
+    {
+        // Footprint reconstruction mirrors the retained authoring convention without firing VFX.
+        if (anchorCell == null || string.IsNullOrEmpty(anchorCell.ElementID))
+            return;
+
+        var resources = GameContext.Databases.ResourcesData;
+        if (resources.HasMapDeco(anchorCell.ElementID))
+        {
+            var decoration = resources.GetMapDeco(anchorCell.ElementID);
+            foreach (var unwalkable in decoration.UnWalkableCells)
+            {
+                var offset = Quaternion.Euler(
+                                 0f,
+                                 anchorCell.ElementOrientation,
+                                 0f) *
+                             new Vector3(unwalkable.X, 0f, unwalkable.Y);
+                var footprintCell = grid.GetCell(
+                    anchorCell.X + Mathf.RoundToInt(offset.x),
+                    anchorCell.Y + Mathf.RoundToInt(offset.z));
+                if (footprintCell != null)
+                    footprintCell.HasElement = false;
+            }
+        }
+
+        anchorCell.HasElement = false;
+        anchorCell.RemoveElement();
     }
 
     /// <summary>
@@ -190,7 +375,8 @@ public class GameManager : MonoBehaviour
             coreCommandRunning ||
             Paused ||
             coreState.Status != SimulationStatus.Running ||
-            Input.GetKey(KeyCode.LeftControl))
+            Input.GetKey(KeyCode.LeftControl) ||
+            Input.GetKey(KeyCode.RightControl))
         {
             return;
         }
@@ -338,7 +524,7 @@ public class GameManager : MonoBehaviour
             return;
 
         coreCommandRunning = true;
-        var result = coreEngine.Step(coreState, command);
+        var result = coreSession.Execute(command);
         if (!result.IsAccepted)
         {
             Debug.Log("Command rejected: " + result.RejectionReason);
@@ -347,7 +533,6 @@ public class GameManager : MonoBehaviour
         }
 
         StartTimer();
-        coreState = result.State;
         NbTurn = coreState.TurnIndex;
         StartCoroutine(PresentCoreCommand(result.Events));
     }
@@ -837,10 +1022,12 @@ public class GameManager : MonoBehaviour
     private void SetupCoreMap(FullMap map, bool animate)
     {
         // Import the in-memory source without mutating its authored StreamingAssets files.
+        coreSourceGridJson = JsonConvert.SerializeObject(map.Grid);
+        coreSourceMapJson = JsonConvert.SerializeObject(map.Map);
         var importer = new LegacyMapImporter();
         var import = importer.Import(
-            JsonConvert.SerializeObject(map.Grid),
-            JsonConvert.SerializeObject(map.Map),
+            coreSourceGridJson,
+            coreSourceMapJson,
             map.Map?.Name ?? "Local map");
         if (!import.IsSuccessful)
         {
@@ -853,10 +1040,13 @@ public class GameManager : MonoBehaviour
         }
 
         GameContext.CurrentMap = map;
-        coreState = CoreSimulationState.CreateInitial(import.Package.Map);
+        var initialCoreState =
+            CoreSimulationState.CreateInitial(import.Package.Map);
         var resumedCheckpoint = pendingCoreCheckpoint;
-        if (resumedCheckpoint.HasValue &&
-            coreState.Map.IsInside(resumedCheckpoint.Value))
+        var didResumeCheckpoint =
+            resumedCheckpoint.HasValue &&
+            initialCoreState.Map.IsInside(resumedCheckpoint.Value);
+        if (didResumeCheckpoint)
         {
             var initialPlayer = new CorePlayerState(
                 resumedCheckpoint.Value,
@@ -869,19 +1059,24 @@ public class GameManager : MonoBehaviour
                 null,
                 resumedCheckpoint.Value,
                 true);
-            coreState = new CoreSimulationState(
-                coreState.Map,
+            var restoredCoreState = new CoreSimulationState(
+                initialCoreState.Map,
                 initialPlayer,
-                coreState.Board,
-                coreState.Enemies,
-                coreState.MovingPlatforms,
-                coreState.Random,
+                initialCoreState.Board,
+                initialCoreState.Enemies,
+                initialCoreState.MovingPlatforms,
+                initialCoreState.Random,
                 0,
                 SimulationStatus.Running);
+            coreSession = new GameSession(restoredCoreState);
+        }
+        else
+        {
+            coreSession = new GameSession(import.Package.Map);
         }
 
         pendingCoreCheckpoint = null;
-        LastCheckPointReached = resumedCheckpoint.HasValue
+        LastCheckPointReached = didResumeCheckpoint
             ? map.Grid.GetCell(resumedCheckpoint.Value.X, resumedCheckpoint.Value.Y)
             : null;
         NbTurn = 0;
@@ -1108,13 +1303,13 @@ public class GameManager : MonoBehaviour
             view.transform.localEulerAngles =
                 GameContext.CurrentMap.Grid.GetOrientationVector(view.Orientation);
             view.CurrentPO = new List<CellPos>();
-            foreach (var dangerCell in coreEngine.GetEnemyDangerCells(coreState, index))
+            foreach (var dangerCell in coreSession.GetEnemyDangerCells(index))
                 view.CurrentPO.Add(new CellPos(dangerCell.X, dangerCell.Y));
             if (view is Gloutton gloutton)
             {
                 gloutton.AttractionPOCells = new List<CellPos>();
                 foreach (var effectCell in
-                         coreEngine.GetEnemySecondaryEffectCells(coreState, index))
+                         coreSession.GetEnemySecondaryEffectCells(index))
                 {
                     gloutton.AttractionPOCells.Add(
                         new CellPos(effectCell.X, effectCell.Y));
