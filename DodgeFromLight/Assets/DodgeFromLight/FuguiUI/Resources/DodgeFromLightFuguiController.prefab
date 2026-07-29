@@ -138,6 +138,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2932005272966750019}
   - component: {fileID: 2932005272966750016}
+  - component: {fileID: 7845437560097682548}
   m_Layer: 0
   m_Name: DodgeFromLightFuguiController
   m_TagString: Untagged
@@ -249,3 +250,16 @@ MonoBehaviour:
   _logErrors: 1
   _keepControllerBetweenScenes: 1
   _updateMode: 0
+--- !u!114 &7845437560097682548
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2932005272966750018}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: af70b540fccd4f51a30f0cf415625a32, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  _titleTexture: {fileID: 2800000, guid: f8bd04ee9744cb243b5d6201df2759c8, type: 3}

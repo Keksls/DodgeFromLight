@@ -6,7 +6,7 @@ using UnityEngine;
 namespace DodgeFromLight.FuguiUI.Screens
 {
     /// <summary>
-    /// Renders the main navigation screen on Fugui's foreground DrawList.
+    /// Renders the dark-fantasy main navigation screen on Fugui's foreground DrawList.
     /// </summary>
     public sealed class MainMenuPresenter : MonoBehaviour
     {
@@ -14,7 +14,9 @@ namespace DodgeFromLight.FuguiUI.Screens
 
         private MainMenuViewModel _viewModel;
         private FuContext _context;
+        private DarkFantasyUiAssets _assets;
         private int _selection;
+        private bool _ownsSkin;
 
         #region Lifecycle
 
@@ -24,11 +26,22 @@ namespace DodgeFromLight.FuguiUI.Screens
         public bool Initialize(MainMenuViewModel viewModel)
         {
             // The scene bootstrap owns the single valid runtime initialization path.
-            if (viewModel == null || !Fugui.IsInitialized || Fugui.DefaultContext == null)
+            if (viewModel == null ||
+                !Fugui.IsInitialized ||
+                Fugui.DefaultContext == null)
+            {
                 return false;
+            }
 
             _viewModel = viewModel;
             _context = Fugui.DefaultContext;
+            _assets = FindFirstObjectByType<DarkFantasyUiAssets>();
+            if (!_ownsSkin)
+            {
+                DrawListUi.AcquireSkin();
+                _ownsSkin = true;
+            }
+
             _context.OnRender -= Render;
             _context.OnRender += Render;
             return true;
@@ -64,7 +77,7 @@ namespace DodgeFromLight.FuguiUI.Screens
         }
 
         /// <summary>
-        /// Releases the Main context render subscription when the menu scene is destroyed.
+        /// Releases render and dark-fantasy material resources when the menu scene is destroyed.
         /// </summary>
         private void OnDestroy()
         {
@@ -72,6 +85,12 @@ namespace DodgeFromLight.FuguiUI.Screens
             if (_context != null)
                 _context.OnRender -= Render;
             _context = null;
+
+            if (!_ownsSkin)
+                return;
+
+            DrawListUi.ReleaseSkin();
+            _ownsSkin = false;
         }
 
         #endregion
@@ -83,76 +102,136 @@ namespace DodgeFromLight.FuguiUI.Screens
         /// </summary>
         private void Render()
         {
-            // The 3D menu environment remains visible behind a focused translucent navigation rail.
+            // The 3D menu environment remains visible beyond a focused forged navigation rail.
             if (_viewModel == null || Fugui.CurrentContext != _context)
                 return;
 
             FuDrawList drawList = Fugui.GetForegroundDrawList();
             Vector2 screenSize = DrawListUi.GetScreenSize();
             float scale = DrawListUi.GetScale();
-            DrawBackdrop(drawList, screenSize);
-            DrawHeader(drawList, screenSize, scale);
-            DrawNavigation(drawList, screenSize, scale);
-            DrawFooter(drawList, screenSize, scale);
+            DrawListUi.DrawAtmosphere(drawList, screenSize);
+
+            Rect rail = GetNavigationRail(screenSize, scale);
+            DrawListUi.DrawPanel(
+                drawList,
+                rail,
+                DrawListUi.Accent,
+                true);
+            DrawHeader(drawList, rail, scale);
+            DrawNavigation(drawList, rail, scale);
+            DrawFooter(drawList, rail, scale);
 
             if (_viewModel.IsTransitioning())
                 DrawTransitionState(drawList, screenSize, scale);
         }
 
         /// <summary>
-        /// Draws the left-to-right readability gradient over the 3D menu environment.
+        /// Computes the responsive forged navigation rail.
         /// </summary>
-        private static void DrawBackdrop(FuDrawList drawList, Vector2 screenSize)
-        {
-            // A DrawList gradient preserves the animated environment without sacrificing contrast.
-            float width = screenSize.x * 0.66f;
-            uint strong = Fugui.GetColorU32(new Color(0.012f, 0.018f, 0.024f, 0.96f));
-            uint clear = Fugui.GetColorU32(new Color(0.012f, 0.018f, 0.024f, 0f));
-            drawList.AddRectFilledMultiColor(
-                Vector2.zero,
-                new Vector2(width, screenSize.y),
-                strong,
-                clear,
-                clear,
-                strong);
-        }
-
-        /// <summary>
-        /// Draws the game title and positioning statement.
-        /// </summary>
-        private static void DrawHeader(
-            FuDrawList drawList,
+        /// <param name="screenSize">Current Fugui container size.</param>
+        /// <param name="scale">Current Fugui layout scale.</param>
+        /// <returns>Navigation rail bounds in screen coordinates.</returns>
+        private static Rect GetNavigationRail(
             Vector2 screenSize,
             float scale)
         {
-            // Text hierarchy is built with configured Fugui fonts rather than TextMeshPro objects.
-            Vector2 origin = new Vector2(
-                Mathf.Max(54f * scale, screenSize.x * 0.055f),
-                Mathf.Max(54f * scale, screenSize.y * 0.075f));
+            // Width is capped so ultrawide layouts preserve a large view of the 3D scene.
+            float margin = Mathf.Max(22f * scale, screenSize.y * 0.028f);
+            float width = Mathf.Min(
+                570f * scale,
+                screenSize.x * 0.46f);
+            return new Rect(
+                margin,
+                margin,
+                width,
+                screenSize.y - margin * 2f);
+        }
+
+        /// <summary>
+        /// Draws the authored logo, positioning statement, and ornamental title rule.
+        /// </summary>
+        private void DrawHeader(
+            FuDrawList drawList,
+            Rect rail,
+            float scale)
+        {
+            // The original title artwork remains the strongest piece of established visual identity.
+            Vector2 origin =
+                rail.position + new Vector2(38f, 42f) * scale;
             DrawListUi.DrawText(
                 drawList,
                 origin,
-                "DODGE FROM LIGHT",
-                DrawListUi.TextPrimary,
-                20,
-                FontType.Bold);
-            DrawListUi.DrawText(
-                drawList,
-                origin + new Vector2(0f, 38f) * scale,
-                "Puzzle tactique · optimise chaque mouvement",
-                DrawListUi.TextSecondary,
-                14);
-            drawList.AddRectFilledMultiColor(
-                origin + new Vector2(0f, 72f) * scale,
-                origin + new Vector2(420f, 75f) * scale,
-                Fugui.GetColorU32(DrawListUi.Accent),
-                Fugui.GetColorU32(new Color(
+                "L'ÉPREUVE VOUS ATTEND",
+                new Color(
                     DrawListUi.Accent.r,
                     DrawListUi.Accent.g,
                     DrawListUi.Accent.b,
-                    0f)),
-                0,
-                Fugui.GetColorU32(DrawListUi.Accent));
+                    0.82f),
+                11,
+                FontType.Bold);
+
+            float logoWidth = rail.width - 76f * scale;
+            float logoHeight = logoWidth * 243f / 2048f;
+            Rect logoRect = new Rect(
+                origin.x,
+                origin.y + 27f * scale,
+                logoWidth,
+                logoHeight);
+            if (_assets != null && _assets.TitleTexture != null)
+            {
+                Rect shadowRect = new Rect(
+                    logoRect.x + 4f * scale,
+                    logoRect.y + 5f * scale,
+                    logoRect.width,
+                    logoRect.height);
+                drawList.AddImage(
+                    _assets.TitleTexture,
+                    shadowRect.min,
+                    shadowRect.max,
+                    new Vector4(0f, 0f, 0f, 0.82f));
+                drawList.AddImage(
+                    _assets.TitleTexture,
+                    logoRect.min,
+                    logoRect.max,
+                    Vector4.one);
+            }
+            else
+            {
+                DrawListUi.DrawText(
+                    drawList,
+                    logoRect.position,
+                    "DODGE FROM LIGHT",
+                    DrawListUi.AccentBright,
+                    20,
+                    FontType.Bold);
+            }
+
+            float dividerY = logoRect.yMax + 23f * scale;
+            DrawListUi.DrawDivider(
+                drawList,
+                new Vector2(rail.center.x, dividerY),
+                logoWidth,
+                DrawListUi.Accent,
+                0.7f);
+            DrawListUi.DrawCenteredText(
+                drawList,
+                new Vector2(
+                    rail.x + 28f * scale,
+                    dividerY + 19f * scale),
+                rail.width - 56f * scale,
+                "PUZZLE TACTIQUE  •  MAÎTRISE  •  PRÉCISION",
+                DrawListUi.TextPrimary,
+                12,
+                FontType.Bold);
+            DrawListUi.DrawCenteredText(
+                drawList,
+                new Vector2(
+                    rail.x + 28f * scale,
+                    dividerY + 43f * scale),
+                rail.width - 56f * scale,
+                "Chaque mouvement peut être le dernier.",
+                DrawListUi.TextSecondary,
+                12);
         }
 
         /// <summary>
@@ -160,48 +239,66 @@ namespace DodgeFromLight.FuguiUI.Screens
         /// </summary>
         private void DrawNavigation(
             FuDrawList drawList,
-            Vector2 screenSize,
+            Rect rail,
             float scale)
         {
-            // Stable vertical placement makes the menu readable on ultrawide and standard displays.
-            float x = Mathf.Max(54f * scale, screenSize.x * 0.055f);
-            float width = Mathf.Min(460f * scale, screenSize.x * 0.42f);
-            float height = 60f * scale;
-            float gap = 14f * scale;
-            float totalHeight = MenuItemCount * height + (MenuItemCount - 1) * gap;
-            float y = Mathf.Max(190f * scale, (screenSize.y - totalHeight) * 0.52f);
+            // The first action is deliberately dominant while secondary routes remain visually coherent.
+            float x = rail.x + 38f * scale;
+            float width = rail.width - 76f * scale;
+            float height = 58f * scale;
+            float gap = 12f * scale;
+            float y = rail.y + Mathf.Max(
+                245f * scale,
+                rail.height * 0.31f);
             bool transitioning = _viewModel.IsTransitioning();
 
+            DrawListUi.DrawSectionLabel(
+                drawList,
+                new Vector2(x, y - 31f * scale),
+                width,
+                "ENTRER DANS L'ÉPREUVE",
+                DrawListUi.Accent);
+
+            Rect playRect = new Rect(
+                x,
+                y,
+                width,
+                64f * scale);
+            UpdateMouseSelection(playRect, 0, true);
             if (DrawListUi.DrawButton(
                     drawList,
-                    new Rect(x, y, width, height),
+                    playRect,
                     _viewModel.GetPlayLabel(),
                     "Entrée",
-                    DrawListUi.Success,
+                    DrawListUi.AccentBright,
                     !transitioning,
                     _selection == 0))
             {
                 _viewModel.TryPlay();
             }
 
-            y += height + gap;
+            y += 64f * scale + gap;
             bool editorAvailable = _viewModel.CanOpenMapEditor();
+            Rect editorRect = new Rect(x, y, width, height);
+            UpdateMouseSelection(editorRect, 1, editorAvailable);
             if (DrawListUi.DrawButton(
                     drawList,
-                    new Rect(x, y, width, height),
+                    editorRect,
                     "Créateur de cartes",
-                    editorAvailable ? string.Empty : "Tutoriel requis",
-                    new Color(0.38f, 0.76f, 1f, 1f),
-                    editorAvailable,
+                    editorAvailable ? string.Empty : "Verrouillé",
+                    DrawListUi.Steel,
+                    editorAvailable && !transitioning,
                     _selection == 1))
             {
                 _viewModel.TryOpenMapEditor();
             }
 
             y += height + gap;
+            Rect campaignRect = new Rect(x, y, width, height);
+            UpdateMouseSelection(campaignRect, 2, true);
             if (DrawListUi.DrawButton(
                     drawList,
-                    new Rect(x, y, width, height),
+                    campaignRect,
                     "Campagne",
                     string.Empty,
                     DrawListUi.Accent,
@@ -212,9 +309,11 @@ namespace DodgeFromLight.FuguiUI.Screens
             }
 
             y += height + gap;
+            Rect quitRect = new Rect(x, y, width, height);
+            UpdateMouseSelection(quitRect, 3, true);
             if (DrawListUi.DrawButton(
                     drawList,
-                    new Rect(x, y, width, height),
+                    quitRect,
                     "Quitter",
                     string.Empty,
                     DrawListUi.Danger,
@@ -226,72 +325,139 @@ namespace DodgeFromLight.FuguiUI.Screens
 
             if (!editorAvailable && !_viewModel.HasFinishedTutorial())
             {
-                DrawListUi.DrawText(
+                Rect lockPlate = new Rect(
+                    x,
+                    y + height + 18f * scale,
+                    width,
+                    44f * scale);
+                DrawListUi.DrawPlate(
                     drawList,
-                    new Vector2(x, y + height + 24f * scale),
-                    "Termine le tutoriel pour débloquer le créateur de cartes.",
+                    lockPlate,
+                    DrawListUi.Steel);
+                DrawListUi.DrawCenteredText(
+                    drawList,
+                    new Vector2(
+                        lockPlate.x,
+                        lockPlate.y + 14f * scale),
+                    lockPlate.width,
+                    "Termine le tutoriel pour ouvrir le créateur.",
                     DrawListUi.TextSecondary,
-                    12);
+                    11);
             }
         }
 
         /// <summary>
-        /// Draws version and input guidance at the bottom of the screen.
+        /// Draws version and input guidance at the bottom of the forged rail.
         /// </summary>
         private void DrawFooter(
             FuDrawList drawList,
-            Vector2 screenSize,
+            Rect rail,
             float scale)
         {
-            // Footer text remains deliberately quiet beneath the primary navigation.
+            // Footer information sits below a quiet divider and never competes with navigation.
+            float dividerY = rail.yMax - 72f * scale;
+            DrawListUi.DrawDivider(
+                drawList,
+                new Vector2(rail.center.x, dividerY),
+                rail.width - 76f * scale,
+                DrawListUi.Accent,
+                0.34f);
+
             Vector2 position = new Vector2(
-                Mathf.Max(54f * scale, screenSize.x * 0.055f),
-                screenSize.y - 52f * scale);
+                rail.x + 38f * scale,
+                dividerY + 24f * scale);
             DrawListUi.DrawText(
                 drawList,
                 position,
                 _viewModel.VersionLabel,
                 DrawListUi.TextSecondary,
-                12);
+                10,
+                FontType.Bold);
+            string controls = "↑  ↓  NAVIGUER    •    ENTRÉE  VALIDER";
+            Vector2 controlsSize =
+                DrawListUi.MeasureText(controls, 10, FontType.Bold);
             DrawListUi.DrawText(
                 drawList,
-                position + new Vector2(120f, 0f) * scale,
-                "↑ ↓ naviguer · Entrée valider",
+                new Vector2(
+                    rail.xMax - 38f * scale - controlsSize.x,
+                    position.y),
+                controls,
                 new Color(
                     DrawListUi.TextSecondary.r,
                     DrawListUi.TextSecondary.g,
                     DrawListUi.TextSecondary.b,
-                    0.7f),
-                12);
+                    0.72f),
+                10,
+                FontType.Bold);
         }
 
         /// <summary>
-        /// Draws a compact modal indicator while an authored scene transition plays.
+        /// Draws an ornate modal indicator while an authored scene transition plays.
         /// </summary>
         private static void DrawTransitionState(
             FuDrawList drawList,
             Vector2 screenSize,
             float scale)
         {
-            // The overlay blocks ambiguous repeated navigation while keeping the environment visible.
-            DrawListUi.DrawScrim(drawList, screenSize, 0.36f);
+            // The ritual emblem communicates progress while repeated navigation is blocked.
+            DrawListUi.DrawScrim(drawList, screenSize, 0.64f);
             Rect panel = DrawListUi.CenterRect(
                 screenSize,
-                new Vector2(360f, 92f) * scale);
-            DrawListUi.DrawPanel(drawList, panel, DrawListUi.Accent, true);
-            DrawListUi.DrawCenteredText(
+                new Vector2(420f, 174f) * scale);
+            DrawListUi.DrawPanel(
                 drawList,
-                new Vector2(panel.x, panel.y + 35f * scale),
-                panel.width,
-                "CHARGEMENT…",
+                panel,
+                DrawListUi.Accent,
+                true);
+
+            float phase = Mathf.Repeat(
+                Time.unscaledTime * 0.11f,
+                1f);
+            DrawListUi.DrawRuneEmblem(
+                drawList,
+                new Vector2(
+                    panel.x + 67f * scale,
+                    panel.center.y),
+                27f * scale,
+                DrawListUi.Accent,
+                phase);
+            DrawListUi.DrawText(
+                drawList,
+                panel.position + new Vector2(122f, 55f) * scale,
+                "CHARGEMENT",
                 DrawListUi.TextPrimary,
                 16,
                 FontType.Bold);
+            DrawListUi.DrawText(
+                drawList,
+                panel.position + new Vector2(122f, 87f) * scale,
+                "Les ombres se rassemblent…",
+                DrawListUi.TextSecondary,
+                12);
         }
 
         #endregion
 
-        #region Keyboard navigation
+        #region Navigation
+
+        /// <summary>
+        /// Moves keyboard focus to a menu entry hovered by the pointer.
+        /// </summary>
+        /// <param name="rect">Candidate menu entry bounds.</param>
+        /// <param name="index">Candidate selection index.</param>
+        /// <param name="enabled">Whether the candidate can receive focus.</param>
+        private void UpdateMouseSelection(
+            Rect rect,
+            int index,
+            bool enabled)
+        {
+            // Pointer and keyboard focus share one highlight to avoid displaying two active choices.
+            if (enabled &&
+                rect.Contains(Fugui.DefaultContainer.Mouse.Position))
+            {
+                _selection = index;
+            }
+        }
 
         /// <summary>
         /// Moves the keyboard selection to the next enabled menu entry.
@@ -302,7 +468,8 @@ namespace DodgeFromLight.FuguiUI.Screens
             for (int attempt = 0; attempt < MenuItemCount; attempt++)
             {
                 _selection =
-                    (_selection + direction + MenuItemCount) % MenuItemCount;
+                    (_selection + direction + MenuItemCount) %
+                    MenuItemCount;
                 if (_selection != 1 || _viewModel.CanOpenMapEditor())
                     return;
             }

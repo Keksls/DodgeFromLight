@@ -16,6 +16,7 @@ namespace DodgeFromLight.FuguiUI.Screens
         private int _pauseSelection;
         private int _resultSelection;
         private bool _wasPaused;
+        private bool _ownsSkin;
         private GameSessionStatus _previousStatus = GameSessionStatus.Running;
 
         #region Lifecycle
@@ -31,6 +32,12 @@ namespace DodgeFromLight.FuguiUI.Screens
 
             _viewModel = viewModel;
             _context = Fugui.DefaultContext;
+            if (!_ownsSkin)
+            {
+                DrawListUi.AcquireSkin();
+                _ownsSkin = true;
+            }
+
             _context.OnRender -= Render;
             _context.OnRender += Render;
             return true;
@@ -70,7 +77,7 @@ namespace DodgeFromLight.FuguiUI.Screens
         }
 
         /// <summary>
-        /// Releases the Main context render subscription when the gameplay scene is destroyed.
+        /// Releases the render subscription and shared dark-fantasy skin when gameplay is destroyed.
         /// </summary>
         private void OnDestroy()
         {
@@ -78,6 +85,12 @@ namespace DodgeFromLight.FuguiUI.Screens
             if (_context != null)
                 _context.OnRender -= Render;
             _context = null;
+
+            if (!_ownsSkin)
+                return;
+
+            DrawListUi.ReleaseSkin();
+            _ownsSkin = false;
         }
 
         /// <summary>
@@ -151,52 +164,88 @@ namespace DodgeFromLight.FuguiUI.Screens
                 (state.InvisibilityTurns > 0 ? 1 : 0) +
                 (state.TimeStopTurns > 0 ? 1 : 0) +
                 (state.SpeedBoostTurns > 0 ? 1 : 0);
-            float panelHeight = (effectCount > 0 ? 150f : 116f) * scale;
-            Rect panel = new Rect(margin, margin, 390f * scale, panelHeight);
+            float panelHeight = (effectCount > 0 ? 174f : 138f) * scale;
+            Rect panel = new Rect(
+                margin,
+                margin,
+                420f * scale,
+                panelHeight);
             DrawListUi.DrawPanel(drawList, panel, DrawListUi.Accent);
 
             string mapTitle = string.IsNullOrWhiteSpace(state.MapTitle)
                 ? state.MapId
                 : state.MapTitle;
-            Vector2 content = panel.position + new Vector2(20f, 18f) * scale;
-            DrawListUi.DrawText(
+            Vector2 content =
+                panel.position + new Vector2(22f, 17f) * scale;
+            DrawListUi.DrawSectionLabel(
                 drawList,
                 content,
+                panel.width - 44f * scale,
+                "CHRONIQUE DE L'ÉPREUVE",
+                DrawListUi.Accent);
+            DrawListUi.DrawText(
+                drawList,
+                content + new Vector2(0f, 28f) * scale,
                 mapTitle,
                 DrawListUi.TextPrimary,
-                18,
+                17,
                 FontType.Bold);
+
+            Rect turnPlate = new Rect(
+                content.x,
+                content.y + 61f * scale,
+                104f * scale,
+                38f * scale);
+            DrawListUi.DrawPlate(
+                drawList,
+                turnPlate,
+                DrawListUi.Accent);
             DrawListUi.DrawText(
                 drawList,
-                content + new Vector2(0f, 34f) * scale,
+                new Vector2(
+                    turnPlate.x + 13f * scale,
+                    turnPlate.y + 11f * scale),
                 "TOUR " + state.TurnIndex,
                 DrawListUi.TextSecondary,
-                12,
+                11,
                 FontType.Bold);
+
+            Rect timePlate = new Rect(
+                content.x + 116f * scale,
+                content.y + 61f * scale,
+                150f * scale,
+                38f * scale);
+            DrawListUi.DrawPlate(
+                drawList,
+                timePlate,
+                DrawListUi.Accent,
+                true);
             DrawListUi.DrawText(
                 drawList,
-                content + new Vector2(126f, 29f) * scale,
+                new Vector2(
+                    timePlate.x + 13f * scale,
+                    timePlate.y + 8f * scale),
                 _viewModel.GetElapsedLabel(),
-                DrawListUi.TextPrimary,
-                18,
+                DrawListUi.AccentBright,
+                16,
                 FontType.Bold);
             drawList.AddCircleFilled(
-                content + new Vector2(6f, 72f) * scale,
-                4f * scale,
+                content + new Vector2(287f, 80f) * scale,
+                3.5f * scale,
                 DrawListUi.Success);
             DrawListUi.DrawText(
                 drawList,
-                content + new Vector2(18f, 64f) * scale,
-                "TENTATIVE EN COURS",
+                content + new Vector2(299f, 73f) * scale,
+                "EN COURS",
                 DrawListUi.TextSecondary,
-                12,
+                10,
                 FontType.Bold);
 
             if (effectCount > 0)
             {
                 DrawActiveEffects(
                     drawList,
-                    content + new Vector2(0f, 94f) * scale,
+                    content + new Vector2(0f, 115f) * scale,
                     state,
                     scale);
             }
@@ -219,7 +268,7 @@ namespace DodgeFromLight.FuguiUI.Screens
                     drawList,
                     new Vector2(x, position.y),
                     "INVISIBLE · " + state.InvisibilityTurns,
-                    new Color(0.64f, 0.7f, 1f, 1f)) + 8f * scale;
+                    DrawListUi.Steel) + 8f * scale;
             }
 
             if (state.TimeStopTurns > 0)
@@ -228,7 +277,7 @@ namespace DodgeFromLight.FuguiUI.Screens
                     drawList,
                     new Vector2(x, position.y),
                     "TEMPS · " + state.TimeStopTurns,
-                    new Color(0.52f, 0.9f, 1f, 1f)) + 8f * scale;
+                    DrawListUi.Accent) + 8f * scale;
             }
 
             if (state.SpeedBoostTurns > 0)
@@ -254,26 +303,28 @@ namespace DodgeFromLight.FuguiUI.Screens
             // Inventory slots remain readable without obscuring the center of the puzzle.
             Rect panel = new Rect(
                 margin,
-                screenSize.y - margin - 132f * scale,
-                390f * scale,
-                132f * scale);
-            DrawListUi.DrawPanel(drawList, panel, new Color(0.38f, 0.76f, 1f, 1f));
-            DrawListUi.DrawText(
+                screenSize.y - margin - 146f * scale,
+                420f * scale,
+                146f * scale);
+            DrawListUi.DrawPanel(
                 drawList,
-                panel.position + new Vector2(18f, 14f) * scale,
+                panel,
+                DrawListUi.Steel);
+            DrawListUi.DrawSectionLabel(
+                drawList,
+                panel.position + new Vector2(20f, 17f) * scale,
+                panel.width - 40f * scale,
                 "ÉQUIPEMENT",
-                DrawListUi.TextSecondary,
-                12,
-                FontType.Bold);
+                DrawListUi.Steel);
             DrawGearSlot(
                 drawList,
-                panel.position + new Vector2(18f, 42f) * scale,
+                panel.position + new Vector2(20f, 46f) * scale,
                 _viewModel.GearSlotOneBinding,
                 _viewModel.GetGearLabel(state.GearSlotOne),
                 scale);
             DrawGearSlot(
                 drawList,
-                panel.position + new Vector2(18f, 84f) * scale,
+                panel.position + new Vector2(20f, 91f) * scale,
                 _viewModel.GearSlotTwoBinding,
                 _viewModel.GetGearLabel(state.GearSlotTwo),
                 scale);
@@ -289,17 +340,27 @@ namespace DodgeFromLight.FuguiUI.Screens
             string gearLabel,
             float scale)
         {
-            // A compact key tile visually separates the action binding from the gear name.
-            Rect keyRect = new Rect(position, new Vector2(54f, 30f) * scale);
+            // A recessed row and compact key tile separate the binding from the equipped gear.
+            Rect slotRect = new Rect(
+                position,
+                new Vector2(380f, 36f) * scale);
+            DrawListUi.DrawPlate(
+                drawList,
+                slotRect,
+                DrawListUi.Steel,
+                gearLabel != "Vide");
+            Rect keyRect = new Rect(
+                position + new Vector2(3f, 3f) * scale,
+                new Vector2(54f, 30f) * scale);
             DrawListUi.DrawKey(drawList, keyRect, binding, false);
             DrawListUi.DrawText(
                 drawList,
-                position + new Vector2(70f, 6f) * scale,
+                position + new Vector2(72f, 9f) * scale,
                 gearLabel,
                 gearLabel == "Vide"
                     ? DrawListUi.TextSecondary
                     : DrawListUi.TextPrimary,
-                14,
+                13,
                 gearLabel == "Vide" ? FontType.Regular : FontType.Bold);
         }
 
@@ -344,7 +405,7 @@ namespace DodgeFromLight.FuguiUI.Screens
                     undoRect,
                     "Annuler",
                     _viewModel.UndoBinding,
-                    new Color(0.38f, 0.76f, 1f, 1f),
+                    DrawListUi.Steel,
                     _viewModel.CanUndo(state)))
             {
                 _viewModel.TryUndo();
@@ -438,14 +499,16 @@ namespace DodgeFromLight.FuguiUI.Screens
                 screenSize.y - margin - 126f * scale,
                 560f * scale,
                 126f * scale);
-            DrawListUi.DrawPanel(drawList, panel, new Color(0.38f, 0.76f, 1f, 1f));
-            DrawListUi.DrawText(
+            DrawListUi.DrawPanel(
+                drawList,
+                panel,
+                DrawListUi.Steel);
+            DrawListUi.DrawSectionLabel(
                 drawList,
                 panel.position + new Vector2(18f, 14f) * scale,
+                panel.width - 36f * scale,
                 "GUIDE TUTORIEL",
-                DrawListUi.TextSecondary,
-                12,
-                FontType.Bold);
+                DrawListUi.Steel);
 
             SoloMovementInputState input = _viewModel.GetMovementInputState();
             float keyY = panel.y + 46f * scale;
@@ -505,12 +568,12 @@ namespace DodgeFromLight.FuguiUI.Screens
         {
             // Results separate deterministic action count from active execution time.
             float scale = DrawListUi.GetScale();
-            DrawListUi.DrawScrim(drawList, screenSize, 0.76f);
+            DrawListUi.DrawScrim(drawList, screenSize, 0.8f);
             Rect panel = DrawListUi.CenterRect(
                 screenSize,
-                new Vector2(540f, 450f) * scale);
+                new Vector2(560f, 520f) * scale);
             Color accent = state.Status == GameSessionStatus.Won
-                ? DrawListUi.Success
+                ? DrawListUi.AccentBright
                 : DrawListUi.Danger;
             DrawListUi.DrawPanel(drawList, panel, accent, true);
 
@@ -520,9 +583,17 @@ namespace DodgeFromLight.FuguiUI.Screens
             string mapTitle = string.IsNullOrWhiteSpace(state.MapTitle)
                 ? state.MapId
                 : state.MapTitle;
+            DrawListUi.DrawRuneEmblem(
+                drawList,
+                new Vector2(panel.center.x, panel.y + 49f * scale),
+                22f * scale,
+                accent,
+                state.Status == GameSessionStatus.Won
+                    ? 0.125f
+                    : 0f);
             DrawListUi.DrawCenteredText(
                 drawList,
-                new Vector2(panel.x, panel.y + 34f * scale),
+                new Vector2(panel.x, panel.y + 88f * scale),
                 panel.width,
                 title,
                 accent,
@@ -530,18 +601,26 @@ namespace DodgeFromLight.FuguiUI.Screens
                 FontType.Bold);
             DrawListUi.DrawCenteredText(
                 drawList,
-                new Vector2(panel.x, panel.y + 72f * scale),
+                new Vector2(panel.x, panel.y + 121f * scale),
                 panel.width,
                 mapTitle,
                 DrawListUi.TextSecondary,
                 14);
+            DrawListUi.DrawDivider(
+                drawList,
+                new Vector2(
+                    panel.center.x,
+                    panel.y + 153f * scale),
+                panel.width - 80f * scale,
+                accent,
+                0.58f);
 
             DrawMetric(
                 drawList,
                 new Rect(
                     panel.x + 34f * scale,
-                    panel.y + 112f * scale,
-                    222f * scale,
+                    panel.y + 176f * scale,
+                    232f * scale,
                     82f * scale),
                 "ACTIONS",
                 state.TurnIndex.ToString(),
@@ -550,9 +629,9 @@ namespace DodgeFromLight.FuguiUI.Screens
             DrawMetric(
                 drawList,
                 new Rect(
-                    panel.x + 284f * scale,
-                    panel.y + 112f * scale,
-                    222f * scale,
+                    panel.x + 294f * scale,
+                    panel.y + 176f * scale,
+                    232f * scale,
                     82f * scale),
                 "TEMPS ACTIF",
                 _viewModel.GetElapsedLabel(),
@@ -562,7 +641,7 @@ namespace DodgeFromLight.FuguiUI.Screens
             float buttonX = panel.x + 34f * scale;
             float buttonWidth = panel.width - 68f * scale;
             float buttonHeight = 56f * scale;
-            float buttonY = panel.y + 220f * scale;
+            float buttonY = panel.y + 283f * scale;
             string restartLabel = state.Status == GameSessionStatus.Won
                 ? "Rejouer"
                 : "Recommencer";
@@ -622,16 +701,11 @@ namespace DodgeFromLight.FuguiUI.Screens
             float scale)
         {
             // Equal-size cards make action count and active time visually comparable.
-            drawList.AddRectFilled(
-                rect.min,
-                rect.max,
-                new Color(0.06f, 0.075f, 0.085f, 0.94f),
-                9f * scale);
-            drawList.AddRect(
-                rect.min,
-                rect.max,
-                new Color(accent.r, accent.g, accent.b, 0.28f),
-                9f * scale);
+            DrawListUi.DrawPlate(
+                drawList,
+                rect,
+                accent,
+                true);
             DrawListUi.DrawCenteredText(
                 drawList,
                 new Vector2(rect.x, rect.y + 14f * scale),
@@ -645,7 +719,7 @@ namespace DodgeFromLight.FuguiUI.Screens
                 new Vector2(rect.x, rect.y + 40f * scale),
                 rect.width,
                 value,
-                DrawListUi.TextPrimary,
+                accent,
                 18,
                 FontType.Bold);
         }
@@ -657,14 +731,20 @@ namespace DodgeFromLight.FuguiUI.Screens
         {
             // Pause is a true modal surface and captures pointer intent over the board.
             float scale = DrawListUi.GetScale();
-            DrawListUi.DrawScrim(drawList, screenSize, 0.82f);
+            DrawListUi.DrawScrim(drawList, screenSize, 0.84f);
             Rect panel = DrawListUi.CenterRect(
                 screenSize,
-                new Vector2(520f, 390f) * scale);
+                new Vector2(540f, 450f) * scale);
             DrawListUi.DrawPanel(drawList, panel, DrawListUi.Accent, true);
+            DrawListUi.DrawRuneEmblem(
+                drawList,
+                new Vector2(panel.center.x, panel.y + 54f * scale),
+                22f * scale,
+                DrawListUi.Accent,
+                0.125f);
             DrawListUi.DrawCenteredText(
                 drawList,
-                new Vector2(panel.x, panel.y + 42f * scale),
+                new Vector2(panel.x, panel.y + 91f * scale),
                 panel.width,
                 "PAUSE",
                 DrawListUi.Accent,
@@ -672,14 +752,22 @@ namespace DodgeFromLight.FuguiUI.Screens
                 FontType.Bold);
             DrawListUi.DrawCenteredText(
                 drawList,
-                new Vector2(panel.x, panel.y + 82f * scale),
+                new Vector2(panel.x, panel.y + 126f * scale),
                 panel.width,
                 "La tentative et le chronomètre sont suspendus.",
                 DrawListUi.TextSecondary,
                 14);
+            DrawListUi.DrawDivider(
+                drawList,
+                new Vector2(
+                    panel.center.x,
+                    panel.y + 160f * scale),
+                panel.width - 92f * scale,
+                DrawListUi.Accent,
+                0.56f);
 
             float buttonX = panel.x + 38f * scale;
-            float buttonY = panel.y + 132f * scale;
+            float buttonY = panel.y + 185f * scale;
             float buttonWidth = panel.width - 76f * scale;
             float buttonHeight = 58f * scale;
             if (DrawListUi.DrawButton(
@@ -687,7 +775,7 @@ namespace DodgeFromLight.FuguiUI.Screens
                     new Rect(buttonX, buttonY, buttonWidth, buttonHeight),
                     "Reprendre",
                     "Échap",
-                    DrawListUi.Success,
+                    DrawListUi.AccentBright,
                     true,
                     _pauseSelection == 0))
             {
@@ -729,42 +817,35 @@ namespace DodgeFromLight.FuguiUI.Screens
             Vector2 screenSize,
             string statusMessage)
         {
-            // An animated radial indicator confirms that asynchronous map setup is progressing.
+            // A slowly rotating ritual emblem confirms that asynchronous map setup is progressing.
             float scale = DrawListUi.GetScale();
             Rect panel = DrawListUi.CenterRect(
                 screenSize,
-                new Vector2(420f, 132f) * scale);
+                new Vector2(460f, 164f) * scale);
             DrawListUi.DrawPanel(drawList, panel, DrawListUi.Accent, true);
-            Vector2 spinnerCenter =
-                panel.position + new Vector2(52f, 66f) * scale;
-            int activeDot = Mathf.FloorToInt(Time.unscaledTime * 8f) % 8;
-            for (int i = 0; i < 8; i++)
-            {
-                float angle = i * Mathf.PI * 0.25f;
-                Vector2 dotPosition = spinnerCenter +
-                                      new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) *
-                                      18f * scale;
-                float alpha = i == activeDot ? 1f : 0.2f + i * 0.035f;
-                drawList.AddCircleFilled(
-                    dotPosition,
-                    3.5f * scale,
-                    new Color(
-                        DrawListUi.Accent.r,
-                        DrawListUi.Accent.g,
-                        DrawListUi.Accent.b,
-                        alpha));
-            }
+            DrawListUi.DrawRuneEmblem(
+                drawList,
+                panel.position + new Vector2(70f, 82f) * scale,
+                28f * scale,
+                DrawListUi.Accent,
+                Mathf.Repeat(Time.unscaledTime * 0.1f, 1f));
 
             string message = string.IsNullOrWhiteSpace(statusMessage)
-                ? "Chargement de la partie…"
+                ? "Chargement de l'épreuve…"
                 : statusMessage;
             DrawListUi.DrawText(
                 drawList,
-                panel.position + new Vector2(94f, 55f) * scale,
+                panel.position + new Vector2(128f, 56f) * scale,
                 message,
                 DrawListUi.TextPrimary,
                 16,
                 FontType.Bold);
+            DrawListUi.DrawText(
+                drawList,
+                panel.position + new Vector2(128f, 88f) * scale,
+                "Les ombres reprennent leur place.",
+                DrawListUi.TextSecondary,
+                11);
         }
 
         /// <summary>
