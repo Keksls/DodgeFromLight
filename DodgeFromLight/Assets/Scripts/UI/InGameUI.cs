@@ -1,281 +1,205 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
 
+/// <summary>
+/// Owns pause, restart, and departure behavior for the local gameplay scene.
+/// </summary>
 public class InGameUI : MonoBehaviour
 {
-    public GameObject PressEnterCheckpointPanel;
-    public GameObject PressAEGearPanel;
-    public TextMeshProUGUI TurnText;
-    public TextMeshProUGUI DurationText;
-    public Text GearAText;
-    public Text GearEText;
-    public TextMeshProUGUI GridNameText;
-    public Image GearAImage;
-    public Image GearEImage;
-    public GameObject GearAImageEmpty;
-    public GameObject GearEImageEmpty;
-    public Color GearNormalColor;
-    public Color GearPressedColor;
-    public GameObject PauseMenu;
-    public List<GameObject> InGameUIElements;
-
     public float HideCursorDuration = 5f;
     public float MouseMovementThreshold = 0.1f;
-    private bool useFuguiHud;
+
+    private bool _isExiting;
 
 #if !UNITY_EDITOR
-    private float lastMouseMovementTime;
-    private Vector3 lastMousePosition;
+    private float _lastMouseMovementTime;
+    private Vector3 _lastMousePosition;
 #endif
 
-    void Awake()
-    {
-        Events.TurnEnd -= Events_TurnEnd;
-        Events.TurnEnd += Events_TurnEnd;
-        Events.StartMap -= Events_StartMap;
-        Events.StartMap += Events_StartMap;
-        Events.SetGear -= Events_SetGear;
-        Events.SetGear += Events_SetGear;
-        PauseMenu.SetActive(false);
-        RefreshGears();
-    }
-
-    private void OnEnable()
-    {
-        PressEnterCheckpointPanel.SetActive(false);
-        PressAEGearPanel.SetActive(false);
-        PressAEGearPanel.GetComponentInChildren<Text>().text = "Press <b>" +
-          GameContext.GameSettingsManager.GetNiceKeyString(GameContext.GameSettingsManager.GetInput(InputSettingsType.Gear1).Key) + "</b> or " +
-            "<b>" + GameContext.GameSettingsManager.GetNiceKeyString(GameContext.GameSettingsManager.GetInput(InputSettingsType.Gear2).Key) + "</b> to equip";
-        PressEnterCheckpointPanel.GetComponentInChildren<Text>().text = "Press <b>" + GameContext.GameSettingsManager.GetNiceKeyString(GameContext.GameSettingsManager.GetInput(InputSettingsType.TakeCheckPoint).Key) + "</b> to save Checkpoint";
-        GearAText.text = GameContext.GameSettingsManager.GetInput(InputSettingsType.Gear1).Key.ToString();
-        GearEText.text = GameContext.GameSettingsManager.GetInput(InputSettingsType.Gear2).Key.ToString();
-    }
-
-    private void Events_SetGear(GearType type)
-    {
-        RefreshGears();
-    }
-
-    private void Events_StartMap()
-    {
-        RefreshGears();
-        GridNameText.text = Path.GetFileNameWithoutExtension(GameContext.CurrentMap.Map.Name);
-        TurnText.text = "Turn : " + GameContext.GameManager.NbTurn;
-    }
-
-    private void OnDestroy()
-    {
-        Events.TurnEnd -= Events_TurnEnd;
-        Events.StartMap -= Events_StartMap;
-        Events.SetGear -= Events_SetGear;
-    }
-
-    private void Events_TurnEnd()
-    {
-        TurnText.text = "Turn : " + GameContext.GameManager.NbTurn;
-    }
-
     /// <summary>
-    /// Shows retained in-game widgets when the Fugui replacement is not active.
-    /// </summary>
-    public void ShowUI()
-    {
-        // Camera presentations must not revive HUD widgets replaced by Fugui.
-        if (useFuguiHud)
-            return;
-
-        foreach (var go in InGameUIElements)
-            go.SetActive(true);
-    }
-
-    /// <summary>
-    /// Hides retained in-game widgets without disabling the pause-menu controller.
-    /// </summary>
-    public void HideUI()
-    {
-        // Keep this MonoBehaviour alive because it still owns the transitional pause menu.
-        foreach (var go in InGameUIElements)
-            go.SetActive(false);
-    }
-
-    /// <summary>
-    /// Hands HUD rendering to Fugui while retaining legacy pause navigation temporarily.
-    /// </summary>
-    public void UseFuguiHud()
-    {
-        // The migration flag prevents later camera callbacks from restoring duplicate widgets.
-        useFuguiHud = true;
-        HideUI();
-    }
-
-    /// <summary>
-    /// Advances to the next local map.
-    /// </summary>
-    public void NextMap()
-    {
-        // Continue the active local ruleset without leaderboard or voting gates.
-        if (GameContext.CurrentRules.Tutorial)
-            return;
-        ClosePauseMenu();
-        GameContext.GameManager.NextMap();
-    }
-
-    /// <summary>
-    /// Refreshes the run HUD, pause input, gear feedback and runtime cursor visibility.
+    /// Handles pause input and runtime cursor visibility.
     /// </summary>
     private void Update()
     {
-        // Keep the displayed run state synchronized with the local game manager.
-        if (GameContext.GameManager != null)
-            DurationText.text = GameContext.GameManager.StopWatch.Elapsed.ToString(@"m\:ss\.ff");
-
-        if (GameContext.GameSettingsManager.GetInput(InputSettingsType.Gear1).IsDown())
-        {
-            GearAText.color = GearPressedColor;
-            GearAImage.transform.localScale = Vector3.one * 1.25f;
-        }
-        else if (GameContext.GameSettingsManager.GetInput(InputSettingsType.Gear1).IsUp())
-        {
-            GearAText.color = GearNormalColor;
-            GearAImage.transform.localScale = Vector3.one;
-        }
-
-        if (GameContext.GameSettingsManager.GetInput(InputSettingsType.Gear2).IsDown())
-        {
-            GearEText.color = GearPressedColor;
-            GearEImage.transform.localScale = Vector3.one * 1.25f;
-        }
-        else if (GameContext.GameSettingsManager.GetInput(InputSettingsType.Gear2).IsUp())
-        {
-            GearEText.color = GearNormalColor;
-            GearEImage.transform.localScale = Vector3.one;
-        }
-
+        // Escape toggles the DrawList pause state without activating a retained Canvas.
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            if (!GameContext.GameManager.Paused)
-            {
-                GameContext.GameManager.EnterPause();
-                PauseMenu.SetActive(true);
-                foreach (var btn in PauseMenu.GetComponentsInChildren<UI_PointerHoverAnimations>())
-                    btn.PlayExitClip();
-            }
+            if (GameContext.GameManager != null && GameContext.GameManager.Paused)
+                TryResume();
             else
-            {
-                GameContext.GameManager.ExitPause();
-                PauseMenu.SetActive(false);
-            }
+                TryPause();
         }
 
 #if !UNITY_EDITOR
-        // Hide the cursor only in player builds after the configured inactivity delay.
-        if (GameContext.GameSettingsManager.CurrentSettings.Global.AutoHideCursor)
-        {
-            Vector3 mousePosition = Input.mousePosition;
-            if (Vector3.Distance(mousePosition, lastMousePosition) > MouseMovementThreshold) // mouse move
-            {
-                if (!Cursor.visible)
-                    Cursor.visible = true;
-                lastMouseMovementTime = Time.time;
-            }
-            else // mouse don't move
-            {
-                if (lastMouseMovementTime + HideCursorDuration <= Time.time) // must hide the mouse cursor
-                    if (Cursor.visible)
-                        Cursor.visible = false;
-            }
-            lastMousePosition = mousePosition;
-        }
+        UpdateRuntimeCursor();
 #endif
     }
 
+#if !UNITY_EDITOR
+    /// <summary>
+    /// Applies the configured idle cursor behavior outside the Unity editor.
+    /// </summary>
+    private void UpdateRuntimeCursor()
+    {
+        // Modal pause and result screens always keep the pointer available.
+        if (GameContext.GameManager != null && GameContext.GameManager.Paused)
+        {
+            Cursor.visible = true;
+            _lastMouseMovementTime = Time.unscaledTime;
+            _lastMousePosition = Input.mousePosition;
+            return;
+        }
+
+        var settingsManager = GameContext.GameSettingsManager;
+        if (settingsManager == null ||
+            !settingsManager.CurrentSettings.Global.AutoHideCursor)
+        {
+            return;
+        }
+
+        Vector3 mousePosition = Input.mousePosition;
+        if (Vector3.Distance(mousePosition, _lastMousePosition) >
+            MouseMovementThreshold)
+        {
+            Cursor.visible = true;
+            _lastMouseMovementTime = Time.unscaledTime;
+        }
+        else if (_lastMouseMovementTime + HideCursorDuration <=
+                 Time.unscaledTime)
+        {
+            Cursor.visible = false;
+        }
+
+        _lastMousePosition = mousePosition;
+    }
+#endif
+
+    /// <summary>
+    /// Restores the system cursor whenever the scene controller is disabled.
+    /// </summary>
     private void OnDisable()
     {
+        // Scene transitions must never leave the desktop cursor hidden.
         Cursor.visible = true;
     }
 
-    public void RefreshGears()
+    /// <summary>
+    /// Tries to pause the loaded local run.
+    /// </summary>
+    public bool TryPause()
     {
-        if (GameContext.GameManager == null || GameContext.GameManager._playerController == null ||
-            GameContext.GameManager._playerController.GearA == null)
+        // Presentation and timer suspension remain synchronized by GameManager.
+        var gameManager = GameContext.GameManager;
+        if (gameManager == null ||
+            gameManager.Paused ||
+            !gameManager.CanControlLoadedRun)
         {
-            GearAImage.enabled = false;
-            GearAImageEmpty.SetActive(true);
-        }
-        else
-        {
-            GearAImage.enabled = true;
-            GearAImageEmpty.SetActive(false);
-            Texture2D tex = GameContext.Databases.GearData.GetGearData(GameContext.GameManager._playerController.GearA.Type).Image; ;
-            GearAImage.sprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
+            return false;
         }
 
-        if (GameContext.GameManager == null || GameContext.GameManager._playerController == null ||
-            GameContext.GameManager._playerController.GearE == null)
-        {
-            GearEImage.enabled = false;
-            GearEImageEmpty.SetActive(true);
-        }
-        else
-        {
-            GearEImage.enabled = true;
-            GearEImageEmpty.SetActive(false);
-            Texture2D tex = GameContext.Databases.GearData.GetGearData(GameContext.GameManager._playerController.GearE.Type).Image;
-            GearEImage.sprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
-        }
+        gameManager.EnterPause();
+        Cursor.visible = true;
+        return true;
     }
 
     /// <summary>
-    /// Leaves the current local play session.
+    /// Tries to resume the paused local run.
+    /// </summary>
+    public bool TryResume()
+    {
+        // Resuming an already active run is intentionally a no-op.
+        var gameManager = GameContext.GameManager;
+        if (gameManager == null || !gameManager.Paused)
+            return false;
+
+        gameManager.ExitPause();
+        return true;
+    }
+
+    /// <summary>
+    /// Tries to restart the current deterministic attempt.
+    /// </summary>
+    public bool TryRestart()
+    {
+        // A paused attempt is resumed before the guarded restart request is evaluated.
+        var gameManager = GameContext.GameManager;
+        if (gameManager == null ||
+            !gameManager.CanControlLoadedRun ||
+            GameContext.WaitForEndOfAction > 0)
+        {
+            return false;
+        }
+
+        if (gameManager.Paused)
+            gameManager.ExitPause();
+        return gameManager.TryRestartCurrentRun();
+    }
+
+    /// <summary>
+    /// Tries to leave the current local play session.
+    /// </summary>
+    public bool TryExit()
+    {
+        // Repeated DrawList clicks cannot start competing cleanup coroutines.
+        if (_isExiting || GameContext.GameManager == null)
+            return false;
+
+        _isExiting = true;
+        if (PoolManager.Instance != null)
+            PoolManager.Instance.PushBackAllPool(PoolName.POCell);
+        if (GameContext.GameManager.Paused)
+            GameContext.GameManager.ExitPause();
+
+        string destination = PlayerPrefs.HasKey("ForceGrid")
+            ? "MapCreator"
+            : "MainMenu";
+        if (destination == "MainMenu")
+            PlayerPrefs.DeleteKey("ForceGrid");
+        StartCoroutine(ExitRoutine(destination));
+        return true;
+    }
+
+    /// <summary>
+    /// Preserves the scene-event entry point for leaving the current session.
     /// </summary>
     public void Exit()
     {
-        // Return playtests to the editor and normal sessions to the main menu.
-        PoolManager.Instance.PushBackAllPool(PoolName.POCell);
-        GameContext.GameManager.ExitPause();
-        PauseMenu.SetActive(false);
-        if (PlayerPrefs.HasKey("ForceGrid"))
-        {
-            StartCoroutine(Exit_routine("MapCreator"));
-        }
-        else
-        {
-            PlayerPrefs.DeleteKey("ForceGrid");
-            StartCoroutine(Exit_routine("MainMenu"));
-        }
+        // Serialized callers and DrawList callers share the same guarded operation.
+        TryExit();
+    }
+
+    /// <summary>
+    /// Preserves the scene-event entry point for restarting the current attempt.
+    /// </summary>
+    public void RestartMap()
+    {
+        // Serialized callers and DrawList callers share the same guarded operation.
+        TryRestart();
+    }
+
+    /// <summary>
+    /// Preserves the scene-event entry point for resuming a paused attempt.
+    /// </summary>
+    public void ClosePauseMenu()
+    {
+        // This scene-event entry point controls state only and never owns a Canvas.
+        TryResume();
     }
 
     /// <summary>
     /// Releases the active gameplay manager before loading the requested local scene.
     /// </summary>
-    private IEnumerator Exit_routine(string sceneName)
+    private IEnumerator ExitRoutine(string sceneName)
     {
-        // Defer destruction by one frame so current UI callbacks can finish safely.
+        // Defer destruction by one frame so the current DrawList callback can finish safely.
         yield return null;
-        Destroy(GameContext.GameManager.gameObject);
-        Destroy(GameContext.GameManager);
-        GameContext.GameManager = null;
+        var gameManager = GameContext.GameManager;
+        if (gameManager != null)
+        {
+            Destroy(gameManager.gameObject);
+            GameContext.GameManager = null;
+        }
+
         GameContext.SceneTransitions.LoadScene(sceneName);
-    }
-
-    public void RestartMap()
-    {
-        GameContext.GameManager.ExitPause();
-        PauseMenu.SetActive(false);
-        if (GameContext.WaitForEndOfAction > 0)
-            return;
-        GameContext.GameManager.RestartGrid();
-    }
-
-    public void ClosePauseMenu()
-    {
-        GameContext.GameManager.ExitPause();
-        PauseMenu.SetActive(false);
     }
 }

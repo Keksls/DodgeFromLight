@@ -1,36 +1,52 @@
 using UnityEngine;
-using UnityEngine.UI;
 
+/// <summary>
+/// Stores transient loading feedback consumed by the runtime DrawList interface.
+/// </summary>
 public class UI_WorkerNotifier : MonoBehaviour
 {
-    public Text text;
-    public GameObject Worker;
     public bool IsMain = true;
 
+    public bool IsVisible { get; private set; }
+    public string Message { get; private set; } = string.Empty;
+
+    /// <summary>
+    /// Registers the primary scene loading-state source.
+    /// </summary>
     private void Awake()
     {
+        // Only the scene-designated instance publishes global loading feedback.
         Hide();
         if (IsMain)
             GameContext.UI_WorkerNotifier = this;
     }
 
-    public void Show(string msg)
+    /// <summary>
+    /// Publishes a visible transient status message.
+    /// </summary>
+    public void Show(string message)
     {
-        if (!Worker)
-            return;
-        SetText(msg);
-        Worker.SetActive(true);
+        // The DrawList presenter reads this state on the next Fugui render event.
+        Message = message ?? string.Empty;
+        IsVisible = true;
     }
 
-    public void SetText(string msg)
+    /// <summary>
+    /// Updates the current transient status message.
+    /// </summary>
+    public void SetText(string message)
     {
-        if (text)
-            text.text = msg;
+        // Message updates do not implicitly change visibility.
+        Message = message ?? string.Empty;
     }
 
+    /// <summary>
+    /// Clears the current transient status message.
+    /// </summary>
     public void Hide()
     {
-        if (Worker)
-            Worker.SetActive(false);
+        // Empty state prevents an old loading label from leaking into a later scene.
+        IsVisible = false;
+        Message = string.Empty;
     }
 }

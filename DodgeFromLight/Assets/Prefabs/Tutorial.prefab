@@ -2462,7 +2462,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1113664793
 RectTransform:
   m_ObjectHideFlags: 0
@@ -5699,19 +5699,3 @@ MonoBehaviour:
   - Level 24
   - Level 25
   - Level 26
-  GrapplePanel: {fileID: 1317058891}
-  BombePanel: {fileID: 354393000}
-  DiscoballPanel: {fileID: 1540419292}
-  MirrorPanel: {fileID: 1832307538}
-  RemoteControlPanel: {fileID: 1023509462}
-  SpeedBootsPanel: {fileID: 1967452977}
-  TimeControllerPanel: {fileID: 1887528924}
-  KeysPanel: {fileID: 1451203157}
-  Z: {fileID: 1589528573}
-  Q: {fileID: 1020933387}
-  S: {fileID: 108144139}
-  D: {fileID: 1825116677}
-  Jump: {fileID: 1823988149}
-  PressedKeyColor: {r: 0.5019608, g: 0.34117648, b: 0.18039216, a: 1}
-  UnpressedKeyColor: {r: 0.8862745, g: 0.84705883, b: 0.80784315, a: 1}
-  Canvas: {fileID: 1113664793}

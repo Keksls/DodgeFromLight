@@ -1,61 +1,41 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
 using Newtonsoft.Json;
+using UnityEngine;
 
+/// <summary>
+/// Owns the animated local scene transitions initiated by the DrawList main menu.
+/// </summary>
 public class MainMenuController : MonoBehaviour
 {
-    public EnvironmentController environmentController;
     public GameObject fog;
     public GameObject foam;
-    public List<Animator> Animators;
-    public List<GameObject> Buttons;
-    public Button MapButton;
-    public Button PlayButton;
-    public Text VersionText;
+    public List<Animator> Animators = new List<Animator>();
     public float AnimationDuration = 0.8f;
 
-    private void Awake()
-    {
-        // Configure local menu availability without waiting for an online session.
-        MapButton.interactable = false;
-        MapButton.gameObject.GetComponent<CursorSetter>().enabled = false;
-        VersionText.text = "v " + Application.version;
-    }
+    public bool IsTransitioning { get; private set; }
 
     /// <summary>
-    /// Starts the local player flow.
-    /// </summary>
-    public void Play()
-    {
-        // Keep legacy button bindings routed through the local entry point.
-        Player();
-    }
-
-    /// <summary>
-    /// Initializes the menu environment and local feature availability.
+    /// Initializes the authored menu environment.
     /// </summary>
     private void Start()
     {
-        // The menu no longer checks connectivity or presents an account screen.
-        EnvironmentSettings env = JsonConvert.DeserializeObject<EnvironmentSettings>(Resources.Load<TextAsset>("MainMenuEnvironment").text);
-        GameContext.EnvironmentController.SetEnvironment(env);
-        GameContext.EnvironmentController.SetFogSettings(env, fog, foam);
+        // Menu rendering is owned by Fugui while this component retains the 3D environment.
+        var environmentAsset = Resources.Load<TextAsset>("MainMenuEnvironment");
+        if (environmentAsset == null)
+        {
+            Debug.LogError("The MainMenuEnvironment resource is missing.");
+            return;
+        }
 
-        if (GameContext.TutorialController.HasFinishTutorial())
-        {
-            PlayButton.GetComponentInChildren<TextMeshProUGUI>().text = "Play";
-            MapButton.interactable = true;
-            MapButton.gameObject.GetComponent<CursorSetter>().enabled = true;
-        }
-        else
-        {
-            PlayButton.GetComponentInChildren<TextMeshProUGUI>().text = "Tutorial";
-            MapButton.interactable = false;
-            MapButton.gameObject.GetComponent<CursorSetter>().enabled = false;
-        }
+        EnvironmentSettings environment =
+            JsonConvert.DeserializeObject<EnvironmentSettings>(
+                environmentAsset.text);
+        GameContext.EnvironmentController.SetEnvironment(environment);
+        GameContext.EnvironmentController.SetFogSettings(
+            environment,
+            fog,
+            foam);
     }
 
     /// <summary>
@@ -69,65 +49,110 @@ public class MainMenuController : MonoBehaviour
     }
 
     /// <summary>
-    /// Plays the menu transition before loading a local scene.
+    /// Reports whether the persisted tutorial gate allows map-editor access.
     /// </summary>
-    private IEnumerator Play_routine(string sceneName, string animationName, bool cleanGameManager = true)
+    public bool CanOpenMapEditor()
     {
-        // Hide menu controls while the character transition animation runs.
-        foreach (var animator in Animators)
-            animator.Play(animationName);
-
-        foreach (var button in Buttons)
-            button.SetActive(false);
-
-        yield return new WaitForSeconds(AnimationDuration);
-        if (cleanGameManager)
-        {
-            if (GameContext.GameManager != null)
-            {
-                Destroy(GameContext.GameManager.gameObject);
-                Destroy(GameContext.GameManager);
-                GameContext.GameManager = null;
-            }
-        }
-        GameContext.SceneTransitions.LoadScene(sceneName);
+        // The tutorial controller remains the only source of progression truth.
+        return GameContext.TutorialController != null &&
+               GameContext.TutorialController.HasFinishedTutorial();
     }
 
     /// <summary>
-    /// Opens the local map editor.
+    /// Tries to start the tutorial or normal local puzzle flow.
     /// </summary>
-    public void Map()
+    public bool TryPlay()
     {
-        // The editor uses the last local workspace or creates a fresh map.
-        StartCoroutine(Play_routine("MapCreator", "Walk"));
-    }
+        // Direct and menu-driven play share the same deterministic session factory.
+        if (IsTransitioning || GameContext.TutorialController == null)
+            return false;
 
-    /// <summary>
-    /// Opens the campaign scene when it becomes available.
-    /// </summary>
-    public void Campaign()
-    {
-        // Keep the existing scene route for future campaign work.
-        StartCoroutine(Play_routine("Campaign", "Attack"));
-    }
-
-    /// <summary>
-    /// Starts the tutorial or the most recently saved local map.
-    /// </summary>
-    public void Player()
-    {
-        // Share the same deterministic startup selection as direct Intro-to-Main launches.
         GameContext.CurrentRules = LocalGameSessionFactory.CreateDefault(
             GameContext.TutorialController);
-        StartCoroutine(Play_routine("Main", "Attack", false));
+        return TryStartTransition("Main", "Attack", false);
     }
 
     /// <summary>
-    /// Exits the application.
+    /// Tries to open the local map editor.
     /// </summary>
-    public void Exit()
+    public bool TryOpenMapEditor()
     {
-        // Delegate shutdown to the Unity runtime.
+        // The existing tutorial progression gate cannot be bypassed by UI state.
+        return CanOpenMapEditor() &&
+               TryStartTransition("MapCreator", "Walk", true);
+    }
+
+    /// <summary>
+    /// Tries to open the campaign scene.
+    /// </summary>
+    public bool TryOpenCampaign()
+    {
+        // Campaign retains its authored transition until its product pass begins.
+        return TryStartTransition("Campaign", "Attack", true);
+    }
+
+    /// <summary>
+    /// Tries to exit the application.
+    /// </summary>
+    public bool TryExit()
+    {
+        // Shutdown is rejected while a scene transition is already committed.
+        if (IsTransitioning)
+            return false;
+
+#if UNITY_EDITOR
+        // Application.Quit is ignored in Play Mode, so keep the editor menu interactive.
+        return false;
+#else
+        IsTransitioning = true;
         Application.Quit();
+        return true;
+#endif
+    }
+
+    /// <summary>
+    /// Starts one guarded animated scene transition.
+    /// </summary>
+    private bool TryStartTransition(
+        string sceneName,
+        string animationName,
+        bool cleanGameManager)
+    {
+        // A single transition owns the scene until its target load begins.
+        if (IsTransitioning)
+            return false;
+
+        IsTransitioning = true;
+        StartCoroutine(
+            PlayTransitionRoutine(
+                sceneName,
+                animationName,
+                cleanGameManager));
+        return true;
+    }
+
+    /// <summary>
+    /// Plays the authored menu animation before loading a local scene.
+    /// </summary>
+    private IEnumerator PlayTransitionRoutine(
+        string sceneName,
+        string animationName,
+        bool cleanGameManager)
+    {
+        // The DrawList presenter renders the loading state during this animation.
+        foreach (Animator animator in Animators)
+        {
+            if (animator != null)
+                animator.Play(animationName);
+        }
+
+        yield return new WaitForSeconds(AnimationDuration);
+        if (cleanGameManager && GameContext.GameManager != null)
+        {
+            Destroy(GameContext.GameManager.gameObject);
+            GameContext.GameManager = null;
+        }
+
+        GameContext.SceneTransitions.LoadScene(sceneName);
     }
 }

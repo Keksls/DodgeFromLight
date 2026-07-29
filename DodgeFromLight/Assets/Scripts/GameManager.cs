@@ -61,6 +61,8 @@ public class GameManager : MonoBehaviour
     private GameSession coreSession;
     private CoreGridPosition? pendingCoreCheckpoint;
     private bool coreCommandRunning;
+    private bool coreTerminalPresentationRunning;
+    private bool coreVictoryReady;
     private bool wasTimerRunningBeforePause;
     private GameObject coreGrappleView;
     private CoreWeaponAnchorPresenter coreWeaponAnchorPresenter;
@@ -74,6 +76,21 @@ public class GameManager : MonoBehaviour
         !coreCommandRunning &&
         !Paused &&
         coreState.Status == SimulationStatus.Running;
+    public bool CanControlLoadedRun =>
+        UsesCoreSimulation &&
+        !coreCommandRunning;
+    public bool CanRestartCurrentRun =>
+        CanControlLoadedRun &&
+        !Paused;
+    public bool CanContinueAfterVictory =>
+        CanRestartCurrentRun &&
+        coreVictoryReady &&
+        coreState.Status == SimulationStatus.Won;
+    public bool HasNextMapInSequence =>
+        GameContext.CurrentRules != null &&
+        (GameContext.CurrentRules.Endless ||
+         GameContext.CurrentRules.CurrentGrid + 1 <
+         GameContext.CurrentRules.NbGrids);
 
     /// <summary>
     /// Registers the gameplay scene manager and its presentation debug callback.
@@ -158,19 +175,16 @@ public class GameManager : MonoBehaviour
 
         if (GameContext.GameSettingsManager.GetInput(InputSettingsType.RestartMap).IsDown())
         {
-            if (Input.GetKey(KeyCode.LeftControl) ||
-                Input.GetKey(KeyCode.RightControl))
-            {
-                pendingCoreCheckpoint = null;
-            }
-            RestartGrid();
+            var resumeFromCheckpoint =
+                !Input.GetKey(KeyCode.LeftControl) &&
+                !Input.GetKey(KeyCode.RightControl);
+            TryRestartCurrentRun(resumeFromCheckpoint);
             return;
         }
 
         if (GameContext.GameSettingsManager.GetInput(InputSettingsType.NextMap).IsDown())
         {
-            if (!GameContext.CurrentRules.Tutorial)
-                NextMap();
+            TryContinueAfterVictory();
             return;
         }
 
@@ -212,10 +226,33 @@ public class GameManager : MonoBehaviour
     public bool TryRestartCurrentRun()
     {
         // UI callers share the same animation and pause guard as undo.
-        if (!CanUseSoloHudActions)
+        return TryRestartCurrentRun(true);
+    }
+
+    /// <summary>
+    /// Restarts from either the active checkpoint or the authored start cell.
+    /// </summary>
+    private bool TryRestartCurrentRun(bool resumeFromCheckpoint)
+    {
+        // Ctrl+restart intentionally discards the checkpoint for a complete new attempt.
+        if (!CanRestartCurrentRun)
             return false;
 
-        RestartGrid();
+        RestartGrid(resumeFromCheckpoint);
+        return true;
+    }
+
+    /// <summary>
+    /// Advances a completed run only after its victory presentation is finished.
+    /// </summary>
+    public bool TryContinueAfterVictory()
+    {
+        // Result-screen and keyboard actions share one guarded progression path.
+        if (!CanContinueAfterVictory)
+            return false;
+
+        coreCommandRunning = true;
+        AdvanceToNextMap();
         return true;
     }
 
@@ -548,12 +585,12 @@ public class GameManager : MonoBehaviour
             yield return PresentCorePlayerEvent(simulationEvent);
 
         ApplyCoreState(events);
-        coreCommandRunning = false;
-
         if (coreState.Status == SimulationStatus.Lost)
-            StartCoroutine(RestartCoreAfterDefeat());
+            StartCoroutine(PresentCoreDefeat());
         else if (coreState.Status == SimulationStatus.Won)
             PlayerReachEnd();
+        else
+            coreCommandRunning = false;
     }
 
     /// <summary>
@@ -915,17 +952,17 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Briefly displays defeat before rebuilding the current deterministic attempt.
+    /// Presents defeat before handing control to the result screen.
     /// </summary>
-    private IEnumerator RestartCoreAfterDefeat()
+    private IEnumerator PresentCoreDefeat()
     {
-        // Keep the existing death animation while preventing any gameplay callback from firing.
-        coreCommandRunning = true;
+        // Keep the existing death animation without automatically erasing the failed attempt.
+        coreTerminalPresentationRunning = true;
         StopWatch.Stop();
         _playerController.Play("Die");
         yield return new WaitForSeconds(0.35f);
+        coreTerminalPresentationRunning = false;
         coreCommandRunning = false;
-        RestartGrid();
     }
 
     /// <summary>
@@ -941,26 +978,36 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// Starts the resolved victory presentation and local progression flow.
     /// </summary>
-    public void PlayerReachEnd()
+    private void PlayerReachEnd()
     {
-        // Victory has already been validated by Core before this presentation begins.
+        // Victory has already been validated by Core before presentation begins.
+        if (!UsesCoreSimulation ||
+            coreState.Status != SimulationStatus.Won ||
+            coreTerminalPresentationRunning ||
+            coreVictoryReady)
+        {
+            return;
+        }
+
+        coreTerminalPresentationRunning = true;
+        coreCommandRunning = true;
         StopWatch.Stop();
-        GameContext.StartWaitingAction();
-        //Debug.Log("player reach end");
         StartCoroutine(AnimateWin());
     }
 
     /// <summary>
-    /// Plays the retained victory animation before advancing local progression.
+    /// Plays the retained victory animation before enabling result actions.
     /// </summary>
-    IEnumerator AnimateWin()
+    private IEnumerator AnimateWin()
     {
-        // Keep animation timing out of the authoritative turn simulation.
+        // Commit progression once, then expose explicit result-screen actions.
         yield return null;
         PlayerController.Animator.Play("Win");
         yield return new WaitForSeconds(1f);
-        GameContext.StartWaitingAction();
-        StartCoroutine(EndOfGrid());
+        CommitCurrentMapCompletion();
+        coreVictoryReady = true;
+        coreTerminalPresentationRunning = false;
+        coreCommandRunning = false;
     }
 
     /// <summary>
@@ -1022,6 +1069,8 @@ public class GameManager : MonoBehaviour
     private void SetupCoreMap(FullMap map, bool animate)
     {
         // Import the in-memory source without mutating its authored StreamingAssets files.
+        coreTerminalPresentationRunning = false;
+        coreVictoryReady = false;
         coreSourceGridJson = JsonConvert.SerializeObject(map.Grid);
         coreSourceMapJson = JsonConvert.SerializeObject(map.Map);
         var importer = new LegacyMapImporter();
@@ -1111,8 +1160,7 @@ public class GameManager : MonoBehaviour
         if (animate)
         {
             Follower.AnimateCamera(
-                GameContext.CurrentMap.Grid.EndCell.GetCellPos().ToVector3(2f),
-                GameContext.CurrentMap.Grid.StartCell.GetCellPos().ToVector3(2f));
+                GameContext.CurrentMap.Grid.EndCell.GetCellPos().ToVector3(2f));
         }
     }
 
@@ -1129,21 +1177,7 @@ public class GameManager : MonoBehaviour
         SyncCoreCellViews();
         SyncCorePlacedObjectViews();
         SyncCoreAnchorView();
-        SyncCoreInventoryView();
         GameContext.TimeStoped = coreState.Player.TimeStopTurns;
-
-        if (InGameUI != null)
-        {
-            InGameUI.TurnText.text = "Turn : " + coreState.TurnIndex;
-            InGameUI.PressAEGearPanel.SetActive(
-                coreState.Map.TryGetCell(coreState.Player.Position, out var cell) &&
-                !string.IsNullOrEmpty(cell.GearId) &&
-                coreState.Board.IsGearAvailable(coreState.Player.Position));
-            InGameUI.PressEnterCheckpointPanel.SetActive(
-                cell != null &&
-                cell.TypeId == CellTypeIds.Checkpoint &&
-                coreState.Player.CheckpointPosition != coreState.Player.Position);
-        }
     }
 
     /// <summary>
@@ -1569,59 +1603,6 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Synchronizes the retained HUD gear views with the two core inventory slots.
-    /// </summary>
-    private void SyncCoreInventoryView()
-    {
-        // Legacy Gear instances are passive icon adapters and never execute gameplay.
-        _playerController.GearA = CreateLegacyGearView(coreState.Player.GearSlotOne);
-        _playerController.GearE = CreateLegacyGearView(coreState.Player.GearSlotTwo);
-        if (InGameUI != null)
-            InGameUI.RefreshGears();
-    }
-
-    /// <summary>
-    /// Creates a passive icon adapter for one stable core gear ID.
-    /// </summary>
-    private static Gear CreateLegacyGearView(string gearId)
-    {
-        // Empty or unknown IDs intentionally produce an empty HUD slot.
-        var gearType = ToLegacyGearType(gearId);
-        return gearType == GearType.None ? null : Gear.GetGear(gearType);
-    }
-
-    /// <summary>
-    /// Converts a stable core gear ID to the retained visual database enum.
-    /// </summary>
-    private static GearType ToLegacyGearType(string gearId)
-    {
-        // This mapping exists only at the presentation boundary.
-        switch (gearId)
-        {
-            case GearTypeIds.Bomb:
-                return GearType.Bomb;
-            case GearTypeIds.DiscoBall:
-                return GearType.DiscoBall;
-            case GearTypeIds.Grapple:
-                return GearType.Grapple;
-            case GearTypeIds.InvisibilityCloak:
-                return GearType.InvisibilityCloak;
-            case GearTypeIds.Mirror:
-                return GearType.Mirror;
-            case GearTypeIds.PowderOfDarkness:
-                return GearType.PowderOfDarkness;
-            case GearTypeIds.RemoteControl:
-                return GearType.RemoteControl;
-            case GearTypeIds.SpeedBoots:
-                return GearType.SpeedBoots;
-            case GearTypeIds.TimeController:
-                return GearType.TimeController;
-            default:
-                return GearType.None;
-        }
-    }
-
-    /// <summary>
     /// Converts a core cardinal direction to the retained presentation orientation.
     /// </summary>
     private static Orientation ToLegacyOrientation(CoreDirection direction)
@@ -1662,15 +1643,19 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// Restarts the current map from its initial state or activated checkpoint.
     /// </summary>
-    public void RestartGrid()
+    private void RestartGrid(bool resumeFromCheckpoint)
     {
         // Reloading the authored map restores destroyed cells, elements, actors, and gears.
-        if (UsesCoreSimulation)
-            pendingCoreCheckpoint = coreState.Player.CheckpointPosition;
+        pendingCoreCheckpoint =
+            UsesCoreSimulation && resumeFromCheckpoint
+                ? coreState.Player.CheckpointPosition
+                : null;
         DestroyCoreGrappleView();
         ClearCoreWeaponAnchorPresentation();
         StopAllCoroutines();
         GameContext.WaitForEndOfAction = 0;
+        coreTerminalPresentationRunning = false;
+        coreVictoryReady = false;
         coreCommandRunning = false;
         SetGrid(false);
     }
@@ -1678,14 +1663,11 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// Advances the active tutorial or local map sequence.
     /// </summary>
-    public void NextMap()
+    private void AdvanceToNextMap()
     {
         // Tutorial persistence is optional, while traversal follows the loaded sequence.
         if (GameContext.CurrentRules.Tutorial)
         {
-            if (GameContext.CurrentRules.TracksTutorialProgress)
-                GameContext.TutorialController.FinishCurrentMap();
-
             var hasNextMap =
                 GameContext.CurrentRules.CurrentGrid + 1 <
                 GameContext.CurrentRules.NbGrids;
@@ -1715,22 +1697,28 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// Leaves gameplay after the final tutorial map.
     /// </summary>
-    public void FinishTutorial()
+    private void FinishTutorial()
     {
         // Reuse the standard local-session exit path.
         InGameUI.Exit();
     }
 
     /// <summary>
-    /// Finalizes local progression after the player reaches a map exit.
+    /// Commits the persistent completion rewards for one local authored map.
     /// </summary>
-    IEnumerator EndOfGrid()
+    private void CommitCurrentMapCompletion()
     {
-        // Complete local progression without any remote score or vote request.
+        // Completion is persisted before navigation so leaving the result screen loses nothing.
         LastCheckPointReached = null;
         StopWatch.Stop();
-        if (!GameContext.CurrentRules.Tutorial &&
-            GameContext.CurrentMap?.Map != null)
+        if (GameContext.CurrentRules.Tutorial)
+        {
+            if (GameContext.CurrentRules.TracksTutorialProgress)
+                GameContext.TutorialController.CompleteCurrentMap();
+            return;
+        }
+
+        if (GameContext.CurrentMap?.Map != null)
         {
             bool firstCompletion = !GameContext.CurrentMap.Map.IsFinished();
             GameContext.CurrentMap.Map.AlreadyFinished = 1;
@@ -1742,9 +1730,6 @@ public class GameManager : MonoBehaviour
                     GameContext.Databases.RewardData.XPForFirstFinishingMap);
             }
         }
-
-        yield return null;
-        NextMap();
     }
 
     /// <summary>

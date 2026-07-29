@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3ed5ed08b2b7b8040a5feac660f6c8d1, type: 3}
   m_Name: FuguiRenderFeature
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   m_Active: 1
   PassEvent: 500
   _shader: {fileID: 4800000, guid: 4672393d0e55548419ce9efb914275d9, type: 3}
@@ -70,4 +70,4 @@ MonoBehaviour:
   m_DepthAttachmentFormat: 0
   m_DepthTextureFormat: 0
   m_AccurateGbufferNormals: 0
-  m_IntermediateTextureMode: 1
+  m_IntermediateTextureMode: 0

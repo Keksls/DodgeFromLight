@@ -430,7 +430,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &354351173
 RectTransform:
   m_ObjectHideFlags: 0
@@ -721,7 +721,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &572301148
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1594,7 +1594,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1401667454
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1708,7 +1708,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1681984676
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2352,7 +2352,7 @@ Canvas:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5627978969978000003}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_RenderMode: 0
   m_Camera: {fileID: 0}
@@ -2374,7 +2374,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5627978969978000003}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
@@ -2397,7 +2397,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5627978969978000003}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dc42784cf147c0c48a680349fa168899, type: 3}
   m_Name: 
@@ -2419,25 +2419,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8545d157434b9e442902cbad72568a6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  PressEnterCheckpointPanel: {fileID: 2146563853}
-  PressAEGearPanel: {fileID: 125877806}
-  TurnText: {fileID: 5627978971489507275}
-  DurationText: {fileID: 54316358}
-  GearAText: {fileID: 1136687988}
-  GearEText: {fileID: 574381293}
-  GridNameText: {fileID: 4744345748606390402}
-  GearAImage: {fileID: 586239548}
-  GearEImage: {fileID: 947714314}
-  GearAImageEmpty: {fileID: 824736571}
-  GearEImageEmpty: {fileID: 1934128197}
-  GearNormalColor: {r: 0.6666667, g: 0.6666667, b: 0.6666667, a: 1}
-  GearPressedColor: {r: 1, g: 0.32299632, b: 0, a: 1}
-  PauseMenu: {fileID: 575532662}
-  InGameUIElements:
-  - {fileID: 354351172}
-  - {fileID: 1681984675}
-  - {fileID: 572301147}
-  - {fileID: 1401667453}
   HideCursorDuration: 5
   MouseMovementThreshold: 0.1
 --- !u!1 &5627978971489507273

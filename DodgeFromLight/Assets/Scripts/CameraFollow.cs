@@ -7,7 +7,6 @@ public class CameraFollow : MonoBehaviour
     public Orientation Orientation;
     public Action PostRenderCallback;
     public AnimationCurve StartAnimationCurve;
-    public AnimationCurve StartRotationAnimationCurve;
     public float YUp = 10f;
     // camera will follow this object
     public Transform Target;
@@ -22,30 +21,50 @@ public class CameraFollow : MonoBehaviour
     // This value will change at the runtime depending on target movement. Initialize with zero vector.
     private Vector3 velocity = Vector3.zero;
 
+    /// <summary>
+    /// Initializes the authored camera orientation and reusable follow offset.
+    /// </summary>
     private void Start()
     {
+        // The active map always begins from the same readable isometric angle.
         SetOrientation(Orientation.Up);
         BaseOffset = Offset;
     }
 
+    /// <summary>
+    /// Subscribes the camera reset behavior while this presentation view is active.
+    /// </summary>
     private void OnEnable()
     {
+        // Defensive removal prevents duplicate callbacks after repeated scene activation.
         Events.StartMap -= Events_StartMap;
         Events.StartMap += Events_StartMap;
     }
 
+    /// <summary>
+    /// Restores the canonical camera angle when a new map presentation starts.
+    /// </summary>
     private void Events_StartMap()
     {
+        // Map traversal never inherits a quarter-turn from the previous puzzle.
         SetOrientation(Orientation.Up);
     }
 
+    /// <summary>
+    /// Releases the map-start subscription owned by this camera view.
+    /// </summary>
     private void OnDisable()
     {
+        // Disabled camera views must not react to later map changes.
         Events.StartMap -= Events_StartMap;
     }
 
+    /// <summary>
+    /// Applies player-requested quarter-turns while presentation is idle.
+    /// </summary>
     private void Update()
     {
+        // Camera input cannot interleave with an entity movement presentation.
         if (GameContext.GameManager != null && GameContext.HasEntitiesMoving)
             return;
 
@@ -94,8 +113,12 @@ public class CameraFollow : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Converts one cardinal camera orientation into its follow offset.
+    /// </summary>
     private void SetOrientation(Orientation dir)
     {
+        // Four fixed offsets preserve grid readability and deterministic input rotation.
         Orientation = dir;
         switch (Orientation)
         {
@@ -114,8 +137,12 @@ public class CameraFollow : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Smoothly follows the active target after its frame movement is applied.
+    /// </summary>
     private void LateUpdate()
     {
+        // The authored flyover owns the camera transform while it is running.
         if (animating)
             return;
         // update position
@@ -126,46 +153,51 @@ public class CameraFollow : MonoBehaviour
         transform.LookAt(Target);
     }
 
-    IEnumerator AnimateCamera_Routine(Vector3 start, Vector3 end)
+    /// <summary>
+    /// Presents the authored map flyover without hiding the Fugui HUD.
+    /// </summary>
+    private IEnumerator AnimateCameraRoutine(Vector3 overviewStart)
     {
-        GameContext.GameManager.InGameUI.HideUI();
-
+        // Presentation wait state blocks gameplay input without influencing simulation.
         animating = true;
         GameContext.StartWaitingAction();
 
-        end = Target.position + Offset;
-        transform.LookAt(end);
-        Quaternion erot = transform.rotation;
-
-        start = start + (Offset / 4f);
-        transform.LookAt(start);
-        Quaternion srot = transform.rotation;
-
-
+        overviewStart += Offset / 4f;
+        transform.LookAt(overviewStart);
         float enlapsed = 0f;
         float duration = 2f;
         while (enlapsed < duration)
         {
-            Vector3 pos = Vector3.Lerp(start, end, enlapsed / duration);
+            var targetPosition = Target.position + Offset;
+            Vector3 pos = Vector3.Lerp(
+                overviewStart,
+                targetPosition,
+                enlapsed / duration);
             pos.y += StartAnimationCurve.Evaluate(enlapsed / duration) * YUp;
             camTransform.position = pos;
-            transform.LookAt(pos - Offset);// = Quaternion.Lerp(srot, erot, (enlapsed / duration ) * StartRotationAnimationCurve.Evaluate(enlapsed / duration));
+            transform.LookAt(pos - Offset);
             yield return null;
             enlapsed += Time.deltaTime;
         }
         GameContext.StopWaitingAction();
         animating = false;
-
-        GameContext.GameManager.InGameUI.ShowUI();
     }
 
-    public void AnimateCamera(Vector3 start, Vector3 end)
+    /// <summary>
+    /// Starts a non-authoritative camera flyover from a board overview.
+    /// </summary>
+    public void AnimateCamera(Vector3 overviewStart)
     {
-        StartCoroutine(AnimateCamera_Routine(start, end));
+        // The coroutine only owns camera presentation timing.
+        StartCoroutine(AnimateCameraRoutine(overviewStart));
     }
 
+    /// <summary>
+    /// Invokes optional debug drawing after this camera has rendered.
+    /// </summary>
     private void OnPostRender()
     {
+        // Debug consumers can render paths without entering the gameplay loop.
         PostRenderCallback?.Invoke();
     }
 }

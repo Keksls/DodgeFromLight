@@ -98,11 +98,13 @@
     <Compile Include="Assets\UI\Scripts\FlexibleResizeHandler.cs" />
     <Compile Include="Assets\Scripts\GameEvents.cs" />
     <Compile Include="Assets\UI\Scripts\UITooltip.cs" />
+    <Compile Include="Assets\Scripts\UI\FuguiRuntimeController.cs" />
     <Compile Include="Assets\UI\Scripts\FlexibleExtensions.cs" />
     <Compile Include="Assets\UI\Scripts\UITooltipSetter.cs" />
     <Compile Include="Assets\Map Models\Prefabs\BmbeController.cs" />
     <Compile Include="Assets\VFX\Cartoon FX\Scripts\CFX_LightFlicker.cs" />
     <Compile Include="Assets\Scripts\GameEngine\LocalMapRepository.cs" />
+    <Compile Include="Assets\Scripts\UI\MainMenuRuntimeBootstrap.cs" />
     <Compile Include="Assets\Scripts\UI\InGameUI.cs" />
     <Compile Include="Assets\Scripts\Databases\GearData.cs" />
     <Compile Include="Assets\UI\HSVPicker\UI\ColorPresets.cs" />

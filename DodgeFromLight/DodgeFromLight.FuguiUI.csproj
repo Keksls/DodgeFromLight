@@ -50,7 +50,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\DodgeFromLight\FuguiUI\Screens\SoloHudPresenter.cs" />
+    <Compile Include="Assets\DodgeFromLight\FuguiUI\Screens\MainMenuPresenter.cs" />
+    <Compile Include="Assets\DodgeFromLight\FuguiUI\Rendering\DrawListUi.cs" />
+    <Compile Include="Assets\DodgeFromLight\FuguiUI\ViewModels\MainMenuViewModel.cs" />
     <Compile Include="Assets\DodgeFromLight\FuguiUI\ViewModels\SoloHudViewModel.cs" />
+    <Compile Include="Assets\DodgeFromLight\FuguiUI\ViewModels\SoloMovementInputState.cs" />
+    <Compile Include="Assets\DodgeFromLight\FuguiUI\ViewModels\SoloHudActions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\DodgeFromLight\FuguiUI\DodgeFromLight.FuguiUI.asmdef" />

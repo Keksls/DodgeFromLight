@@ -15,10 +15,10 @@ public static class LocalGameSessionFactory
         if (tutorialController == null)
             throw new ArgumentNullException(nameof(tutorialController));
 
-        if (!tutorialController.HasFinishTutorial())
+        if (!tutorialController.HasFinishedTutorial())
         {
             return new GameRules()
-                .SetTutorial(tutorialController.GetRemaningMapsFolders());
+                .SetTutorial(tutorialController.GetRemainingMapFolders());
         }
 
         Map latestLocalMap = LocalMapRepository.GetMostRecent();

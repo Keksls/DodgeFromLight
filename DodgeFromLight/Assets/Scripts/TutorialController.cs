@@ -1,211 +1,145 @@
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
-using UnityEngine.UI;
 
+/// <summary>
+/// Owns the local tutorial map catalogue and persisted progression.
+/// </summary>
 public class TutorialController : MonoBehaviour
 {
-    public string[] TutorialMapsFolderNames;
-    public Dictionary<string, FullMap> Maps;
-    public GameObject GrapplePanel;
-    public GameObject BombePanel;
-    public GameObject DiscoballPanel;
-    public GameObject MirrorPanel;
-    public GameObject RemoteControlPanel;
-    public GameObject SpeedBootsPanel;
-    public GameObject TimeControllerPanel;
-    public GameObject KeysPanel;
-    public Image Z;
-    public Image Q;
-    public Image S;
-    public Image D;
-    public Image Jump;
-    public Color PressedKeyColor;
-    public Color UnpressedKeyColor;
-    public Transform Canvas;
+    private const string ProgressKey = "TutorialStepIndex";
 
-    void Awake()
+    public string[] TutorialMapsFolderNames = System.Array.Empty<string>();
+
+    private readonly Dictionary<string, FullMap> _maps =
+        new Dictionary<string, FullMap>();
+
+    /// <summary>
+    /// Registers the tutorial service and loads its authored local maps.
+    /// </summary>
+    private void Awake()
     {
-        //ResetAvancement();
-        //SetAvancement(13);
+        // Tutorial visuals are rendered by the solo DrawList presenter.
         GameContext.TutorialController = this;
-        Maps = new Dictionary<string, FullMap>();
-        foreach (string folder in TutorialMapsFolderNames)
+        _maps.Clear();
+        foreach (string folderName in TutorialMapsFolderNames)
         {
-            string folderPath = Application.streamingAssetsPath + @"\" + folder;
-            Maps.Add(folder, new FullMap(GridManager.GetGrid(folderPath), GridManager.GetMap(folderPath)));
+            if (string.IsNullOrWhiteSpace(folderName))
+            {
+                Debug.LogWarning("An empty tutorial map folder was ignored.");
+                continue;
+            }
+
+            if (_maps.ContainsKey(folderName))
+            {
+                Debug.LogWarning(
+                    "The duplicate tutorial map folder '" +
+                    folderName +
+                    "' was ignored.");
+                continue;
+            }
+
+            string folderPath =
+                Path.Combine(Application.streamingAssetsPath, folderName);
+            _maps.Add(
+                folderName,
+                new FullMap(
+                    GridManager.GetGrid(folderPath),
+                    GridManager.GetMap(folderPath)));
         }
-        HideAllpanels();
-    }
-
-    private void OnEnable()
-    {
-        Events.StartMap -= Events_StartMap;
-        Events.StartMap += Events_StartMap;
-        Events.SetGear -= Events_SetGear;
-        Events.SetGear += Events_SetGear;
-    }
-
-    private void OnDisable()
-    {
-        Events.StartMap -= Events_StartMap;
-        Events.SetGear -= Events_SetGear;
-    }
-
-    private void Update()
-    {
-        if (GameContext.CurrentRules == null || !GameContext.CurrentRules.Tutorial)
-            return;
-        if (GameContext.GameSettingsManager.GetInput(InputSettingsType.Forward).IsPressed())
-            Z.color = PressedKeyColor;
-        else
-            Z.color = UnpressedKeyColor;
-
-        if (GameContext.GameSettingsManager.GetInput(InputSettingsType.left).IsPressed())
-            Q.color = PressedKeyColor;
-        else
-            Q.color = UnpressedKeyColor;
-
-        if (GameContext.GameSettingsManager.GetInput(InputSettingsType.Backward).IsPressed())
-            S.color = PressedKeyColor;
-        else
-            S.color = UnpressedKeyColor;
-
-        if (GameContext.GameSettingsManager.GetInput(InputSettingsType.Right).IsPressed())
-            D.color = PressedKeyColor;
-        else
-            D.color = UnpressedKeyColor;
-
-        if (GameContext.GameSettingsManager.GetInput(InputSettingsType.Jump).IsPressed())
-            Jump.color = PressedKeyColor;
-        else
-            Jump.color = UnpressedKeyColor;
-    }
-
-    private void Events_SetGear(GearType type)
-    {
-        if (!GameContext.CurrentRules.Tutorial)
-            return;
-        HideAllpanels();
-        switch (type)
-        {
-            case GearType.None:
-                KeysPanel.SetActive(true);
-                break;
-            case GearType.Bomb:
-                BombePanel.SetActive(true);
-                break;
-            case GearType.DiscoBall:
-                DiscoballPanel.SetActive(true);
-                break;
-            case GearType.Grapple:
-                GrapplePanel.SetActive(true);
-                break;
-            case GearType.InvisibilityCloak:
-                break;
-            case GearType.Mirror:
-                MirrorPanel.SetActive(true);
-                break;
-            case GearType.PowderOfDarkness:
-                break;
-            case GearType.RemoteControl:
-                RemoteControlPanel.SetActive(true);
-                break;
-            case GearType.SpeedBoots:
-                SpeedBootsPanel.SetActive(true);
-                break;
-            case GearType.TimeController:
-                TimeControllerPanel.SetActive(true);
-                break;
-            default:
-                break;
-        }
-    }
-
-    private void Events_StartMap()
-    {
-        if (!GameContext.CurrentRules.Tutorial)
-            return;
-        HideAllpanels();
-        KeysPanel.SetActive(true);
-    }
-
-    public void ShowInputPanel()
-    {
-        HideAllpanels();
-    }
-
-    public void HideAllpanels()
-    {
-        foreach (Transform t in Canvas)
-            t.gameObject.SetActive(false);
-    }
-
-    public void ResetAvancement()
-    {
-        PlayerPrefs.DeleteKey("TutorialStepIndex");
-        PlayerPrefs.DeleteKey("TutorialRewardsTaken");
-    }
-
-    public void SetAvancement(int stepIndex)
-    {
-        PlayerPrefs.SetInt("TutorialStepIndex", stepIndex);
-    }
-
-    public int GetAvancement()
-    {
-
-        if (PlayerPrefs.HasKey("TutorialStepIndex"))
-            return PlayerPrefs.GetInt("TutorialStepIndex");
-        else
-            return -1;
-    }
-
-    public bool HasStartTutorial()
-    {
-        return PlayerPrefs.HasKey("TutorialStepIndex");
-    }
-
-    public bool HasFinishTutorial()
-    {
-        return GetAvancement() >= TutorialMapsFolderNames.Length - 1;
-    }
-
-    public FullMap GetCurrentMap()
-    {
-        if (HasStartTutorial())
-            return Maps[TutorialMapsFolderNames[GetAvancement()]];
-        else
-            return null;
-    }
-
-    public bool HasTakeRewards()
-    {
-        if (PlayerPrefs.HasKey("TutorialRewardsTaken"))
-            return PlayerPrefs.GetInt("TutorialRewardsTaken") == 1;
-        else
-            return false;
-    }
-
-    public void TakeRewards()
-    {
-        PlayerPrefs.SetInt("TutorialRewardsTaken", 1);
     }
 
     /// <summary>
-    /// return true if just finished tutorial
+    /// Removes all persisted tutorial progression.
     /// </summary>
-    /// <returns></returns>
-    public void FinishCurrentMap()
+    public void ResetProgress()
     {
-        SetAvancement(GetAvancement() + 1);
+        // Resetting returns the next local session to the first tutorial map.
+        PlayerPrefs.DeleteKey(ProgressKey);
+        PlayerPrefs.Save();
     }
 
-    public List<string> GetRemaningMapsFolders()
+    /// <summary>
+    /// Persists the completed tutorial step index.
+    /// </summary>
+    public void SetProgress(int stepIndex)
     {
-        List<string> folders = new List<string>();
-        int av = GetAvancement() + 1;
-        for (int i = av; i < TutorialMapsFolderNames.Length; i++)
-            folders.Add(TutorialMapsFolderNames[i]);
+        // Progress is clamped to preserve a valid catalogue index.
+        int maximum = Mathf.Max(-1, TutorialMapsFolderNames.Length - 1);
+        PlayerPrefs.SetInt(ProgressKey, Mathf.Clamp(stepIndex, -1, maximum));
+        PlayerPrefs.Save();
+    }
+
+    /// <summary>
+    /// Gets the completed tutorial step index, or minus one before the first completion.
+    /// </summary>
+    public int GetProgress()
+    {
+        // Absence of the key represents a pristine tutorial.
+        return PlayerPrefs.HasKey(ProgressKey)
+            ? PlayerPrefs.GetInt(ProgressKey)
+            : -1;
+    }
+
+    /// <summary>
+    /// Reports whether at least one tutorial map has been completed.
+    /// </summary>
+    public bool HasStartedTutorial()
+    {
+        // Persisted progress is the only source of tutorial advancement.
+        return GetProgress() >= 0;
+    }
+
+    /// <summary>
+    /// Reports whether the complete authored tutorial sequence has been finished.
+    /// </summary>
+    public bool HasFinishedTutorial()
+    {
+        // An empty catalogue cannot represent a completed tutorial.
+        return TutorialMapsFolderNames.Length > 0 &&
+               GetProgress() >= TutorialMapsFolderNames.Length - 1;
+    }
+
+    /// <summary>
+    /// Gets the latest completed tutorial map when one exists.
+    /// </summary>
+    public FullMap GetCurrentMap()
+    {
+        // Invalid or pristine progress returns no map instead of indexing outside the catalogue.
+        int progress = GetProgress();
+        if (progress < 0 || progress >= TutorialMapsFolderNames.Length)
+            return null;
+
+        string folderName = TutorialMapsFolderNames[progress];
+        return _maps.TryGetValue(folderName, out FullMap map)
+            ? map
+            : null;
+    }
+
+    /// <summary>
+    /// Commits completion of the current tutorial map.
+    /// </summary>
+    public void CompleteCurrentMap()
+    {
+        // Completion advances by one while SetProgress applies the catalogue bound.
+        SetProgress(GetProgress() + 1);
+    }
+
+    /// <summary>
+    /// Gets the ordered tutorial folders that still need to be completed.
+    /// </summary>
+    public List<string> GetRemainingMapFolders()
+    {
+        // The next folder begins immediately after the latest completed step.
+        var folders = new List<string>();
+        int nextIndex = Mathf.Max(0, GetProgress() + 1);
+        for (int index = nextIndex;
+             index < TutorialMapsFolderNames.Length;
+             index++)
+        {
+            folders.Add(TutorialMapsFolderNames[index]);
+        }
+
         return folders;
     }
 }

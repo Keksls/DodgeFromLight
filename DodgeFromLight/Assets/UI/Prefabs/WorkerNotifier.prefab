@@ -615,8 +615,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cc8a69d83b3f5d9439fc6b00b49d244d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  text: {fileID: 5181911964216464624}
-  Worker: {fileID: 5181911964042773668}
   IsMain: 1
 --- !u!1 &5181911963757517057
 GameObject:
