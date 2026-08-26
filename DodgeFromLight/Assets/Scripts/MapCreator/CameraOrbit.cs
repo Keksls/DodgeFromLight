@@ -1,174 +1,251 @@
 using System;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
-public class CameraOrbit : MonoBehaviour
+/// <summary>
+/// Provides orbit, pan, focus, and zoom controls for the map-creator camera.
+/// </summary>
+public sealed class CameraOrbit : MonoBehaviour
 {
     public Camera Camera;
     public Vector3 targetPos;
-    public float distance = 10.0f;
-    public float mouseSensitivity = 1.0f;
-    private Vector3 lastPosition;
-    public static CameraOrbit Instance;
-
-    public float xSpeed = 250.0f;
-    public float ySpeed = 120.0f;
-
-    public float yMinLimit = -20;
-    public float yMaxLimit = 80;
-
+    public float distance = 10f;
+    public float mouseSensitivity = 1f;
+    public float xSpeed = 250f;
+    public float ySpeed = 120f;
+    public float yMinLimit = -20f;
+    public float yMaxLimit = 80f;
     public float scrollSpeed = 5f;
+    public bool forceUpdate;
 
-    float x = 0.0f;
-    float y = 0.0f;
-    public bool forceUpdate = false;
-    bool hasMoved = false;
+    private Vector3 _lastPosition;
+    private MapCreatorController _mapCreator;
+    private float _x;
+    private float _y;
+    private float _previousDistance;
+    private bool _hasMoved;
 
+    public static CameraOrbit Instance;
     public static Action PostRenderCallback;
 
+    /// <summary>
+    /// Registers the active map-creator camera instance.
+    /// </summary>
     private void Awake()
     {
+        // The creator scene contains a single authoring camera.
         Instance = this;
     }
 
-    void Start()
+    /// <summary>
+    /// Captures the authored camera orientation and resolves the Fugui input guard.
+    /// </summary>
+    private void Start()
     {
-        var angles = transform.eulerAngles;
-        x = angles.y;
-        y = angles.x;
+        // Initial Euler values preserve the scene-authored opening angle.
+        Vector3 angles = transform.eulerAngles;
+        _x = angles.y;
+        _y = angles.x;
+        _mapCreator =
+            FindFirstObjectByType<MapCreatorController>();
     }
 
-    float prevDistance;
-
-    void LateUpdate()
+    /// <summary>
+    /// Updates map-creator camera gestures after board and UI input state is known.
+    /// </summary>
+    private void LateUpdate()
     {
-        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject() && !forceUpdate)
+        // Fugui panels and modals reserve pointer gestures while forced framing remains available.
+        if (IsPointerBlocked() && !forceUpdate)
             return;
 
+        HandlePan();
+        HandleZoom();
+        HandleOrbit();
+        HandlePanRelease();
+    }
+
+    /// <summary>
+    /// Pans the target and camera while the middle mouse button is dragged.
+    /// </summary>
+    private void HandlePan()
+    {
+        // Panning speed scales with distance so large maps remain navigable.
         if (Input.GetMouseButtonDown(2))
         {
-            lastPosition = Input.mousePosition;
-            hasMoved = false;
+            _lastPosition = Input.mousePosition;
+            _hasMoved = false;
         }
-
-        if (Input.GetMouseButton(2) && GameContext.CurrentMap != null)
+        if (!Input.GetMouseButton(2) ||
+            GameContext.CurrentMap == null)
         {
-            if(Vector3.Distance(lastPosition, Input.mousePosition) > 0.25f)
-            {
-                hasMoved = true;
-                Vector3 delta = Input.mousePosition - lastPosition;
-                transform.Translate(delta.x * mouseSensitivity * distance * 0.1f, delta.y * mouseSensitivity * distance * 0.1f, 0);
-                lastPosition = Input.mousePosition;
-                targetPos += (delta * mouseSensitivity * distance * 0.1f);
-            }
+            return;
         }
 
-        if (distance < 2) distance = 2;
-        float scrool = Input.GetAxis("Mouse ScrollWheel");
-        if (Input.GetKeyDown(KeyCode.KeypadPlus))
-            scrool += .1f;
-        else if (Input.GetKeyDown(KeyCode.KeypadMinus))
-            scrool -= .1f;
-        distance -= scrool * scrollSpeed * Mathf.Pow(Vector3.Distance(transform.position, targetPos), 0.9f);
-        if (Input.GetMouseButton(1) || forceUpdate)
+        if (Vector3.Distance(
+                _lastPosition,
+                Input.mousePosition) <= 0.25f)
         {
-            var pos = Input.mousePosition;
-            var dpiScale = 1f;
-            if (Screen.dpi < 1) dpiScale = 1;
-            if (Screen.dpi < 200) dpiScale = 1;
-            else dpiScale = Screen.dpi / 200f;
-
-            if (pos.x < 380 * dpiScale && Screen.height - pos.y < 250 * dpiScale) return;
-
-            x += Input.GetAxis("Mouse X") * xSpeed * 0.02f;
-            y -= Input.GetAxis("Mouse Y") * ySpeed * 0.02f;
-
-            y = ClampAngle(y, yMinLimit, yMaxLimit);
-            var rotation = Quaternion.Euler(y, x, 0);
-            var position = rotation * new Vector3(0.0f, 0.0f, -distance) + targetPos;
-            transform.rotation = rotation;
-            transform.position = position;
-            forceUpdate = false;
+            return;
         }
 
-        if (Math.Abs(prevDistance - distance) > 0.001f)
-        {
-            prevDistance = distance;
-            var rot = Quaternion.Euler(y, x, 0);
-            var po = rot * new Vector3(0.0f, 0.0f, -distance) + targetPos;
-            transform.rotation = rot;
-            transform.position = po;
-        }
-
-        if(Input.GetMouseButtonUp(2))
-        {
-            if (!hasMoved)
-            {
-                RaycastHit hit;
-                Ray ray = Camera.ScreenPointToRay(Input.mousePosition);
-
-                if (Physics.Raycast(ray, out hit))
-                {
-                    targetPos = hit.point;
-                    var pos = Input.mousePosition;
-                    var dpiScale = 1f;
-                    if (Screen.dpi < 1) dpiScale = 1;
-                    if (Screen.dpi < 200) dpiScale = 1;
-                    else dpiScale = Screen.dpi / 200f;
-
-                    if (pos.x < 380 * dpiScale && Screen.height - pos.y < 250 * dpiScale) return;
-
-                    x += Input.GetAxis("Mouse X") * xSpeed * 0.02f;
-                    y -= Input.GetAxis("Mouse Y") * ySpeed * 0.02f;
-
-                    y = ClampAngle(y, yMinLimit, yMaxLimit);
-                    var rotation = Quaternion.Euler(y, x, 0);
-                    var position = rotation * new Vector3(0.0f, 0.0f, -distance) + targetPos;
-                    transform.rotation = rotation;
-                    transform.position = position;
-                }
-            }
-            else
-            {
-                RaycastHit hit;
-
-                if (Physics.Raycast(transform.position, transform.forward, out hit))
-                {
-                    targetPos = hit.point;
-                    var pos = Input.mousePosition;
-                    var dpiScale = 1f;
-                    if (Screen.dpi < 1) dpiScale = 1;
-                    if (Screen.dpi < 200) dpiScale = 1;
-                    else dpiScale = Screen.dpi / 200f;
-
-                    if (pos.x < 380 * dpiScale && Screen.height - pos.y < 250 * dpiScale) return;
-
-                    x += Input.GetAxis("Mouse X") * xSpeed * 0.02f;
-                    y -= Input.GetAxis("Mouse Y") * ySpeed * 0.02f;
-
-                    y = ClampAngle(y, yMinLimit, yMaxLimit);
-                    var rotation = Quaternion.Euler(y, x, 0);
-                    var position = rotation * new Vector3(0.0f, 0.0f, -distance) + targetPos;
-                    transform.rotation = rotation;
-                    transform.position = position;
-
-                    distance = Vector3.Distance(transform.position, targetPos);
-                }
-            }
-        }
+        _hasMoved = true;
+        Vector3 delta =
+            Input.mousePosition - _lastPosition;
+        Vector3 movement =
+            delta *
+            (mouseSensitivity * distance * 0.1f);
+        transform.Translate(
+            movement.x,
+            movement.y,
+            0f);
+        targetPos += movement;
+        _lastPosition = Input.mousePosition;
     }
 
-    static float ClampAngle(float angle, float min, float max)
+    /// <summary>
+    /// Changes camera distance from the wheel and keypad zoom shortcuts.
+    /// </summary>
+    private void HandleZoom()
     {
-        if (angle < -360)
-            angle += 360;
-        if (angle > 360)
-            angle -= 360;
-        return Mathf.Clamp(angle, min, max);
+        // Exponential distance scaling gives precision nearby and speed on large maps.
+        distance = Mathf.Max(2f, distance);
+        float scroll =
+            Input.GetAxis("Mouse ScrollWheel");
+        if (Input.GetKeyDown(KeyCode.KeypadPlus))
+            scroll += 0.1f;
+        else if (Input.GetKeyDown(KeyCode.KeypadMinus))
+            scroll -= 0.1f;
+
+        distance -=
+            scroll *
+            scrollSpeed *
+            Mathf.Pow(
+                Vector3.Distance(
+                    transform.position,
+                    targetPos),
+                0.9f);
+        distance = Mathf.Max(2f, distance);
+        if (Math.Abs(_previousDistance - distance) <= 0.001f)
+            return;
+
+        _previousDistance = distance;
+        ApplyCameraTransform();
     }
 
+    /// <summary>
+    /// Orbits around the target while the right mouse button is held.
+    /// </summary>
+    private void HandleOrbit()
+    {
+        // Forced updates reuse the same transform path without needing synthetic input.
+        if (!Input.GetMouseButton(1) && !forceUpdate)
+            return;
+
+        _x +=
+            Input.GetAxis("Mouse X") *
+            xSpeed *
+            0.02f;
+        _y -=
+            Input.GetAxis("Mouse Y") *
+            ySpeed *
+            0.02f;
+        _y =
+            ClampAngle(
+                _y,
+                yMinLimit,
+                yMaxLimit);
+        ApplyCameraTransform();
+        forceUpdate = false;
+    }
+
+    /// <summary>
+    /// Refocuses the camera target when a middle-button pan gesture ends.
+    /// </summary>
+    private void HandlePanRelease()
+    {
+        // A middle click targets the pointed surface; a completed drag targets the view center.
+        if (!Input.GetMouseButtonUp(2))
+            return;
+
+        RaycastHit hit;
+        if (!_hasMoved)
+        {
+            if (Camera == null ||
+                !Physics.Raycast(
+                    Camera.ScreenPointToRay(Input.mousePosition),
+                    out hit))
+            {
+                return;
+            }
+            targetPos = hit.point;
+        }
+        else if (Physics.Raycast(
+                     transform.position,
+                     transform.forward,
+                     out hit))
+        {
+            targetPos = hit.point;
+            distance =
+                Vector3.Distance(
+                    transform.position,
+                    targetPos);
+        }
+        else
+        {
+            return;
+        }
+
+        ApplyCameraTransform();
+    }
+
+    /// <summary>
+    /// Applies the current orbit angles and distance around the target.
+    /// </summary>
+    private void ApplyCameraTransform()
+    {
+        // One transform function prevents orbit, zoom, and refocus from drifting apart.
+        Quaternion rotation =
+            Quaternion.Euler(_y, _x, 0f);
+        Vector3 position =
+            rotation *
+            new Vector3(0f, 0f, -distance) +
+            targetPos;
+        transform.rotation = rotation;
+        transform.position = position;
+    }
+
+    /// <summary>
+    /// Reports whether a visible Fugui editor surface currently owns the pointer.
+    /// </summary>
+    private bool IsPointerBlocked()
+    {
+        // The controller receives precise responsive rectangles from the foreground presenter.
+        return _mapCreator != null &&
+               _mapCreator.IsPointerOverUi;
+    }
+
+    /// <summary>
+    /// Normalizes and clamps one camera orbit angle.
+    /// </summary>
+    private static float ClampAngle(
+        float angle,
+        float minimum,
+        float maximum)
+    {
+        // Normalization avoids precision drift across repeated full rotations.
+        if (angle < -360f)
+            angle += 360f;
+        if (angle > 360f)
+            angle -= 360f;
+        return Mathf.Clamp(angle, minimum, maximum);
+    }
+
+    /// <summary>
+    /// Invokes map path rendering after the camera completes its frame.
+    /// </summary>
     private void OnPostRender()
     {
+        // Runtime entities draw their existing path visualization in camera space.
         PostRenderCallback?.Invoke();
     }
 }

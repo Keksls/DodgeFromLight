@@ -29,5 +29,6 @@ public enum ToolType
     Spring = 210,
     Bombe = 220,
     Needle = 230,
-    MovingPlatform = 240
+    MovingPlatform = 240,
+    SwordSocle = 250
 }

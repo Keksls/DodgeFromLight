@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 4242827114044628561}
   - component: {fileID: 8078027142928668327}
   m_Layer: 0
-  m_Name: MapCreator 1
+  m_Name: MapCreator
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -98,38 +98,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c3c0d8dc898a24b42bbb279c1a9b2ba2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Canvas: {fileID: 4368063622503362239}
   ScreenshotCamera: {fileID: 0}
   Camera: {fileID: 0}
-  UI_EnvironmentSettings: {fileID: 5030625324509513611}
   GridController: {fileID: 4242827114044628561}
-  ToolsContainer: {fileID: 4742873845768611479}
-  CollapsablePrefab: {fileID: 944993150259479083, guid: dbb74d212cd62fe479b603e9d528c42e, type: 3}
-  ToolPrefab: {fileID: 4083856760149851009, guid: 08c8413d0a7e67d4fa1fe45e7fdd8314, type: 3}
-  CurrentTool: 0
   SelectedMaterial: {fileID: 2100000, guid: 451d5f83cbfe09a47afdc0013518951d, type: 2}
   UnwalkableFeedbackPrefab: {fileID: 4221831657153249277, guid: 325c82a115239a04186aece44f47b358, type: 3}
-  MapName: {fileID: 8763715813975422280}
-  EnnemiesPanel: {fileID: 8779887304908464176}
-  CellsMechanicsPanel: {fileID: 6582620018147471766}
-  EnnemyPanel: {fileID: 3845763590901498697}
-  GearsPanel: {fileID: 6006902213490811448}
-  EnnemyHeaderName: {fileID: 3845763590579883315}
-  EnnemyPreview: {fileID: 8701108558272445100}
-  PlayButton: {fileID: 5507560974708755316}
-  SpecialPanels:
-  - {fileID: 7306550632779422891}
-  - {fileID: 8085614212499529397}
-  - {fileID: 952912558864032207}
-  - {fileID: 4368767757073037031}
-  MovingPlatformPanel: {fileID: 4368767757073037031}
-  SpringCellPanel: {fileID: 7306550632779422891}
-  SpringSlider: {fileID: 5332902492596731609}
-  SpringCellsText: {fileID: 651950194556685532}
-  TimeBombePanel: {fileID: 8085614212499529397}
-  TimeBombField: {fileID: 8695432302398788462}
-  NeedleTrapPanel: {fileID: 952912558864032207}
-  NeedleTrapToggle: {fileID: 7671949902671496925}
 --- !u!1 &150445594315719167
 GameObject:
   m_ObjectHideFlags: 0
@@ -4443,7 +4416,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1832147312019159777
 RectTransform:
   m_ObjectHideFlags: 0
@@ -12909,7 +12882,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4948365545225001279, guid: 74127a1fa4ddc9b4a86be2d527952edb, type: 3}
       propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: UI_MapCreator, Assembly-CSharp
+      value: MapCreatorController, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 4948365545225001279, guid: 74127a1fa4ddc9b4a86be2d527952edb, type: 3}
       propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
@@ -13461,7 +13434,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8628242937999336547, guid: 525e8eaab95f2894193fb0ba0e714973, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: UI_MapCreator, Assembly-CSharp
+      value: MapCreatorController, Assembly-CSharp
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -15714,7 +15687,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8628242937999336547, guid: 525e8eaab95f2894193fb0ba0e714973, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: UI_MapCreator, Assembly-CSharp
+      value: MapCreatorController, Assembly-CSharp
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -16554,7 +16527,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8628242937999336547, guid: 525e8eaab95f2894193fb0ba0e714973, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: UI_MapCreator, Assembly-CSharp
+      value: MapCreatorController, Assembly-CSharp
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -18704,7 +18677,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3180520264993316604, guid: d333794152075004286effebf99ce1a6, type: 3}
       propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: UI_MapCreator, Assembly-CSharp
+      value: MapCreatorController, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 3180520264993316604, guid: d333794152075004286effebf99ce1a6, type: 3}
       propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
@@ -19142,7 +19115,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8628242937999336547, guid: 525e8eaab95f2894193fb0ba0e714973, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: UI_MapCreator, Assembly-CSharp
+      value: MapCreatorController, Assembly-CSharp
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -19372,7 +19345,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8628242937999336547, guid: 525e8eaab95f2894193fb0ba0e714973, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: UI_MapCreator, Assembly-CSharp
+      value: MapCreatorController, Assembly-CSharp
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -20275,7 +20248,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3049669599443175767, guid: a00488dc2f93cc14291c03dd7c94f8a8, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: UI_MapCreator, Assembly-CSharp
+      value: MapCreatorController, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 4372581301491455866, guid: a00488dc2f93cc14291c03dd7c94f8a8, type: 3}
       propertyPath: m_Name
@@ -21846,7 +21819,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8628242937999336547, guid: 525e8eaab95f2894193fb0ba0e714973, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: UI_MapCreator, Assembly-CSharp
+      value: MapCreatorController, Assembly-CSharp
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -23131,7 +23104,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1845128934673467340, guid: 11ec2165914d0664383ddfb8b240fd17, type: 3}
       propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: UI_MapCreator, Assembly-CSharp
+      value: MapCreatorController, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 1845128934673467340, guid: 11ec2165914d0664383ddfb8b240fd17, type: 3}
       propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName

@@ -1,0 +1,67 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 43419150927d41cbb856a79c232937fa, type: 3}
+  m_Name: MapCreatorUiAssets
+  m_EditorClassIdentifier:
+  _icons:
+  - Id: Select
+    Texture: {fileID: 2800000, guid: a88a3cff48cd8f54593310761eea7d73, type: 3}
+  - Id: Walkable
+    Texture: {fileID: 2800000, guid: 0374244d0e32c834680e719e5786f5d9, type: 3}
+  - Id: UnWalkable
+    Texture: {fileID: 2800000, guid: 9e50f6d41c4392943bda9188b44842de, type: 3}
+  - Id: Start
+    Texture: {fileID: 2800000, guid: ab4678e586e5c404daeb50a526ace849, type: 3}
+  - Id: End
+    Texture: {fileID: 2800000, guid: 73c9e8f45da77084d8b2f50460dec13e, type: 3}
+  - Id: CheckPoint
+    Texture: {fileID: 2800000, guid: 9db59d03e605e1948ae3a826bd763d36, type: 3}
+  - Id: TP
+    Texture: {fileID: 2800000, guid: 69313a459a01e704d99d71b8d3ed89da, type: 3}
+  - Id: Collapsable
+    Texture: {fileID: 2800000, guid: 8bf13ff3b319b8e4fb7c1c795e919d45, type: 3}
+  - Id: FlipACoin
+    Texture: {fileID: 2800000, guid: efece28cf430b624280ba5aab3f7355c, type: 3}
+  - Id: Spring
+    Texture: {fileID: 2800000, guid: 9ba401d6ccf2db74797a8edac03b2753, type: 3}
+  - Id: Bombe
+    Texture: {fileID: 2800000, guid: 0726099b7ec96d84cacdd762cb8a99a3, type: 3}
+  - Id: Needle
+    Texture: {fileID: 2800000, guid: ac84ae9d3af08234eb961de2a27d89e6, type: 3}
+  - Id: MovingPlatform
+    Texture: {fileID: 2800000, guid: dda6d37fdc9b8094a9ba71ce4a445df1, type: 3}
+  - Id: SwordSocle
+    Texture: {fileID: 2800000, guid: e27b8aa06cf8480479deedaf887d328b, type: 3}
+  - Id: Cyclops
+    Texture: {fileID: 2800000, guid: 3bf131f9b6a03dc4b9fa3d9d50244649, type: 3}
+  - Id: Gloutton
+    Texture: {fileID: 2800000, guid: 3c29d1aca85b05446b43d1156e08d9c3, type: 3}
+  - Id: Keeper
+    Texture: {fileID: 2800000, guid: d78c397617f21624cb26d8c5ac0e893a, type: 3}
+  - Id: Knight
+    Texture: {fileID: 2800000, guid: 8a4f3e4cd99e359448585dd44ed783f9, type: 3}
+  - Id: Scoute
+    Texture: {fileID: 2800000, guid: cf91e2d1086ab6d47ad7a08f292df741, type: 3}
+  - Id: Trap
+    Texture: {fileID: 2800000, guid: 6b9166e1ce6bf7a489133869820eb386, type: 3}
+  - Id: Lizardman
+    Texture: {fileID: 2800000, guid: 3ad5603fc1fec314ca60b824a94185e9, type: 3}
+  - Id: Thunderbird
+    Texture: {fileID: 2800000, guid: 81649df72a577a2428631a39e6553371, type: 3}
+  - Id: Axe
+    Texture: {fileID: 2800000, guid: 8d1688308bac47a418744ce1529792e3, type: 3}
+  - Id: Hammer
+    Texture: {fileID: 2800000, guid: 87ae00c92dfb85b4ea50e4c99f255b14, type: 3}
+  - Id: Catapult
+    Texture: {fileID: 2800000, guid: 8ea1db4ca4567594f81210f24ba1ede6, type: 3}
+  - Id: Pillar
+    Texture: {fileID: 2800000, guid: 500119fdbd27510489c8c4ae17d970c1, type: 3}
