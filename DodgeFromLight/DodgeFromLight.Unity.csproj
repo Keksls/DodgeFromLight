@@ -49,9 +49,9 @@
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.4.11f1\Editor\Data\Tools\BuildPipeline\Unity.SourceGenerators\Unity.UIToolkit.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\UI\MapCreatorRuntimeBootstrap.cs" />
     <Compile Include="Assets\UI\UI Elements\MapCreator\UI_EnvironmentButton.cs" />
     <Compile Include="Assets\Scripts\GameEngine\GameRules.cs" />
-    <Compile Include="Assets\Scripts\RotateAndScale.cs" />
     <Compile Include="Assets\Scripts\UI\UI_Notifications.cs" />
     <Compile Include="Assets\Scripts\GameEngine\Ennemies\Thunderbird.cs" />
     <Compile Include="Assets\Plugins\Demigiant\DOTween\Modules\DOTweenModuleUtils.cs" />
@@ -72,7 +72,9 @@
     <Compile Include="Assets\Scripts\Databases\ResourcesData.cs" />
     <Compile Include="Assets\UI\UI Elements\MapCreator\UI_Tool.cs" />
     <Compile Include="Assets\Scripts\Databases.cs" />
+    <Compile Include="Assets\Scripts\MapCreator\MapCreatorController.cs" />
     <Compile Include="Assets\UI\Scripts\CursorSetter.cs" />
+    <Compile Include="Assets\Scripts\MapCreator\ToolType.cs" />
     <Compile Include="Assets\UI\UI Elements\MapCreator\MaterialChanger.cs" />
     <Compile Include="Assets\Scripts\AudioManager.cs" />
     <Compile Include="Assets\Scripts\CampaignManager.cs" />
@@ -81,9 +83,12 @@
     <Compile Include="Assets\UI\Scripts\UI_TabMenu.cs" />
     <Compile Include="Assets\Scripts\Databases\WeaponData.cs" />
     <Compile Include="Assets\Entities Models\Enemies\Catapult\CatapultController.cs" />
+    <Compile Include="Assets\Scripts\MapCreator\MapCreatorSnapshotResolver.cs" />
     <Compile Include="Assets\UI\UI Elements\MapCreator\UI_GearButton.cs" />
     <Compile Include="Assets\Scripts\GameEngine\LocalGameSessionFactory.cs" />
     <Compile Include="Assets\VFX\Cartoon FX\Scripts\CFX_AutoRotate.cs" />
+    <Compile Include="Assets\Scripts\MapCreator\MapCreatorMaterialOverride.cs" />
+    <Compile Include="Assets\Scripts\MapCreator\UndoableActionsManager.cs" />
     <Compile Include="Assets\VFX\Cartoon FX\Scripts\CFX_AutoDestructShuriken.cs" />
     <Compile Include="Assets\Scripts\GameEngine\InterractibleObjects\MovingPlatform.cs" />
     <Compile Include="Assets\Scripts\UI\SoloHudRuntimeBootstrap.cs" />
@@ -121,7 +126,6 @@
     <Compile Include="Assets\Scripts\EnvironmentController.cs" />
     <Compile Include="Assets\Scripts\GameEngine\Gears\Mirror.cs" />
     <Compile Include="Assets\UI\Scripts\UI_CarouselView.cs" />
-    <Compile Include="Assets\UI\UI Elements\MapCreator\ToolType.cs" />
     <Compile Include="Assets\UI\ornament\AnimateTextGradient.cs" />
     <Compile Include="Assets\Scripts\GameEngine\CastingPetController.cs" />
     <Compile Include="Assets\UI\HSVPicker\UI\ColorPicker.cs" />
@@ -135,7 +139,6 @@
     <Compile Include="Assets\Plugins\Demigiant\DOTween\Modules\DOTweenModulePhysics.cs" />
     <Compile Include="Assets\UI\Scripts\FlexibleDraggableObject.cs" />
     <Compile Include="Assets\Scripts\GameEngine\Traps\CellTrap.cs" />
-    <Compile Include="Assets\UI\UI Elements\MapCreator\UndoableActions.cs" />
     <Compile Include="Assets\UI\HSVPicker\ExampleScripts\ColorPickerTester.cs" />
     <Compile Include="Assets\Scripts\Databases\OrnamentData.cs" />
     <Compile Include="Assets\Scripts\GameEngine\Ennemy.cs" />
@@ -166,6 +169,7 @@
     <Compile Include="Assets\Scripts\GameEngine\Ennemies\Gloutton.cs" />
     <Compile Include="Assets\Scripts\Databases\SkinsData.cs" />
     <Compile Include="Assets\Scripts\GameEngine\Cell.cs" />
+    <Compile Include="Assets\Scripts\MapCreator\MapCreatorSceneView.cs" />
     <Compile Include="Assets\UI\Scripts\UI_PointerHoverAnimations.cs" />
     <Compile Include="Assets\Scripts\GridController.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerSkinPartContainer.cs" />
@@ -210,7 +214,6 @@
     <Compile Include="Assets\Scripts\UI\UIHelper.cs" />
     <Compile Include="Assets\Scripts\GameEngine\Ennemies\Hamer.cs" />
     <Compile Include="Assets\UI\HSVPicker\Events\HSVChangedEvent.cs" />
-    <Compile Include="Assets\UI\UI Elements\MapCreator\UI_MapCreator.cs" />
     <Compile Include="Assets\Scripts\UI\UI_WorkerNotifier.cs" />
     <Compile Include="Assets\UI\HSVPicker\UI\HexColorField.cs" />
     <Compile Include="Assets\Scripts\supersampling.cs" />
@@ -828,6 +831,10 @@
     </Reference>
     <Reference Include="UnityEditor.Graphs">
       <HintPath>C:\Program Files\Unity\Hub\Editor\6000.4.11f1\Editor\Data\Managed\UnityEditor.Graphs.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEditor.WebGL.Extensions">
+      <HintPath>C:\Program Files\Unity\Hub\Editor\6000.4.11f1\Editor\Data\PlaybackEngines\WebGLSupport\UnityEditor.WebGL.Extensions.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEditor.OSXStandalone.Extensions">

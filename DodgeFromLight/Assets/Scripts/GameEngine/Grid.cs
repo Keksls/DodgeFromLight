@@ -778,10 +778,11 @@ public class Grid
     /// <summary>
     /// Validate the grid and return error messages
     /// </summary>
-    /// <param name="ErrorMessages">ref error list</param>
+    /// <param name="ErrorMessages">List receiving validation errors.</param>
     /// <returns></returns>
-    public bool ValidateGrid(ref List<string> ErrorMessages)
+    public bool ValidateGrid(List<string> ErrorMessages)
     {
+        // Populate the caller's list without replacing its reference.
         if (EndCell == null)
             ErrorMessages.Add("No End cell");
 

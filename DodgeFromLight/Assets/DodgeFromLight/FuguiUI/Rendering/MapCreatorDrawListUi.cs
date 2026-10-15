@@ -9,6 +9,61 @@ namespace DodgeFromLight.FuguiUI.Rendering
     internal static class MapCreatorDrawListUi
     {
         private static bool _interactionsEnabled = true;
+        private static Vector2 _pressOrigin;
+        private static int _pressFrame = -1;
+        private static int _clickFrame = -1;
+        private static Rect? _interactionClip;
+        private static bool PointerInClip => !_interactionClip.HasValue || _interactionClip.Value.Contains(Fugui.DefaultContainer.Mouse.Position);
+
+        /// <summary>
+        /// Aligns immediate-mode hit tests with the current visual content clip.
+        /// </summary>
+        public static void SetInteractionClip(Rect? clip)
+        {
+            _interactionClip = clip;
+        }
+
+        /// <summary>
+        /// Reports an available hit target without creating a visual button.
+        /// </summary>
+        public static bool IsHovered(Rect rect)
+        {
+            return _interactionsEnabled && PointerInClip && rect.Contains(Fugui.DefaultContainer.Mouse.Position);
+        }
+
+        /// <summary>
+        /// Activates a target only when the pointer gesture began and ended inside its visible bounds.
+        /// </summary>
+        public static bool WasClicked(Rect rect)
+        {
+            if (_clickFrame == Time.frameCount || !IsHovered(rect) || !rect.Contains(_pressOrigin) ||
+                (_interactionClip.HasValue && !_interactionClip.Value.Contains(_pressOrigin)) || !Fugui.DefaultContainer.Mouse.IsUp(FuMouseButton.Left))
+                return false;
+            _clickFrame = Time.frameCount;
+            return true;
+        }
+
+        /// <summary>
+        /// Draws an obvious expandable section header with a directional chevron and optional summary.
+        /// </summary>
+        public static bool DrawDisclosure(FuDrawList drawList, Rect rect, string label, bool expanded, string summary = "")
+        {
+            float scale = DrawListUi.GetScale();
+            Color ink = IsHovered(rect) ? DrawListUi.AccentBright : DrawListUi.TextPrimary;
+            drawList.AddRectFilled(rect.min, rect.max, new Color(0.11f, 0.08f, 0.05f, IsHovered(rect) ? 1f : 0.65f), 3f * scale);
+            Vector2 center = new Vector2(rect.x + 13f * scale, rect.center.y);
+            if (expanded)
+                drawList.AddTriangleFilled(center + new Vector2(-4f, -2f) * scale, center + new Vector2(4f, -2f) * scale, center + new Vector2(0f, 4f) * scale, Fugui.GetColorU32(ink));
+            else
+                drawList.AddTriangleFilled(center + new Vector2(-2f, -4f) * scale, center + new Vector2(-2f, 4f) * scale, center + new Vector2(4f, 0f) * scale, Fugui.GetColorU32(ink));
+            DrawListUi.DrawText(drawList, new Vector2(rect.x + 29f * scale, rect.center.y - DrawListUi.MeasureText(label, 14).y * 0.5f), label, ink, 14);
+            if (!string.IsNullOrEmpty(summary))
+            {
+                Vector2 measured = DrawListUi.MeasureText(summary, 12);
+                DrawListUi.DrawText(drawList, new Vector2(rect.xMax - measured.x - 9f * scale, rect.center.y - measured.y * 0.5f), summary, DrawListUi.TextSecondary, 12);
+            }
+            return WasClicked(rect);
+        }
 
         /// <summary>
         /// Enables or suppresses editor-control hit-testing for the current DrawList pass.
@@ -17,98 +72,82 @@ namespace DodgeFromLight.FuguiUI.Rendering
         {
             // Presenters suppress background workbench actions while a modal owns input.
             _interactionsEnabled = enabled;
+            // Remember where a gesture began so releasing a paint stroke over a button never activates it.
+            if (Fugui.DefaultContainer.Mouse.IsDown(FuMouseButton.Left) && _pressFrame != Time.frameCount)
+            {
+                _pressOrigin = Fugui.DefaultContainer.Mouse.Position;
+                _pressFrame = Time.frameCount;
+            }
         }
 
         /// <summary>
-        /// Draws a compact action button suited to dense creator toolbars.
+        /// Draws illustrated tool art or a labelled view selector with a forged active state.
         /// </summary>
-        public static bool DrawCompactButton(
-            FuDrawList drawList,
-            Rect rect,
-            string label,
-            Color accent,
-            bool enabled = true,
-            bool selected = false)
+        public static bool DrawIconControl(FuDrawList drawList, Rect rect, string icon, string caption, bool selected, bool enabled = true)
         {
-            // Dense controls reuse the forged material language without the main-menu rune spacing.
-            bool hovered =
-                _interactionsEnabled &&
-                enabled &&
-                rect.Contains(Fugui.DefaultContainer.Mouse.Position);
-            bool pressed =
-                hovered &&
-                Fugui.DefaultContainer.Mouse.IsPressed(FuMouseButton.Left);
-            bool clicked =
-                hovered &&
-                Fugui.DefaultContainer.Mouse.IsUp(FuMouseButton.Left);
+            // Each texture is an authored illustration; secondary controls retain readable labels.
+            bool hovered = _interactionsEnabled && PointerInClip && enabled && rect.Contains(Fugui.DefaultContainer.Mouse.Position);
             float scale = DrawListUi.GetScale();
-            Color background = !enabled
-                ? new Color(0.025f, 0.024f, 0.025f, 0.84f)
-                : pressed
-                    ? new Color(0.19f, 0.11f, 0.045f, 0.98f)
-                    : hovered || selected
-                        ? new Color(0.12f, 0.077f, 0.038f, 0.98f)
-                        : new Color(0.045f, 0.039f, 0.037f, 0.96f);
-            Color border = !enabled
-                ? new Color(0.26f, 0.25f, 0.24f, 0.3f)
-                : new Color(
-                    accent.r,
-                    accent.g,
-                    accent.b,
-                    hovered || selected ? 0.9f : 0.4f);
-
-            drawList.AddRectFilled(
-                rect.min,
-                rect.max,
-                background,
-                4f * scale);
-            drawList.AddRect(
-                rect.min,
-                rect.max,
-                border,
-                4f * scale,
-                FuDrawFlags.RoundCornersAll,
-                Mathf.Max(1f, (hovered || selected ? 1.6f : 1f) * scale));
-            if (selected)
+            Color ink = !enabled ? new Color(0.40f, 0.36f, 0.30f) : selected ? DrawListUi.AccentBright : DrawListUi.TextPrimary;
+            MapCreatorTheme.Surface(drawList, rect, !enabled ? 4 : selected ? 2 : hovered ? 3 : 1);
+            Texture2D texture = MapCreatorTheme.GetTool(icon);
+            float size = Mathf.Min(46f * scale, rect.height - 5f * scale);
+            bool hasCaption = !string.IsNullOrEmpty(caption);
+            float left = hasCaption ? rect.x + 10f * scale : rect.center.x - size * 0.5f;
+            if (texture != null)
             {
-                drawList.AddRectFilled(
-                    rect.min,
-                    new Vector2(rect.x + 4f * scale, rect.yMax),
-                    accent,
-                    3f * scale,
-                    FuDrawFlags.RoundCornersLeft);
+                Vector2 top = new Vector2(left, rect.center.y - size * 0.5f - (hovered ? scale : 0f));
+                drawList.AddImage(texture, top, top + Vector2.one * size, new Vector4(1f, 1f, 1f, enabled ? 1f : 0.30f));
             }
+            if (hasCaption)
+            {
+                Vector2 measured = DrawListUi.MeasureText(caption, 14);
+                float textX = texture != null ? left + size + 8f * scale : rect.center.x - measured.x * 0.5f;
+                DrawListUi.DrawText(drawList, new Vector2(textX, rect.center.y - measured.y * 0.5f), caption, ink, 14);
+            }
+            return enabled && WasClicked(rect);
+        }
 
-            Vector2 textSize =
-                DrawListUi.MeasureText(label, 11, FontType.Bold);
-            DrawListUi.DrawText(
-                drawList,
-                rect.center - textSize * 0.5f,
-                label,
-                enabled
-                    ? DrawListUi.TextPrimary
-                    : new Color(0.38f, 0.36f, 0.34f, 1f),
-                11,
-                FontType.Bold);
-            return clicked;
+        /// <summary>
+        /// Draws a restrained document command with regular-weight text and tactile hover feedback.
+        /// </summary>
+        public static bool DrawCompactButton(FuDrawList drawList, Rect rect, string label, Color accent, bool enabled = true, bool selected = false)
+        {
+            bool hovered = _interactionsEnabled && PointerInClip && enabled && rect.Contains(Fugui.DefaultContainer.Mouse.Position);
+            bool pressed = hovered && Fugui.DefaultContainer.Mouse.IsPressed(FuMouseButton.Left);
+            MapCreatorTheme.Surface(drawList, rect, !enabled ? 4 : selected || pressed ? 2 : hovered ? 3 : 1);
+            Color ink = enabled ? selected ? DrawListUi.AccentBright : DrawListUi.TextPrimary : new Color(0.40f, 0.36f, 0.30f);
+            Vector2 measured = DrawListUi.MeasureText(label, 14);
+            DrawListUi.DrawText(drawList, rect.center - measured * 0.5f, label, ink, 14);
+            return enabled && WasClicked(rect);
+        }
+
+        /// <summary>
+        /// Draws a content family as an illustrated labelled tab rather than an ambiguous text-only switch.
+        /// </summary>
+        public static bool DrawLibraryTab(FuDrawList drawList, Rect rect, string icon, string label, bool selected)
+        {
+            float scale = DrawListUi.GetScale();
+            MapCreatorTheme.Surface(drawList, rect, selected ? 2 : IsHovered(rect) ? 3 : 1);
+            Texture2D texture = MapCreatorTheme.GetTool(icon);
+            float size = 34f * scale;
+            if (texture != null)
+                drawList.AddImage(texture, new Vector2(rect.x + 3f * scale, rect.center.y - size * 0.5f), new Vector2(rect.x + 3f * scale + size, rect.center.y + size * 0.5f), Vector4.one);
+            Vector2 measured = DrawListUi.MeasureText(label, 12);
+            DrawListUi.DrawText(drawList, new Vector2(rect.x + 42f * scale, rect.center.y - measured.y * 0.5f), label, selected ? DrawListUi.AccentBright : DrawListUi.TextPrimary, 12);
+            return WasClicked(rect);
         }
 
         /// <summary>
         /// Draws one palette tab and returns whether it was activated.
         /// </summary>
-        public static bool DrawTab(
-            FuDrawList drawList,
-            Rect rect,
-            string label,
-            bool selected)
+        public static bool DrawTab(FuDrawList drawList, Rect rect, string label, bool selected)
         {
             // Tabs use a bright lower edge to establish hierarchy without enclosing every label.
             bool hovered =
-                _interactionsEnabled &&
+                _interactionsEnabled && PointerInClip &&
                 rect.Contains(Fugui.DefaultContainer.Mouse.Position);
-            bool clicked =
-                hovered &&
-                Fugui.DefaultContainer.Mouse.IsUp(FuMouseButton.Left);
+            bool clicked = WasClicked(rect);
             Color background = selected
                 ? new Color(0.12f, 0.075f, 0.033f, 0.96f)
                 : hovered
@@ -126,43 +165,33 @@ namespace DodgeFromLight.FuguiUI.Rendering
 
             DrawListUi.DrawCenteredText(
                 drawList,
-                new Vector2(rect.x, rect.y + 11f * DrawListUi.GetScale()),
+                new Vector2(rect.x, rect.center.y - DrawListUi.MeasureText(label, 14).y * 0.5f),
                 rect.width,
                 label,
                 selected || hovered
                     ? DrawListUi.TextPrimary
                     : DrawListUi.TextSecondary,
-                10,
-                FontType.Bold);
+                14,
+                FontType.Regular);
             return clicked;
         }
 
         /// <summary>
         /// Draws an authored-content card with optional preview image and hover information.
         /// </summary>
-        public static bool DrawPaletteCard(
-            FuDrawList drawList,
-            Rect rect,
-            string label,
-            string category,
-            Texture2D preview,
-            Color accent,
-            bool selected,
-            out bool hovered)
+        public static bool DrawPaletteCard(FuDrawList drawList, Rect rect, string label, string category, Texture2D preview, Color accent, bool selected, out bool hovered)
         {
             // Large click targets make rapid mouse authoring reliable while retaining visual previews.
             hovered =
-                _interactionsEnabled &&
+                _interactionsEnabled && PointerInClip &&
                 rect.Contains(Fugui.DefaultContainer.Mouse.Position);
-            bool clicked =
-                hovered &&
-                Fugui.DefaultContainer.Mouse.IsUp(FuMouseButton.Left);
+            bool clicked = WasClicked(rect);
             float scale = DrawListUi.GetScale();
             Color background = selected
-                ? new Color(0.12f, 0.073f, 0.031f, 0.98f)
+                ? new Color(0.18f, 0.12f, 0.065f, 1f)
                 : hovered
-                    ? new Color(0.078f, 0.058f, 0.044f, 0.98f)
-                    : new Color(0.032f, 0.029f, 0.029f, 0.96f);
+                    ? new Color(0.115f, 0.095f, 0.075f, 1f)
+                    : new Color(0.065f, 0.055f, 0.047f, 1f);
             Color border = new Color(
                 accent.r,
                 accent.g,
@@ -214,18 +243,18 @@ namespace DodgeFromLight.FuguiUI.Rendering
             float textX = previewRect.xMax + 10f * scale;
             float textWidth = rect.xMax - textX - 7f * scale;
             string safeLabel =
-                TruncateText(label, textWidth, 11, FontType.Bold);
+                TruncateText(label, textWidth, 14, FontType.Regular);
             DrawListUi.DrawText(
                 drawList,
                 new Vector2(textX, rect.y + 14f * scale),
                 safeLabel,
                 DrawListUi.TextPrimary,
-                11,
-                FontType.Bold);
+                14,
+                FontType.Regular);
             if (!string.IsNullOrWhiteSpace(category))
             {
                 string safeCategory =
-                    TruncateText(category.ToUpperInvariant(), textWidth, 8, FontType.Bold);
+                    TruncateText(category, textWidth, 12, FontType.Regular);
                 DrawListUi.DrawText(
                     drawList,
                     new Vector2(textX, rect.y + 39f * scale),
@@ -235,8 +264,8 @@ namespace DodgeFromLight.FuguiUI.Rendering
                         accent.g,
                         accent.b,
                         0.72f),
-                    8,
-                    FontType.Bold);
+                    12,
+                    FontType.Regular);
             }
 
             if (selected)
@@ -253,20 +282,13 @@ namespace DodgeFromLight.FuguiUI.Rendering
         /// <summary>
         /// Draws a manual text-entry field and returns whether it gained focus.
         /// </summary>
-        public static bool DrawTextField(
-            FuDrawList drawList,
-            Rect rect,
-            string value,
-            string placeholder,
-            bool focused)
+        public static bool DrawTextField(FuDrawList drawList, Rect rect, string value, string placeholder, bool focused)
         {
             // Text input is collected by the presenter while the DrawList owns only focus hit-testing.
             bool hovered =
-                _interactionsEnabled &&
+                _interactionsEnabled && PointerInClip &&
                 rect.Contains(Fugui.DefaultContainer.Mouse.Position);
-            bool clicked =
-                hovered &&
-                Fugui.DefaultContainer.Mouse.IsUp(FuMouseButton.Left);
+            bool clicked = WasClicked(rect);
             float scale = DrawListUi.GetScale();
             Color accent = focused
                 ? DrawListUi.AccentBright
@@ -300,13 +322,13 @@ namespace DodgeFromLight.FuguiUI.Rendering
                 : DrawListUi.TextPrimary;
             float available = rect.width - 22f * scale;
             displayed =
-                TruncateText(displayed, available, 11, FontType.Regular);
+                TruncateText(displayed, available, 14, FontType.Regular);
             DrawListUi.DrawText(
                 drawList,
                 new Vector2(rect.x + 10f * scale, rect.y + 10f * scale),
                 displayed,
                 color,
-                11);
+                14);
 
             if (focused &&
                 Mathf.Repeat(Time.unscaledTime, 1f) < 0.55f)
@@ -330,26 +352,16 @@ namespace DodgeFromLight.FuguiUI.Rendering
         /// <summary>
         /// Draws a bounded horizontal slider and reports a changed pointer-driven value.
         /// </summary>
-        public static bool DrawSlider(
-            FuDrawList drawList,
-            Rect rect,
-            string label,
-            float value,
-            float minimum,
-            float maximum,
-            string format,
-            Color accent,
-            out float changedValue)
+        public static bool DrawSlider(FuDrawList drawList, Rect rect, string label, float value, float minimum, float maximum, string format, Color accent, out float changedValue)
         {
             // DrawList sliders use the public Fugui pointer state and remain independent from ImGui widgets.
             float scale = DrawListUi.GetScale();
             Vector2 pointer =
                 Fugui.DefaultContainer.Mouse.Position;
-            bool hovered = rect.Contains(pointer);
-            hovered = _interactionsEnabled && hovered;
+            bool hovered = IsHovered(rect);
             bool changing =
-                hovered &&
-                Fugui.DefaultContainer.Mouse.IsPressed(FuMouseButton.Left);
+                _interactionsEnabled && rect.Contains(_pressOrigin) &&
+                (!_interactionClip.HasValue || _interactionClip.Value.Contains(_pressOrigin)) && Input.GetMouseButton(0);
             changedValue = value;
             if (changing && maximum > minimum)
             {
@@ -365,10 +377,10 @@ namespace DodgeFromLight.FuguiUI.Rendering
             DrawListUi.DrawText(
                 drawList,
                 new Vector2(rect.x, rect.y - 19f * scale),
-                label.ToUpperInvariant(),
+                label,
                 DrawListUi.TextSecondary,
-                8,
-                FontType.Bold);
+                12,
+                FontType.Regular);
             string valueLabel =
                 value.ToString(
                     string.IsNullOrWhiteSpace(format)
@@ -377,8 +389,8 @@ namespace DodgeFromLight.FuguiUI.Rendering
             Vector2 valueSize =
                 DrawListUi.MeasureText(
                     valueLabel,
-                    9,
-                    FontType.Bold);
+                    12,
+                    FontType.Regular);
             DrawListUi.DrawText(
                 drawList,
                 new Vector2(
@@ -386,8 +398,8 @@ namespace DodgeFromLight.FuguiUI.Rendering
                     rect.y - 19f * scale),
                 valueLabel,
                 DrawListUi.TextPrimary,
-                9,
-                FontType.Bold);
+                12,
+                FontType.Regular);
 
             float railHeight = 7f * scale;
             Rect rail = new Rect(
@@ -428,20 +440,13 @@ namespace DodgeFromLight.FuguiUI.Rendering
         /// <summary>
         /// Draws one environment color swatch and reports activation.
         /// </summary>
-        public static bool DrawColorSwatch(
-            FuDrawList drawList,
-            Rect rect,
-            string label,
-            Color value,
-            Color accent)
+        public static bool DrawColorSwatch(FuDrawList drawList, Rect rect, string label, Color value, Color accent)
         {
             // A large swatch communicates the actual authored color before opening channel controls.
             bool hovered =
-                _interactionsEnabled &&
+                _interactionsEnabled && PointerInClip &&
                 rect.Contains(Fugui.DefaultContainer.Mouse.Position);
-            bool clicked =
-                hovered &&
-                Fugui.DefaultContainer.Mouse.IsUp(FuMouseButton.Left);
+            bool clicked = WasClicked(rect);
             float scale = DrawListUi.GetScale();
             DrawListUi.DrawPlate(
                 drawList,
@@ -470,60 +475,18 @@ namespace DodgeFromLight.FuguiUI.Rendering
                 new Vector2(
                     swatch.xMax + 9f * scale,
                     rect.y + 12f * scale),
-                label,
+                TruncateText(label, rect.width - 57f * scale, 12, FontType.Regular),
                 DrawListUi.TextPrimary,
-                9,
-                FontType.Bold);
+                12,
+                FontType.Regular);
             return clicked;
         }
 
-        /// <summary>
-        /// Draws one compact inspector label and value row.
-        /// </summary>
-        public static void DrawValueRow(
-            FuDrawList drawList,
-            Rect rect,
-            string label,
-            string value,
-            Color accent)
-        {
-            // Alternating plate depth gives dense metadata a scannable label/value rhythm.
-            DrawListUi.DrawPlate(drawList, rect, accent);
-            float scale = DrawListUi.GetScale();
-            DrawListUi.DrawText(
-                drawList,
-                new Vector2(rect.x + 10f * scale, rect.y + 9f * scale),
-                label.ToUpperInvariant(),
-                DrawListUi.TextSecondary,
-                9,
-                FontType.Bold);
-            string safeValue =
-                TruncateText(
-                    value,
-                    rect.width * 0.56f,
-                    10,
-                    FontType.Bold);
-            Vector2 valueSize =
-                DrawListUi.MeasureText(safeValue, 10, FontType.Bold);
-            DrawListUi.DrawText(
-                drawList,
-                new Vector2(
-                    rect.xMax - 10f * scale - valueSize.x,
-                    rect.y + 9f * scale),
-                safeValue,
-                DrawListUi.TextPrimary,
-                10,
-                FontType.Bold);
-        }
 
         /// <summary>
         /// Truncates text to a measured width and appends a single ellipsis when needed.
         /// </summary>
-        private static string TruncateText(
-            string value,
-            float maxWidth,
-            int fontSize,
-            FontType fontType)
+        public static string TruncateText(string value, float maxWidth, int fontSize, FontType fontType)
         {
             // Measurement-based truncation remains correct for variable-width Fugui fonts.
             string text = value ?? string.Empty;

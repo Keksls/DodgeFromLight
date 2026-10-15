@@ -417,12 +417,31 @@ namespace DodgeFromLight.Core.Systems
                     events,
                     out var attractedPlayer))
             {
+                // Resolve lethal sight again at the landing cell before the player can act next turn.
+                var detectsAttractedPlayer = EnemyVisionSystem.CanDetectPlayer(
+                    map,
+                    board,
+                    enemy,
+                    allStates,
+                    attractedPlayer);
+                if (detectsAttractedPlayer)
+                {
+                    events.Add(new SimulationEvent(
+                        SimulationEventType.PlayerDetected,
+                        turnIndex,
+                        enemy.Position,
+                        attractedPlayer.Position,
+                        enemy.Direction,
+                        definitionIndex,
+                        enemyId));
+                }
+
                 return new EnemyInteractionResult(
                     attractedPlayer,
                     board,
                     enemy,
                     random,
-                    false,
+                    detectsAttractedPlayer,
                     true);
             }
 

@@ -14,18 +14,12 @@ namespace DodgeFromLight.FuguiUI.ViewModels
         public MapCreatorPaletteGroup Group { get; }
         public Texture2D Preview { get; }
         public int SortOrder { get; }
+        public MapCreatorEnvironmentPreview EnvironmentPreview { get; }
 
         /// <summary>
         /// Creates one immutable palette entry used by the DrawList editor.
         /// </summary>
-        public MapCreatorPaletteItem(
-            string id,
-            string label,
-            string description,
-            string category,
-            MapCreatorPaletteGroup group,
-            Texture2D preview,
-            int sortOrder)
+        public MapCreatorPaletteItem(string id, string label, string description, string category, MapCreatorPaletteGroup group, Texture2D preview, int sortOrder, MapCreatorEnvironmentPreview environmentPreview = null)
         {
             // Stable identifiers keep presentation labels independent from gameplay enums.
             Id = id ?? string.Empty;
@@ -35,6 +29,7 @@ namespace DodgeFromLight.FuguiUI.ViewModels
             Group = group;
             Preview = preview;
             SortOrder = sortOrder;
+            EnvironmentPreview = environmentPreview;
         }
     }
 }

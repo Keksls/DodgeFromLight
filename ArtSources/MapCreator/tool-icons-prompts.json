@@ -1,0 +1,30 @@
+{
+  "tool": "built-in image_gen",
+  "transparent_background": true,
+  "assets": [
+    {
+      "path": "DodgeFromLight/Assets/DodgeFromLight/FuguiUI/Resources/MapCreator/Tools/Select.png",
+      "prompt": "Use case: stylized-concept. Asset type: ONE production game UI toolbar icon for a dark fantasy map-building game. Painted game inventory illustration, sculpted aged ivory and pale silver with restrained antique brass fittings, hand-painted tactile bevels, soft warm edge highlights and charcoal crevices. Strong chunky simple silhouette readable at 32-48px, not line art, not flat vector, no neon. Square image, isolated on genuinely transparent background, no surrounding button or frame, no text, no letters, no watermark, no scene. One single centered object occupies 75 percent of the image, generous equal transparent padding, identical neutral upper-left light. Subject: a clearly recognizable broad arrow-shaped selection cursor, its arrowhead pointing upper-left, carved ivory and antique brass, no hand."
+    },
+    {
+      "path": "DodgeFromLight/Assets/DodgeFromLight/FuguiUI/Resources/MapCreator/Tools/Paint.png",
+      "prompt": "Use case: stylized-concept. Asset type: ONE production game UI toolbar icon for a dark fantasy map-building game. Painted game inventory illustration, sculpted aged ivory and pale silver with restrained antique brass fittings, hand-painted tactile bevels, soft warm edge highlights and charcoal crevices. Strong chunky simple silhouette readable at 32-48px, not line art, not flat vector, no neon. Square image, isolated on genuinely transparent background, no surrounding button or frame, no text, no letters, no watermark, no scene. One single centered object occupies 75 percent of the image, generous equal transparent padding, identical neutral upper-left light. Subject: a single short artist's paintbrush angled bottom-left to top-right, worn dark wood handle with brass ferrule and broad pale bristles tipped warm gold. No extra objects."
+    },
+    {
+      "path": "DodgeFromLight/Assets/DodgeFromLight/FuguiUI/Resources/MapCreator/Tools/Rectangle.png",
+      "prompt": "Use case: stylized-concept. Asset type: ONE production game UI toolbar icon for a dark fantasy map-building game. Painted game inventory illustration, sculpted aged ivory and pale silver with restrained antique brass fittings, hand-painted tactile bevels, soft warm edge highlights and charcoal crevices. Strong chunky simple silhouette readable at 32-48px, not line art, not flat vector, no neon. Square image, isolated on genuinely transparent background, no surrounding button or frame, no text, no letters, no watermark, no scene. One single centered object occupies 75 percent of the image, generous equal transparent padding, identical neutral upper-left light. Subject: a square patch of FOUR chunky stone floor tiles, arranged exactly two by two, viewed from above at near-flat angle, with an elegant brass frame outlining the square. Represents area fill."
+    },
+    {
+      "path": "DodgeFromLight/Assets/DodgeFromLight/FuguiUI/Resources/MapCreator/Tools/Erase.png",
+      "prompt": "Use case: stylized-concept. Asset type: ONE production game UI toolbar icon for a dark fantasy map-building game. Painted game inventory illustration, sculpted aged ivory and pale silver with restrained antique brass fittings, hand-painted tactile bevels, soft warm edge highlights and charcoal crevices. Strong chunky simple silhouette readable at 32-48px, not line art, not flat vector, no neon. Square image, isolated on genuinely transparent background, no surrounding button or frame, no text, no letters, no watermark, no scene. One single centered object occupies 75 percent of the image, generous equal transparent padding, identical neutral upper-left light. Subject: a single slanted rectangular worn pumice eraser, ivory block gripped by an antique brass band, unmistakable eraser silhouette. No sword, no magic effects."
+    },
+    {
+      "path": "DodgeFromLight/Assets/DodgeFromLight/FuguiUI/Resources/MapCreator/Tools/Move.png",
+      "prompt": "Use case: stylized-concept. Asset type: ONE production game UI toolbar icon for a dark fantasy map-building game. Painted game inventory illustration, sculpted aged ivory and pale silver with restrained antique brass fittings, hand-painted tactile bevels, soft warm edge highlights and charcoal crevices. Strong chunky simple silhouette readable at 32-48px, not line art, not flat vector, no neon. Square image, isolated on genuinely transparent background, no surrounding button or frame, no text, no letters, no watermark, no scene. One single centered object occupies 75 percent of the image, generous equal transparent padding, identical neutral upper-left light. Subject: a stout compass cross with four large arrowheads pointing up down left right, a single cast silver-and-antique-brass object, simple symmetrical shape."
+    },
+    {
+      "path": "DodgeFromLight/Assets/DodgeFromLight/FuguiUI/Resources/MapCreator/Tools/Pick.png",
+      "prompt": "Use case: stylized-concept. Asset type: ONE production game UI toolbar icon for a dark fantasy map-building game. Painted game inventory illustration, sculpted aged ivory and pale silver with restrained antique brass fittings, hand-painted tactile bevels, soft warm edge highlights and charcoal crevices. Strong chunky simple silhouette readable at 32-48px, not line art, not flat vector, no neon. Square image, isolated on genuinely transparent background, no surrounding button or frame, no text, no letters, no watermark, no scene. One single centered object occupies 75 percent of the image, generous equal transparent padding, identical neutral upper-left light. Subject: a single glass eyedropper with ivory bulb and antique brass collar, angled bottom-left to top-right, clear pointed pipette with one tiny warm gold droplet at its tip. No bottle."
+    }
+  ]
+}

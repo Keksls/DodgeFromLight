@@ -15,11 +15,16 @@ public class PoolManager : MonoBehaviour
     public static event Action OnPoolingReady;
     public static bool PoolReady = false;
 
+    /// <summary>
+    /// Registers the unique pool owner and resets readiness for its initialization cycle.
+    /// </summary>
     private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
+            // A new owner must never inherit readiness from a previous Play Mode session.
+            PoolReady = false;
             DontDestroyOnLoad(gameObject);
         }
         else if (Instance != this)
@@ -28,8 +33,14 @@ public class PoolManager : MonoBehaviour
         }
     }
 
-    IEnumerator Start()
+    /// <summary>
+    /// Creates all presentation pools before notifying waiting scene controllers.
+    /// </summary>
+    private IEnumerator Start()
     {
+        // Only the registered owner may initialize pools or publish shared readiness.
+        if (Instance != this)
+            yield break;
         // Create Pools
         Pools = new Dictionary<PoolName, Pool>();
         foreach (PoolableSettings poolableSettings in PoolableSettings)
@@ -39,9 +50,21 @@ public class PoolManager : MonoBehaviour
             yield return null;
             yield return null;
         }
-        OnPoolingReady?.Invoke();
         PoolReady = true;
+        OnPoolingReady?.Invoke();
         StartCoroutine(AutoPushBackToPool());
+    }
+
+    /// <summary>
+    /// Clears shared readiness when the owning pool manager is destroyed.
+    /// </summary>
+    private void OnDestroy()
+    {
+        // A rejected duplicate must not invalidate the active owner's pools.
+        if (Instance != this)
+            return;
+        PoolReady = false;
+        Instance = null;
     }
 
     private void CreatePool(PoolableSettings Settings)

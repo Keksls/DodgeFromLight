@@ -22,10 +22,17 @@ namespace DodgeFromLight.FuguiUI.Screens
         private string _search = string.Empty;
         private string _nameDraft = string.Empty;
         private string _hoverDescription = string.Empty;
+        private string _tooltipTitle = string.Empty;
+        private string _tooltipBody = string.Empty;
+        private string _lastTooltipTitle = string.Empty;
+        private Vector2 _tooltipAnchor;
+        private float _tooltipSince;
         private string _activeEnvironmentColorId = string.Empty;
         private string _activeEnvironmentColorLabel = string.Empty;
-        private float _paletteScroll;
-        private float _environmentScroll;
+        private readonly MapCreatorScrollRegion _paletteScroller = new MapCreatorScrollRegion();
+        private readonly MapCreatorScrollRegion _categoryScroller = new MapCreatorScrollRegion();
+        private readonly MapCreatorScrollRegion _inspectorScroller = new MapCreatorScrollRegion();
+        private readonly MapCreatorScrollRegion _environmentScroller = new MapCreatorScrollRegion();
         private Color _environmentColorDraft = Color.white;
         private bool _searchFocused;
         private bool _editingName;
@@ -33,8 +40,21 @@ namespace DodgeFromLight.FuguiUI.Screens
         private bool _showValidation;
         private bool _showEnvironment;
         private bool _showAdvancedEnvironment;
+        private readonly HashSet<string> _expandedEnvironmentSections = new HashSet<string> { "Éclairage" };
         private bool _ownsSkin;
         private bool _keyboardCaptured;
+        private string _category = string.Empty;
+        private bool _categoryOpen;
+        private bool _showPlacement = true;
+        private bool _showMechanics = true;
+        private bool _showRoute = true;
+        private bool _showHelp;
+        private string _inspectedCell = string.Empty;
+        private float _inspectorContentHeight;
+        private bool _showNewMap;
+        private int _newWidth = 12;
+        private int _newHeight = 12;
+        private readonly Dictionary<string, MapCreatorPaletteItem> _catalogue = new Dictionary<string, MapCreatorPaletteItem>();
 
         #region Lifecycle
 
@@ -52,10 +72,15 @@ namespace DodgeFromLight.FuguiUI.Screens
             }
 
             _viewModel = viewModel;
+            _catalogue.Clear();
+            foreach (var item in _viewModel.GetItems())
+                if (!_catalogue.ContainsKey(item.Id))
+                    _catalogue.Add(item.Id, item);
             _context = Fugui.DefaultContext;
             if (!_ownsSkin)
             {
                 DrawListUi.AcquireSkin();
+                MapCreatorTheme.Acquire();
                 _ownsSkin = true;
             }
 
@@ -74,12 +99,16 @@ namespace DodgeFromLight.FuguiUI.Screens
                 return;
 
             UpdatePointerGuardForFrame();
+            // Clicking the board releases text focus before the controller processes that same click.
+            if (_searchFocused && Input.GetMouseButtonDown(0) &&
+                !GetPalettePanel(Fugui.DefaultContainer.Size, DrawListUi.GetScale()).Contains(Fugui.DefaultContainer.Mouse.Position))
+                _searchFocused = false;
             bool capture =
                 _searchFocused ||
                 _editingName ||
                 _showExitPrompt ||
                 _showValidation ||
-                _showEnvironment;
+                !string.IsNullOrEmpty(_activeEnvironmentColorId) || _showNewMap;
             SetKeyboardCapture(capture);
 
             if (_editingName)
@@ -96,7 +125,7 @@ namespace DodgeFromLight.FuguiUI.Screens
 
             if (_showExitPrompt ||
                 _showValidation ||
-                _showEnvironment)
+                _showEnvironment || !string.IsNullOrEmpty(_activeEnvironmentColorId) || _showNewMap)
             {
                 if (Input.GetKeyDown(KeyCode.Escape))
                     CloseTopModal();
@@ -123,1226 +152,659 @@ namespace DodgeFromLight.FuguiUI.Screens
                 return;
 
             DrawListUi.ReleaseSkin();
+            MapCreatorTheme.Release();
             _ownsSkin = false;
         }
 
         #endregion
 
-        #region Frame rendering
+        #region Workbench
 
         /// <summary>
-        /// Draws one complete immutable map-creator frame on the foreground DrawList.
+        /// Renders the schematic board, authoring tools, contextual inspector, and exclusive modals.
         /// </summary>
         private void Render()
         {
-            // The board remains unobstructed in the center while authoring surfaces frame it.
+            // One shared frame keeps hover previews and committed content in sync.
             if (_viewModel == null || Fugui.CurrentContext != _context)
                 return;
-
             MapCreatorViewState state = _viewModel.GetState();
             if (state == null)
                 return;
-
             FuDrawList drawList = Fugui.GetForegroundDrawList();
-            Vector2 screenSize = DrawListUi.GetScreenSize();
+            Vector2 screen = DrawListUi.GetScreenSize();
             float scale = DrawListUi.GetScale();
-            Rect top = GetTopBar(screenSize, scale);
-            Rect left = GetPalettePanel(screenSize, scale);
-            Rect right = GetInspectorPanel(screenSize, scale);
-            Rect bottom = GetStatusBar(screenSize, scale);
-
             _hoverDescription = string.Empty;
-            DrawEditorVignette(drawList, screenSize);
-            MapCreatorDrawListUi.SetInteractionsEnabled(
-                !HasActiveModal() && !state.IsBusy);
-            DrawTopBar(drawList, top, state, scale);
-            DrawPalette(drawList, left, state, scale);
-            DrawInspector(drawList, right, state, scale);
-            DrawStatusBar(drawList, bottom, state, scale);
+            _tooltipTitle = string.Empty;
+            _tooltipBody = string.Empty;
+            MapCreatorDrawListUi.SetInteractionsEnabled(!HasActiveModal() && !state.IsBusy);
+            DrawBoard(drawList, GetBoardViewport(screen, scale), state, scale);
+            DrawTopBar(drawList, GetTopBar(screen, scale), state, scale);
+            DrawPalette(drawList, GetPalettePanel(screen, scale), state, scale);
+            DrawDetailsPanel(drawList, GetInspectorPanel(screen, scale), state, scale);
+            DrawViewportToolbar(drawList, GetViewportToolbar(screen, scale), state, scale);
+            DrawAxisGizmo(drawList, GetGizmoRect(screen, scale), state, scale);
+            DrawStatusBar(drawList, GetStatusBar(screen, scale), state, scale);
             MapCreatorDrawListUi.SetInteractionsEnabled(true);
-            DrawActiveModal(drawList, screenSize, state, scale);
-            UpdatePointerGuard(top, left, right, bottom, screenSize);
-
+            DrawActiveModal(drawList, screen, state, scale);
+            if (!HasActiveModal() && !state.IsBusy)
+                DrawTooltip(drawList, screen, scale);
+            UpdatePointerGuard(GetTopBar(screen, scale), GetPalettePanel(screen, scale),
+                GetInspectorPanel(screen, scale), GetStatusBar(screen, scale), screen);
             if (state.IsBusy)
-                DrawBusyState(drawList, screenSize, state, scale);
+                DrawBusyState(drawList, screen, state, scale);
         }
 
         /// <summary>
-        /// Draws a restrained vignette that improves UI contrast without hiding the authored map.
+        /// Draws restrained opaque panels with a clear visual hierarchy.
         /// </summary>
-        private static void DrawEditorVignette(
-            FuDrawList drawList,
-            Vector2 screenSize)
+        private static void DrawWorkbenchPanel(FuDrawList drawList, Rect rect, Color accent, bool prominent = false)
         {
-            // Edge gradients visually anchor the workbench while preserving the central scene viewport.
-            uint edge = Fugui.GetColorU32(
-                new Color(0.01f, 0.008f, 0.009f, 0.68f));
-            uint clear = Fugui.GetColorU32(
-                new Color(0.01f, 0.008f, 0.009f, 0f));
-            float sideWidth = Mathf.Min(520f, screenSize.x * 0.34f);
-            drawList.AddRectFilledMultiColor(
-                Vector2.zero,
-                new Vector2(sideWidth, screenSize.y),
-                edge,
-                clear,
-                clear,
-                edge);
-            drawList.AddRectFilledMultiColor(
-                new Vector2(screenSize.x - sideWidth, 0f),
-                screenSize,
-                clear,
-                edge,
-                edge,
-                clear);
+            // Subtle worn surfaces and warm metal replace software-style slate boxes without ornament behind text.
+            MapCreatorTheme.Surface(drawList, rect);
+            if (prominent)
+                drawList.AddLine(rect.min + new Vector2(12f, 0f), new Vector2(rect.xMax - 12f, rect.y), accent, 2f);
         }
 
         /// <summary>
-        /// Draws navigation, map identity, history, validation, save, and playtest commands.
+        /// Draws editor text with a readable minimum size using the verified shared font resolver.
         /// </summary>
-        private void DrawTopBar(
-            FuDrawList drawList,
-            Rect rect,
-            MapCreatorViewState state,
-            float scale)
+        private static void Text(FuDrawList drawList, Vector2 position, string text, Color color, int fontSize = 14, FontType fontType = FontType.Regular)
         {
-            // High-frequency actions stay visible regardless of palette or inspector scroll state.
-            DrawListUi.DrawPanel(drawList, rect, DrawListUi.Accent, true);
-            float y = rect.y + 17f * scale;
-            float height = 42f * scale;
-            float gap = 9f * scale;
-            float x = rect.x + 18f * scale;
+            // All typography still passes through the atlas-aware Fugui helper.
+            DrawListUi.DrawText(drawList, position, text, color, Mathf.Max(12, fontSize), fontType);
+        }
 
-            Rect back = new Rect(x, y, 54f * scale, height);
-            if (MapCreatorDrawListUi.DrawCompactButton(
-                    drawList,
-                    back,
-                    "←",
-                    DrawListUi.Steel,
-                    !state.IsBusy))
+        /// <summary>
+        /// Draws a simple action button shared by the workbench and its contextual controls.
+        /// </summary>
+        private static bool Button(FuDrawList drawList, Rect rect, string label, bool selected = false, bool enabled = true)
+        {
+            // The editor control helper suppresses background hit tests when a modal owns the pointer.
+            return MapCreatorDrawListUi.DrawCompactButton(drawList, rect, label,
+                DrawListUi.Accent, enabled, selected);
+        }
+
+        /// <summary>
+        /// Couples a pictogram target to a readable contextual explanation without requiring icon memorization.
+        /// </summary>
+        private bool IconControl(FuDrawList drawList, Rect rect, string icon, string title, string help, bool selected = false, bool enabled = true, string caption = "")
+        {
+            // Hover explanations are drawn last so no panel can cover them.
+            if (!HasActiveModal() && rect.Contains(Fugui.DefaultContainer.Mouse.Position))
+            {
+                _tooltipTitle = title;
+                _tooltipBody = help;
+                _hoverDescription = title + " : " + help;
+            }
+            return MapCreatorDrawListUi.DrawIconControl(drawList, rect, icon, caption, selected, enabled);
+        }
+
+        /// <summary>
+        /// Displays the hovered control name and gesture inside a viewport-clamped floating hint.
+        /// </summary>
+        private void DrawTooltip(FuDrawList drawList, Vector2 screen, float scale)
+        {
+            // Measured text allows concise explanations without clipping or guessing label widths.
+            if (string.IsNullOrEmpty(_tooltipTitle))
+            {
+                _lastTooltipTitle = string.Empty;
+                return;
+            }
+            Vector2 pointer = Fugui.DefaultContainer.Mouse.Position;
+            if (_lastTooltipTitle != _tooltipTitle || Vector2.Distance(pointer, _tooltipAnchor) > 5f * scale ||
+                Input.GetMouseButton(0) || Input.GetMouseButton(1) || Input.GetMouseButton(2))
+            {
+                _lastTooltipTitle = _tooltipTitle;
+                _tooltipAnchor = pointer;
+                _tooltipSince = Time.unscaledTime;
+            }
+            if (Time.unscaledTime - _tooltipSince < 0.35f)
+                return;
+            float width = Mathf.Max(DrawListUi.MeasureText(_tooltipTitle, 14, FontType.Bold).x,
+                DrawListUi.MeasureText(_tooltipBody, 12, FontType.Regular).x) + 28f * scale;
+            Rect hint = new Rect(Mathf.Clamp(pointer.x + 18f * scale, 4f * scale, Mathf.Max(4f * scale, screen.x - width - 4f * scale)),
+                Mathf.Clamp(pointer.y + 24f * scale, 4f * scale, screen.y - 74f * scale), width, 64f * scale);
+            DrawWorkbenchPanel(drawList, hint, DrawListUi.Steel);
+            Text(drawList, hint.position + new Vector2(12f, 9f) * scale, _tooltipTitle, DrawListUi.TextPrimary, 14, FontType.Bold);
+            Text(drawList, hint.position + new Vector2(12f, 34f) * scale, _tooltipBody, DrawListUi.TextSecondary, 12);
+        }
+
+        /// <summary>
+        /// Keeps map identity, save state, validation, and playtest consistently visible.
+        /// </summary>
+        private void DrawTopBar(FuDrawList drawList, Rect rect, MapCreatorViewState state, float scale)
+        {
+            // Document commands remain separate from viewport gestures.
+            DrawWorkbenchPanel(drawList, rect, DrawListUi.Accent);
+            if (Button(drawList, new Rect(rect.x + 12f * scale, rect.y + 13f * scale, 74f * scale, 36f * scale), "Retour"))
             {
                 _showExitPrompt = state.IsDirty;
                 if (!state.IsDirty)
                     _viewModel.Actions.DiscardAndClose();
             }
-
-            x = back.xMax + 17f * scale;
-            DrawListUi.DrawText(
-                drawList,
-                new Vector2(x, y - 2f * scale),
-                "FORGE DE CARTES",
-                DrawListUi.AccentBright,
-                15,
-                FontType.Bold);
-            DrawListUi.DrawText(
-                drawList,
-                new Vector2(x, y + 23f * scale),
-                state.Width + " × " + state.Height + " cases",
-                DrawListUi.TextSecondary,
-                10,
-                FontType.Bold);
-
-            x += 205f * scale;
-            float mapNameWidth =
-                Mathf.Clamp(rect.width * 0.22f, 250f * scale, 420f * scale);
-            Rect mapNameRect =
-                new Rect(x, y, mapNameWidth, height);
-            DrawListUi.DrawPlate(
-                drawList,
-                mapNameRect,
-                state.IsDirty ? DrawListUi.AccentBright : DrawListUi.Steel,
-                state.IsDirty);
-            DrawListUi.DrawText(
-                drawList,
-                mapNameRect.position + new Vector2(12f, 7f) * scale,
-                state.MapName,
-                DrawListUi.TextPrimary,
-                12,
-                FontType.Bold);
-            DrawListUi.DrawText(
-                drawList,
-                mapNameRect.position + new Vector2(12f, 25f) * scale,
-                state.IsDirty
-                    ? "MODIFICATIONS NON ENREGISTRÉES"
-                    : "CARTE ENREGISTRÉE",
-                state.IsDirty
-                    ? DrawListUi.AccentBright
-                    : DrawListUi.TextSecondary,
-                8,
-                FontType.Bold);
-            if (!HasActiveModal() &&
-                !state.IsBusy &&
-                mapNameRect.Contains(Fugui.DefaultContainer.Mouse.Position) &&
+            if (Button(drawList, new Rect(rect.x + 94f * scale, rect.y + 13f * scale, 78f * scale, 36f * scale), "Nouveau"))
+                _showNewMap = true;
+            float x = rect.x + 186f * scale;
+            MapCreatorTheme.Heading(drawList, new Vector2(x, rect.y + 8f * scale), "Atelier de cartes");
+            Rect title = new Rect(x, rect.y + 29f * scale, Mathf.Max(100f, rect.width - 772f * scale), 27f * scale);
+            string name = MapCreatorDrawListUi.TruncateText(state.MapName, title.width, 14, FontType.Regular);
+            Text(drawList, title.position, name, DrawListUi.TextSecondary, 14);
+            if (!HasActiveModal() && !state.IsBusy && title.Contains(Fugui.DefaultContainer.Mouse.Position) &&
                 Fugui.DefaultContainer.Mouse.IsUp(FuMouseButton.Left))
-            {
                 BeginNameEditing(state.MapName);
-            }
-
-            x = mapNameRect.xMax + gap;
-            Rect environment =
-                new Rect(x, y, 170f * scale, height);
-            if (MapCreatorDrawListUi.DrawCompactButton(
-                    drawList,
-                    environment,
-                    "Ambiance · " + state.EnvironmentLabel,
-                    DrawListUi.Steel,
-                    !state.IsBusy))
+            float right = rect.xMax - 12f * scale;
+            var play = PlaceToolbarButton(ref right, rect.y + 13f * scale, 98f * scale, 36f * scale, 8f * scale);
+            if (Button(drawList, play, "Jouer ma carte", true, state.IsReady && !state.IsBusy && !state.Selection.IsEditingPath))
             {
-                _showEnvironment = true;
+                if (state.ValidationErrors.Count > 0)
+                    _showValidation = true;
+                else
+                    _viewModel.Actions.Playtest();
             }
-
-            float actionX = rect.xMax - 18f * scale;
-            Rect play = PlaceToolbarButton(
-                ref actionX,
-                y,
-                112f * scale,
-                height,
-                gap);
-            if (MapCreatorDrawListUi.DrawCompactButton(
-                    drawList,
-                    play,
-                    "TESTER  ▶",
-                    state.ValidationErrors.Count == 0
-                        ? DrawListUi.Success
-                        : DrawListUi.Danger,
-                    state.IsReady && !state.IsBusy))
-            {
-                _viewModel.Actions.Playtest();
-            }
-
-            Rect save = PlaceToolbarButton(
-                ref actionX,
-                y,
-                102f * scale,
-                height,
-                gap);
-            if (MapCreatorDrawListUi.DrawCompactButton(
-                    drawList,
-                    save,
-                    "ENREGISTRER",
-                    DrawListUi.AccentBright,
-                    state.IsReady && !state.IsBusy))
-            {
+            var save = PlaceToolbarButton(ref right, play.y, 100f * scale, play.height, 8f * scale);
+            if (Button(drawList, save, "Enregistrer", false, state.IsReady && !state.IsBusy && !state.Selection.IsEditingPath))
                 _viewModel.Actions.Save();
-            }
-
-            Rect validate = PlaceToolbarButton(
-                ref actionX,
-                y,
-                108f * scale,
-                height,
-                gap);
-            string validationLabel = state.ValidationErrors.Count == 0
-                ? "VALIDE  ✓"
-                : state.ValidationErrors.Count + " ERREUR" +
-                  (state.ValidationErrors.Count > 1 ? "S" : string.Empty);
-            if (MapCreatorDrawListUi.DrawCompactButton(
-                    drawList,
-                    validate,
-                    validationLabel,
-                    state.ValidationErrors.Count == 0
-                        ? DrawListUi.Success
-                        : DrawListUi.Danger,
-                    state.IsReady))
-            {
+            var validation = PlaceToolbarButton(ref right, play.y, 96f * scale, play.height, 8f * scale);
+            if (Button(drawList, validation, state.ValidationErrors.Count == 0 ? "Carte valide" : state.ValidationErrors.Count + " à corriger"))
                 _showValidation = true;
-            }
-
-            Rect redo = PlaceToolbarButton(
-                ref actionX,
-                y,
-                48f * scale,
-                height,
-                gap);
-            if (MapCreatorDrawListUi.DrawCompactButton(
-                    drawList,
-                    redo,
-                    "↷",
-                    DrawListUi.Steel,
-                    state.CanRedo && !state.IsBusy))
-            {
+            var redo = PlaceToolbarButton(ref right, play.y, 68f * scale, play.height, 8f * scale);
+            if (IconControl(drawList, redo, "Redo", "Rétablir · Ctrl+Y", "Rétablit la dernière modification annulée.", false, state.CanRedo, "Rétablir"))
                 _viewModel.Actions.Redo();
-            }
-
-            Rect undo = PlaceToolbarButton(
-                ref actionX,
-                y,
-                48f * scale,
-                height,
-                gap);
-            if (MapCreatorDrawListUi.DrawCompactButton(
-                    drawList,
-                    undo,
-                    "↶",
-                    DrawListUi.Steel,
-                    state.CanUndo && !state.IsBusy))
-            {
+            var undo = PlaceToolbarButton(ref right, play.y, 68f * scale, play.height, 8f * scale);
+            if (IconControl(drawList, undo, "Undo", "Annuler · Ctrl+Z", "Annule le dernier geste complet.", false, state.CanUndo, "Annuler"))
                 _viewModel.Actions.Undo();
-            }
         }
 
         /// <summary>
-        /// Draws palette tabs, search, filtered tool cards, and scrolling feedback.
+        /// Presents illustrated content families and independently scrollable filters.
         /// </summary>
-        private void DrawPalette(
-            FuDrawList drawList,
-            Rect rect,
-            MapCreatorViewState state,
-            float scale)
+        private void DrawPalette(FuDrawList drawList, Rect rect, MapCreatorViewState state, float scale)
         {
-            // Structure, enemies, and decoration are separated by author intention rather than data type.
-            DrawListUi.DrawPanel(drawList, rect, DrawListUi.Steel);
-            Vector2 origin =
-                rect.position + new Vector2(18f, 20f) * scale;
-            DrawListUi.DrawText(
-                drawList,
-                origin,
-                "PALETTE D’AUTEUR",
-                DrawListUi.TextPrimary,
-                14,
-                FontType.Bold);
-            DrawListUi.DrawText(
-                drawList,
-                origin + new Vector2(0f, 25f) * scale,
-                "Choisis un outil, puis applique-le sur la grille.",
-                DrawListUi.TextSecondary,
-                9);
-
-            float contentWidth = rect.width - 36f * scale;
-            float tabY = origin.y + 54f * scale;
-            float tabGap = 5f * scale;
-            float tabWidth = (contentWidth - tabGap * 2f) / 3f;
-            DrawPaletteTab(
-                drawList,
-                new Rect(origin.x, tabY, tabWidth, 38f * scale),
-                "STRUCTURE",
-                MapCreatorPaletteGroup.Structure);
-            DrawPaletteTab(
-                drawList,
-                new Rect(
-                    origin.x + tabWidth + tabGap,
-                    tabY,
-                    tabWidth,
-                    38f * scale),
-                "ENNEMIS",
-                MapCreatorPaletteGroup.Enemies);
-            DrawPaletteTab(
-                drawList,
-                new Rect(
-                    origin.x + (tabWidth + tabGap) * 2f,
-                    tabY,
-                    tabWidth,
-                    38f * scale),
-                "DÉCORS",
-                MapCreatorPaletteGroup.Decorations);
-
-            Rect searchRect = new Rect(
-                origin.x,
-                tabY + 49f * scale,
-                contentWidth,
-                40f * scale);
-            bool searchClicked =
-                MapCreatorDrawListUi.DrawTextField(
-                    drawList,
-                    searchRect,
-                    _search,
-                    "Rechercher dans la palette…",
-                    _searchFocused);
-            if (searchClicked)
+            DrawWorkbenchPanel(drawList, rect, DrawListUi.Accent);
+            float x = rect.x + 14f * scale;
+            float width = rect.width - 28f * scale;
+            float y = rect.y + 14f * scale;
+            MapCreatorTheme.Heading(drawList, new Vector2(x, y), "Bibliothèque");
+            y += 31f * scale;
+            var groups = new[] { MapCreatorPaletteGroup.Structure, MapCreatorPaletteGroup.Decorations, MapCreatorPaletteGroup.Enemies, MapCreatorPaletteGroup.Gears };
+            string[] labels = { "Construire", "Décorer", "Ennemis", "Équipement" };
+            for (int i = 0; i < groups.Length; i++)
             {
+                Rect tab = new Rect(x + i % 2 * width * 0.5f, y + i / 2 * 53f * scale, width * 0.5f - 4f * scale, 49f * scale);
+                if (MapCreatorDrawListUi.DrawLibraryTab(drawList, tab, groups[i].ToString(), labels[i], _activeGroup == groups[i]))
+                {
+                    _activeGroup = groups[i];
+                    _category = string.Empty;
+                    _categoryOpen = false;
+                    _paletteScroller.Offset = 0f;
+                    _categoryScroller.Offset = 0f;
+                    _searchFocused = false;
+                }
+            }
+            y += 114f * scale;
+            Rect search = new Rect(x, y, width, 35f * scale);
+            if (MapCreatorDrawListUi.DrawTextField(drawList, search, _search, "Rechercher un bloc...", _searchFocused))
                 _searchFocused = true;
-            }
-            else if (_searchFocused &&
-                     Fugui.DefaultContainer.Mouse.IsUp(FuMouseButton.Left) &&
-                     !searchRect.Contains(
-                         Fugui.DefaultContainer.Mouse.Position))
-            {
+            else if (Input.GetMouseButtonDown(0) && !search.Contains(Fugui.DefaultContainer.Mouse.Position))
                 _searchFocused = false;
-            }
-
-            Rect viewport = new Rect(
-                origin.x,
-                searchRect.yMax + 13f * scale,
-                contentWidth,
-                rect.yMax - searchRect.yMax - 34f * scale);
-            DrawPaletteItems(
-                drawList,
-                viewport,
-                state,
-                scale);
-        }
-
-        /// <summary>
-        /// Draws the current selection inspector and context-sensitive authoring commands.
-        /// </summary>
-        private void DrawInspector(
-            FuDrawList drawList,
-            Rect rect,
-            MapCreatorViewState state,
-            float scale)
-        {
-            // Only commands valid for the selected content are exposed, reducing destructive mistakes.
-            DrawListUi.DrawPanel(drawList, rect, DrawListUi.Accent);
-            Vector2 origin =
-                rect.position + new Vector2(18f, 20f) * scale;
-            DrawListUi.DrawText(
-                drawList,
-                origin,
-                "INSPECTEUR",
-                DrawListUi.TextPrimary,
-                14,
-                FontType.Bold);
-            DrawListUi.DrawText(
-                drawList,
-                origin + new Vector2(0f, 25f) * scale,
-                state.Selection.HasSelection
-                    ? "Case " + state.Selection.X + " : " + state.Selection.Y
-                    : "Aucune case sélectionnée",
-                state.Selection.HasSelection
-                    ? DrawListUi.AccentBright
-                    : DrawListUi.TextSecondary,
-                10,
-                FontType.Bold);
-
-            Rect body = new Rect(
-                origin.x,
-                origin.y + 57f * scale,
-                rect.width - 36f * scale,
-                rect.height - 89f * scale);
-            if (!state.Selection.HasSelection)
+            y += 43f * scale;
+            string filter = string.IsNullOrEmpty(_category) ? "Tout" : FriendlyCategory(_category);
+            if (MapCreatorDrawListUi.DrawDisclosure(drawList, new Rect(x, y, width, 31f * scale), "Catégories", _categoryOpen, filter))
+                _categoryOpen = !_categoryOpen;
+            y += 38f * scale;
+            var list = GetFilteredItems(_activeGroup, _search);
+            if (_categoryOpen)
             {
-                DrawEmptyInspector(drawList, body, state, scale);
-                return;
+                var categories = new List<string> { string.Empty };
+                foreach (MapCreatorPaletteItem item in GetFilteredItems(_activeGroup, string.Empty))
+                    if (!categories.Contains(item.Category)) categories.Add(item.Category);
+                float rowHeight = 30f * scale;
+                Rect filters = new Rect(x, y, width, Mathf.Min(132f * scale, categories.Count * rowHeight));
+                float contentHeight = categories.Count * rowHeight;
+                _categoryScroller.Update(filters, contentHeight, !HasActiveModal());
+                Rect clip = new Rect(filters.x, filters.y, filters.width - 18f * scale, filters.height);
+                drawList.PushClipRect(clip.min, clip.max, true);
+                MapCreatorDrawListUi.SetInteractionClip(clip);
+                for (int i = 0; i < categories.Count; i++)
+                {
+                    Rect row = new Rect(x, y + i * rowHeight - _categoryScroller.Offset, clip.width, rowHeight - 2f * scale);
+                    if (row.yMax < clip.y || row.y > clip.yMax) continue;
+                    if (MapCreatorDrawListUi.DrawTab(drawList, row, string.IsNullOrEmpty(categories[i]) ? "Tout afficher" : FriendlyCategory(categories[i]), _category == categories[i]))
+                    {
+                        _category = categories[i];
+                        _paletteScroller.Offset = 0f;
+                    }
+                }
+                MapCreatorDrawListUi.SetInteractionClip(null);
+                drawList.PopClipRect();
+                _categoryScroller.Draw(drawList, filters, contentHeight);
+                y += filters.height + 9f * scale;
             }
-
-            DrawSelectionInspector(
-                drawList,
-                body,
-                state,
-                scale);
-        }
-
-        /// <summary>
-        /// Draws live authoring guidance and active-tool status along the bottom edge.
-        /// </summary>
-        private void DrawStatusBar(
-            FuDrawList drawList,
-            Rect rect,
-            MapCreatorViewState state,
-            float scale)
-        {
-            // The status line answers what is active and what the next click will do.
-            DrawListUi.DrawPanel(drawList, rect, DrawListUi.Steel);
-            float y = rect.y + 15f * scale;
-            DrawListUi.DrawText(
-                drawList,
-                new Vector2(rect.x + 18f * scale, y),
-                "OUTIL · " + state.ActiveToolLabel.ToUpperInvariant(),
-                DrawListUi.AccentBright,
-                10,
-                FontType.Bold);
-            string guidance = !string.IsNullOrWhiteSpace(_hoverDescription)
-                ? _hoverDescription
-                : !string.IsNullOrWhiteSpace(state.StatusMessage)
-                    ? state.StatusMessage
-                    : "Clic gauche : appliquer/sélectionner  ·  Clic droit : pivoter  ·  Molette : zoom  ·  Espace : cadrer";
-            DrawListUi.DrawText(
-                drawList,
-                new Vector2(rect.x + 220f * scale, y),
-                guidance,
-                DrawListUi.TextSecondary,
-                9);
-
-            string shortcuts =
-                "S Sélection  ·  W Sol  ·  N Vide  ·  Ctrl+S Sauver  ·  Ctrl+Z/Y Historique";
-            Vector2 shortcutSize =
-                DrawListUi.MeasureText(shortcuts, 9, FontType.Bold);
-            DrawListUi.DrawText(
-                drawList,
-                new Vector2(
-                    rect.xMax - 18f * scale - shortcutSize.x,
-                    y),
-                shortcuts,
-                new Color(
-                    DrawListUi.TextSecondary.r,
-                    DrawListUi.TextSecondary.g,
-                    DrawListUi.TextSecondary.b,
-                    0.76f),
-                9,
-                FontType.Bold);
-        }
-
-        #endregion
-
-        #region Palette
-
-        /// <summary>
-        /// Draws one palette tab and activates its content group when clicked.
-        /// </summary>
-        private void DrawPaletteTab(
-            FuDrawList drawList,
-            Rect rect,
-            string label,
-            MapCreatorPaletteGroup group)
-        {
-            // Changing author intent resets scroll but keeps the search for cross-category discovery.
-            if (!MapCreatorDrawListUi.DrawTab(
-                    drawList,
-                    rect,
-                    label,
-                    _activeGroup == group))
+            list.RemoveAll(item => (!string.IsNullOrEmpty(_category) && item.Category != _category) ||
+                (item.Group == MapCreatorPaletteGroup.Gears && item.Id == "None") || item.Id == "Select");
+            Rect viewport = new Rect(x, y, width, Mathf.Max(24f * scale, rect.yMax - y - 29f * scale));
+            float itemHeight = 76f * scale;
+            float height = list.Count * itemHeight;
+            _paletteScroller.Update(viewport, height, !HasActiveModal());
+            Rect itemsClip = new Rect(viewport.x, viewport.y, viewport.width - 18f * scale, viewport.height);
+            drawList.PushClipRect(itemsClip.min, itemsClip.max, true);
+            MapCreatorDrawListUi.SetInteractionClip(itemsClip);
+            for (int i = 0; i < list.Count; i++)
             {
-                return;
-            }
-
-            _activeGroup = group;
-            _paletteScroll = 0f;
-        }
-
-        /// <summary>
-        /// Draws filtered palette cards in a clipped, wheel-scrollable two-column grid.
-        /// </summary>
-        private void DrawPaletteItems(
-            FuDrawList drawList,
-            Rect viewport,
-            MapCreatorViewState state,
-            float scale)
-        {
-            // A two-column visual inventory balances discoverability with map viewport space.
-            List<MapCreatorPaletteItem> items =
-                GetFilteredItems(_activeGroup, _search);
-            float gap = 9f * scale;
-            float cardHeight = 72f * scale;
-            float cardWidth = (viewport.width - gap) * 0.5f;
-            int rows = Mathf.CeilToInt(items.Count * 0.5f);
-            float contentHeight =
-                rows * cardHeight + Mathf.Max(0, rows - 1) * gap;
-            float maximumScroll =
-                Mathf.Max(0f, contentHeight - viewport.height);
-
-            if (viewport.Contains(Fugui.DefaultContainer.Mouse.Position))
-            {
-                _paletteScroll -=
-                    Fugui.DefaultContainer.Mouse.Wheel.y *
-                    54f *
-                    scale;
-            }
-            _paletteScroll =
-                Mathf.Clamp(_paletteScroll, 0f, maximumScroll);
-
-            drawList.PushClipRect(viewport.min, viewport.max, true);
-            for (int index = 0; index < items.Count; index++)
-            {
-                int row = index / 2;
-                int column = index % 2;
-                Rect card = new Rect(
-                    viewport.x + column * (cardWidth + gap),
-                    viewport.y + row * (cardHeight + gap) - _paletteScroll,
-                    cardWidth,
-                    cardHeight);
-                if (card.yMax < viewport.y || card.y > viewport.yMax)
-                    continue;
-
-                MapCreatorPaletteItem item = items[index];
-                bool hovered;
-                bool selected =
-                    IsPaletteItemSelected(item, state);
-                if (MapCreatorDrawListUi.DrawPaletteCard(
-                        drawList,
-                        card,
-                        item.Label,
-                        item.Category,
-                        item.Preview,
-                        GetGroupAccent(item.Group),
-                        selected,
-                        out hovered))
+                Rect card = new Rect(x, y + i * itemHeight - _paletteScroller.Offset, itemsClip.width, 69f * scale);
+                if (card.yMax < viewport.y || card.y > viewport.yMax) continue;
+                MapCreatorPaletteItem item = list[i];
+                if (MapCreatorDrawListUi.DrawPaletteCard(drawList, card, item.Label, FriendlyCategory(item.Category), item.Preview, DrawListUi.Accent,
+                    state.ActiveToolId == item.Id, out bool hovered))
                 {
                     ActivatePaletteItem(item);
+                    _searchFocused = false;
                 }
-
-                if (hovered)
-                    _hoverDescription = item.Description;
+                if (hovered) _hoverDescription = item.Description;
             }
+            if (list.Count == 0)
+                Text(drawList, itemsClip.position + Vector2.one * 8f * scale, "Aucun bloc trouvé.", DrawListUi.TextSecondary);
+            MapCreatorDrawListUi.SetInteractionClip(null);
             drawList.PopClipRect();
-
-            if (items.Count == 0)
-            {
-                DrawListUi.DrawCenteredText(
-                    drawList,
-                    new Vector2(viewport.x, viewport.y + 48f * scale),
-                    viewport.width,
-                    "Aucun résultat dans cette catégorie.",
-                    DrawListUi.TextSecondary,
-                    10);
-            }
-
-            DrawScrollIndicator(
-                drawList,
-                viewport,
-                contentHeight,
-                maximumScroll,
-                scale);
+            _paletteScroller.Draw(drawList, viewport, height);
+            Text(drawList, new Vector2(x, rect.yMax - 21f * scale), list.Count + " blocs · molette pour parcourir", DrawListUi.TextSecondary, 12);
         }
 
         /// <summary>
-        /// Returns palette items matching one group and the current case-insensitive query.
+        /// Filters content by family, player-facing text, category, and stable identifier.
         /// </summary>
-        private List<MapCreatorPaletteItem> GetFilteredItems(
-            MapCreatorPaletteGroup group,
-            string query)
+        private List<MapCreatorPaletteItem> GetFilteredItems(MapCreatorPaletteGroup group, string query)
         {
-            // Filtering includes labels, categories, and descriptions for fast asset discovery.
-            var matches = new List<MapCreatorPaletteItem>();
-            string normalized =
-                string.IsNullOrWhiteSpace(query)
-                    ? string.Empty
-                    : query.Trim().ToLowerInvariant();
-            foreach (MapCreatorPaletteItem item in _viewModel.GetItems())
+            // Stable database IDs remain searchable without being the primary UI label.
+            var result = new List<MapCreatorPaletteItem>();
+            foreach (var item in _viewModel.GetItems())
             {
                 if (item.Group != group)
                     continue;
-                if (normalized.Length > 0 &&
-                    !item.Label.ToLowerInvariant().Contains(normalized) &&
-                    !item.Category.ToLowerInvariant().Contains(normalized) &&
-                    !item.Description.ToLowerInvariant().Contains(normalized))
-                {
+                if (!string.IsNullOrWhiteSpace(query) &&
+                    (item.Label + " " + item.Category + " " + item.Description + " " + item.Id)
+                        .IndexOf(query.Trim(), System.StringComparison.OrdinalIgnoreCase) < 0)
                     continue;
-                }
-
-                matches.Add(item);
+                result.Add(item);
             }
-
-            matches.Sort(
-                (left, right) =>
-                {
-                    int order = left.SortOrder.CompareTo(right.SortOrder);
-                    return order != 0
-                        ? order
-                        : string.CompareOrdinal(left.Label, right.Label);
-                });
-            return matches;
+            result.Sort((a, b) => a.SortOrder.CompareTo(b.SortOrder));
+            return result;
         }
 
         /// <summary>
-        /// Reports whether a palette card represents the currently armed tool or decoration.
+        /// Arms the same direct board-placement workflow for every content family.
         /// </summary>
-        private static bool IsPaletteItemSelected(
-            MapCreatorPaletteItem item,
-            MapCreatorViewState state)
+        private void ActivatePaletteItem(MapCreatorPaletteItem item)
         {
-            // Decoration IDs replace the generic MapDeco tool ID once one asset is armed.
-            return item != null &&
-                   state != null &&
-                   item.Id == state.ActiveToolId;
-        }
-
-        /// <summary>
-        /// Routes one palette activation to the appropriate guarded authoring intention.
-        /// </summary>
-        private void ActivatePaletteItem(
-            MapCreatorPaletteItem item)
-        {
-            // Domain-specific selection remains outside the presentation assembly.
+            // No content family requires finding a hidden inspector assignment control.
+            _showEnvironment = false;
             if (item.Group == MapCreatorPaletteGroup.Decorations)
                 _viewModel.Actions.SelectDecoration(item.Id);
+            else if (item.Group == MapCreatorPaletteGroup.Gears)
+                _viewModel.Actions.SelectGear(item.Id);
             else
                 _viewModel.Actions.SelectTool(item.Id);
         }
 
         /// <summary>
-        /// Gets the visual accent associated with one palette family.
+        /// Separates illustrated construction tools from material-preview spheres and environment editing.
         /// </summary>
-        private static Color GetGroupAccent(
-            MapCreatorPaletteGroup group)
+        private void DrawViewportToolbar(FuDrawList drawList, Rect rect, MapCreatorViewState state, float scale)
         {
-            // Family color remains restrained so authored preview art keeps priority.
-            switch (group)
+            DrawWorkbenchPanel(drawList, rect, DrawListUi.Steel);
+            string[] modes = { "Select", "Paint", "Rectangle", "Erase", "Move", "Pick" };
+            string[] labels = { "Sélection · S", "Pinceau", "Rectangle", "Gomme", "Déplacer", "Pipette" };
+            string[] help = { "Clique une case pour voir ses propriétés.", "Clique et glisse pour poser le bloc choisi.",
+                "Glisse entre deux coins pour remplir une zone.", "Retire d'abord l'objet, puis le sol.",
+                "Choisis un objet, puis clique sa destination.", "Clique un objet pour reprendre son pinceau." };
+            for (int i = 0; i < modes.Length; i++)
+                if (IconControl(drawList, new Rect(rect.x + (8f + 60f * i) * scale, rect.y + 6f * scale, 55f * scale, 52f * scale),
+                    modes[i], labels[i], help[i], state.Viewport.BrushMode == modes[i]))
+                    _viewModel.Actions.SetBrushMode(modes[i]);
+            int active = System.Array.IndexOf(modes, state.Viewport.BrushMode);
+            if (active >= 0 && rect.width > 1030f * scale)
             {
-                case MapCreatorPaletteGroup.Enemies:
-                    return DrawListUi.Danger;
-                case MapCreatorPaletteGroup.Decorations:
-                    return DrawListUi.Success;
-                case MapCreatorPaletteGroup.Gears:
-                    return DrawListUi.AccentBright;
-                case MapCreatorPaletteGroup.Environments:
-                    return DrawListUi.Steel;
-                default:
-                    return DrawListUi.Accent;
+                Text(drawList, new Vector2(rect.x + 383f * scale, rect.y + 12f * scale), labels[active], DrawListUi.TextPrimary, 16);
+                Text(drawList, new Vector2(rect.x + 383f * scale, rect.y + 35f * scale), help[active], DrawListUi.TextSecondary, 12);
             }
+            float right = rect.xMax - 8f * scale;
+            if (IconControl(drawList, new Rect(right - 50f * scale, rect.y + 8f * scale, 50f * scale, 48f * scale),
+                "GameLight", "Rendu du jeu", "Afficher le ciel, les lumières et les effets de la carte.", state.Viewport.ShowEnvironment))
+                _viewModel.Actions.SetEnvironmentPreview(true);
+            if (IconControl(drawList, new Rect(right - 106f * scale, rect.y + 8f * scale, 50f * scale, 48f * scale),
+                "WorkLight", "Rendu de travail", "Lumière neutre et ombres pour lire les volumes.", !state.Viewport.ShowEnvironment))
+                _viewModel.Actions.SetEnvironmentPreview(false);
         }
 
         /// <summary>
-        /// Draws a quiet proportional scroll indicator when palette content overflows.
+        /// Renders camera navigation inside the work area and keeps its entire footprint out of painting input.
         /// </summary>
-        private void DrawScrollIndicator(
-            FuDrawList drawList,
-            Rect viewport,
-            float contentHeight,
-            float maximumScroll,
-            float scale)
+        private void DrawAxisGizmo(FuDrawList drawList, Rect rect, MapCreatorViewState state, float scale)
         {
-            // The indicator communicates depth without stealing horizontal room from cards.
-            if (maximumScroll <= 0f || contentHeight <= 0f)
-                return;
-
-            float railWidth = 3f * scale;
-            Rect rail = new Rect(
-                viewport.xMax - railWidth,
-                viewport.y,
-                railWidth,
-                viewport.height);
-            drawList.AddRectFilled(
-                rail.min,
-                rail.max,
-                new Color(0f, 0f, 0f, 0.42f),
-                railWidth);
-            float handleHeight =
-                Mathf.Max(
-                    28f * scale,
-                    viewport.height * viewport.height / contentHeight);
-            float handleY =
-                viewport.y +
-                (_paletteScroll / maximumScroll) *
-                (viewport.height - handleHeight);
-            drawList.AddRectFilled(
-                new Vector2(rail.x, handleY),
-                new Vector2(rail.xMax, handleY + handleHeight),
-                DrawListUi.Accent,
-                railWidth);
-        }
-
-        #endregion
-
-        #region Inspector
-
-        /// <summary>
-        /// Draws onboarding guidance when no board cell is selected.
-        /// </summary>
-        private static void DrawEmptyInspector(
-            FuDrawList drawList,
-            Rect body,
-            MapCreatorViewState state,
-            float scale)
-        {
-            // A useful empty state teaches the core loop instead of leaving unused space.
-            Rect plate = new Rect(
-                body.x,
-                body.y,
-                body.width,
-                156f * scale);
-            DrawListUi.DrawPlate(drawList, plate, DrawListUi.Steel);
-            DrawListUi.DrawRuneEmblem(
-                drawList,
-                new Vector2(plate.center.x, plate.y + 46f * scale),
-                22f * scale,
-                DrawListUi.Steel);
-            DrawListUi.DrawCenteredText(
-                drawList,
-                new Vector2(plate.x, plate.y + 82f * scale),
-                plate.width,
-                "SÉLECTIONNE UNE CASE",
-                DrawListUi.TextPrimary,
-                11,
-                FontType.Bold);
-            DrawListUi.DrawCenteredText(
-                drawList,
-                new Vector2(plate.x + 18f * scale, plate.y + 108f * scale),
-                plate.width - 36f * scale,
-                "Inspecte son contenu, oriente les obstacles et configure les mécaniques.",
-                DrawListUi.TextSecondary,
-                9);
-
-            Rect tool = new Rect(
-                body.x,
-                plate.yMax + 14f * scale,
-                body.width,
-                42f * scale);
-            MapCreatorDrawListUi.DrawValueRow(
-                drawList,
-                tool,
-                "Outil armé",
-                state.ActiveToolLabel,
-                DrawListUi.Accent);
+            Rect compass = new Rect(rect.x, rect.y, rect.width, rect.height - 40f * scale);
+            string command = MapCreatorAxisGizmo.Draw(drawList, compass, state.Viewport.CameraRotation, state.Viewport.IsPlanView, state.Viewport.IsTransitioning, out string hint);
+            if (!string.IsNullOrEmpty(command)) _viewModel.Actions.SetCameraView(command);
+            if (!string.IsNullOrEmpty(hint))
+            {
+                _tooltipTitle = "Caméra";
+                _tooltipBody = hint;
+                _hoverDescription = hint;
+            }
+            if (Button(drawList, new Rect(rect.x, compass.yMax + 6f * scale, rect.width * 0.5f - 3f * scale, 30f * scale), "Cadrer"))
+                _viewModel.Actions.FocusSelection();
+            if (Button(drawList, new Rect(rect.center.x + 3f * scale, compass.yMax + 6f * scale, rect.width * 0.5f - 3f * scale, 30f * scale), "Grille", state.Viewport.ShowGrid))
+                _viewModel.Actions.ToggleGrid();
         }
 
         /// <summary>
-        /// Draws metadata and only the editing controls valid for the current selection.
+        /// Separates object properties from map atmosphere without changing the viewport rendering.
         /// </summary>
-        private void DrawSelectionInspector(
-            FuDrawList drawList,
-            Rect body,
-            MapCreatorViewState state,
-            float scale)
+        private void DrawDetailsPanel(FuDrawList drawList, Rect rect, MapCreatorViewState state, float scale)
         {
-            // Contextual sections replace the old always-visible control wall.
-            MapCreatorSelectionState selection = state.Selection;
-            float y = body.y;
-            float rowHeight = 36f * scale;
-            float gap = 7f * scale;
-            DrawInspectorRow(
-                drawList,
-                body,
-                ref y,
-                rowHeight,
-                gap,
-                "Type",
-                selection.CellType,
-                DrawListUi.Accent);
-            DrawInspectorRow(
-                drawList,
-                body,
-                ref y,
-                rowHeight,
-                gap,
-                "Sol",
-                selection.FloorId,
-                DrawListUi.Steel);
-
-            if (!string.IsNullOrWhiteSpace(selection.ElementId))
-            {
-                DrawInspectorRow(
-                    drawList,
-                    body,
-                    ref y,
-                    rowHeight,
-                    gap,
-                    "Décor",
-                    selection.ElementId,
-                    DrawListUi.Success);
-            }
-            if (!string.IsNullOrWhiteSpace(selection.EnemyId))
-            {
-                DrawInspectorRow(
-                    drawList,
-                    body,
-                    ref y,
-                    rowHeight,
-                    gap,
-                    "Ennemi",
-                    selection.EnemyId,
-                    DrawListUi.Danger);
-            }
-            if (selection.IsMovingPlatform)
-            {
-                DrawInspectorRow(
-                    drawList,
-                    body,
-                    ref y,
-                    rowHeight,
-                    gap,
-                    "Entité",
-                    "Plateforme mobile",
-                    DrawListUi.Accent);
-            }
-            if (!string.IsNullOrWhiteSpace(selection.GearId) &&
-                selection.GearId != "None")
-            {
-                DrawInspectorRow(
-                    drawList,
-                    body,
-                    ref y,
-                    rowHeight,
-                    gap,
-                    "Gear",
-                    selection.GearId,
-                    DrawListUi.AccentBright);
-            }
-
-            y += 5f * scale;
-            DrawOrientationControls(
-                drawList,
-                body,
-                ref y,
-                selection,
-                scale);
-            DrawElementControls(
-                drawList,
-                body,
-                ref y,
-                selection,
-                scale);
-            DrawMechanicControls(
-                drawList,
-                body,
-                ref y,
-                selection,
-                scale);
-            DrawPathControls(
-                drawList,
-                body,
-                ref y,
-                selection,
-                scale);
-            DrawGearControls(
-                drawList,
-                body,
-                ref y,
-                selection,
-                scale);
-
-            float deleteY =
-                Mathf.Min(body.yMax - 42f * scale, y + 12f * scale);
-            Rect delete = new Rect(
-                body.x,
-                deleteY,
-                body.width,
-                40f * scale);
-            if (MapCreatorDrawListUi.DrawCompactButton(
-                    drawList,
-                    delete,
-                    "SUPPRIMER LE CONTENU  ·  Suppr",
-                    DrawListUi.Danger))
-            {
-                _viewModel.Actions.DeleteSelection();
-            }
+            DrawWorkbenchPanel(drawList, rect, DrawListUi.Accent);
+            float width = (rect.width - 28f * scale) * 0.5f;
+            if (MapCreatorDrawListUi.DrawLibraryTab(drawList, new Rect(rect.x + 10f * scale, rect.y + 9f * scale, width, 46f * scale), "Select", "Objet", !_showEnvironment))
+                _showEnvironment = false;
+            if (MapCreatorDrawListUi.DrawLibraryTab(drawList, new Rect(rect.x + 18f * scale + width, rect.y + 9f * scale, width, 46f * scale), "GameLight", "Ambiance", _showEnvironment))
+                _showEnvironment = true;
+            Rect content = new Rect(rect.x, rect.y + 65f * scale, rect.width, rect.height - 65f * scale);
+            if (_showEnvironment) DrawDockedEnvironment(drawList, content, state, scale);
+            else DrawInspector(drawList, content, state, scale);
         }
 
         /// <summary>
-        /// Draws one inspector row and advances the vertical cursor.
+        /// Overlays restrained authoring feedback on the actual map in both camera projections.
         /// </summary>
-        private static void DrawInspectorRow(
-            FuDrawList drawList,
-            Rect body,
-            ref float y,
-            float height,
-            float gap,
-            string label,
-            string value,
-            Color accent)
+        private void DrawBoard(FuDrawList drawList, Rect viewport, MapCreatorViewState state, float scale)
         {
-            // Centralized cursor movement keeps context-specific rows perfectly aligned.
-            MapCreatorDrawListUi.DrawValueRow(
-                drawList,
-                new Rect(body.x, y, body.width, height),
-                label,
-                value,
-                accent);
-            y += height + gap;
-        }
-
-        /// <summary>
-        /// Draws orthogonal orientation controls for the selected floor, element, or enemy.
-        /// </summary>
-        private void DrawOrientationControls(
-            FuDrawList drawList,
-            Rect body,
-            ref float y,
-            MapCreatorSelectionState selection,
-            float scale)
-        {
-            // Cardinal buttons mirror grid directions and remain faster than repeated scene dragging.
-            DrawListUi.DrawSectionLabel(
-                drawList,
-                new Vector2(body.x, y),
-                body.width,
-                "ORIENTATION · " + selection.Orientation.ToUpperInvariant(),
-                DrawListUi.Accent);
-            y += 22f * scale;
-            float gap = 6f * scale;
-            float width = (body.width - gap * 3f) * 0.25f;
-            string[] labels = { "↑", "→", "↓", "←" };
-            for (int index = 0; index < labels.Length; index++)
+            // The Unity camera supplies every floor, enemy, and prop; the UI never substitutes schematic tiles.
+            MapCreatorViewportState board = state.Viewport;
+            if (board == null) return;
+            drawList.PushClipRect(viewport.min, viewport.max, true);
+            foreach (MapCreatorBoardCell cell in board.Cells)
             {
-                Rect button = new Rect(
-                    body.x + index * (width + gap),
-                    y,
-                    width,
-                    34f * scale);
-                if (MapCreatorDrawListUi.DrawCompactButton(
-                        drawList,
-                        button,
-                        labels[index],
-                        DrawListUi.Accent))
+                Vector2[] c = cell.Corners;
+                Vector2 minimum = Vector2.Min(Vector2.Min(c[0], c[1]), Vector2.Min(c[2], c[3]));
+                Vector2 maximum = Vector2.Max(Vector2.Max(c[0], c[1]), Vector2.Max(c[2], c[3]));
+                if (maximum.x < viewport.x || minimum.x > viewport.xMax || maximum.y < viewport.y || minimum.y > viewport.yMax)
+                    continue;
+                Color edge = cell.Selected ? DrawListUi.AccentBright :
+                    cell.Preview ? (board.HoverValid ? new Color(0.70f, 0.80f, 0.52f) : new Color(0.94f, 0.35f, 0.25f)) :
+                    new Color(0.89f, 0.85f, 0.72f, board.ShowEnvironment ? 0.20f : 0.15f);
+                if (cell.Preview || cell.Selected)
+                    drawList.AddQuadFilled(c[0], c[1], c[2], c[3], Fugui.GetColorU32(new Color(edge.r, edge.g, edge.b, 0.11f)));
+                if (board.ShowGrid || cell.Preview || cell.Selected)
+                    for (int i = 0; i < 4; i++)
+                        drawList.AddLine(c[i], c[(i + 1) % 4], edge, (cell.Preview || cell.Selected ? 2f : 0.65f) * scale);
+                Vector2 center = (c[0] + c[2]) * 0.5f;
+                float size = Mathf.Min(Vector2.Distance(c[0], c[1]), Vector2.Distance(c[1], c[2]));
+                MapCreatorPaletteItem asset = FindItem(cell.AssetId);
+                if (size > 25f * scale && (cell.Selected || cell.HoverAnchor) && HasDirectionalSymbol(asset))
+                    DrawDirection(drawList, c, center, size * 0.43f, cell.Orientation, DrawListUi.AccentBright, scale);
+                if ((cell.IsStart || cell.IsExit) && size > 32f * scale)
                 {
-                    _viewModel.Actions.SetOrientation(index + 1);
+                    string label = cell.IsStart ? "Départ" : "Sortie";
+                    Vector2 textSize = DrawListUi.MeasureText(label, 12);
+                    Vector2 position = new Vector2(center.x - textSize.x * 0.5f, minimum.y + 3f * scale);
+                    drawList.AddRectFilled(position - new Vector2(4f, 2f) * scale, position + textSize + new Vector2(4f, 2f) * scale, new Color(0.025f, 0.02f, 0.018f, 0.9f), 2f * scale);
+                    Text(drawList, position, label, cell.IsStart ? new Color(0.79f, 0.87f, 0.62f) : DrawListUi.AccentBright, 12);
+                }
+                if (cell.HoverAnchor && !HasActiveModal())
+                {
+                    _tooltipTitle = "Case " + cell.X + " : " + cell.Y;
+                    _tooltipBody = cell.IsStart ? "Départ du joueur" : cell.IsExit ? "Sortie de la carte" :
+                        asset != null ? asset.Label : cell.Walkable ? "Sol praticable" : "Vide";
+                    if (board.HoverValid && state.ActiveToolId != "Select" && board.BrushMode == "Paint")
+                    {
+                        MapCreatorPaletteItem armed = FindItem(state.ActiveToolId);
+                        if (armed != null && armed.Preview != null && size > 24f * scale)
+                            drawList.AddImage(armed.Preview, center - Vector2.one * size * 0.30f,
+                                center + Vector2.one * size * 0.30f, new Vector4(1f, 1f, 1f, 0.55f));
+                        if (HasDirectionalSymbol(armed))
+                            DrawDirection(drawList, c, center, size * 0.43f, board.Orientation, edge, scale);
+                    }
                 }
             }
-            y += 45f * scale;
+            for (int i = 0; i < board.Path.Count; i++)
+            {
+                Vector2 point = board.Path[i];
+                if (i > 0)
+                    drawList.AddLine(board.Path[i - 1], point, DrawListUi.AccentBright, 2f * scale);
+                drawList.AddCircleFilled(point, 5f * scale, DrawListUi.AccentBright);
+                Text(drawList, point + new Vector2(7f, -14f) * scale, (i + 1).ToString(), DrawListUi.TextPrimary, 14);
+            }
+            drawList.PopClipRect();
+            string cameraLabel = board.IsTransitioning ? "Changement de point de vue…" : board.IsPlanView ? "Vue de dessus · Nord en haut" : "Vue en perspective";
+            string lightingLabel = board.ShowEnvironment ? "Rendu du jeu · " + state.EnvironmentLabel : "Éclairage de travail";
+            Vector2 heading = viewport.position + Vector2.one * 12f * scale;
+            Vector2 headingSize = DrawListUi.MeasureText(cameraLabel + "   /   " + lightingLabel, 12);
+            drawList.AddRectFilled(heading - Vector2.one * 6f * scale, heading + headingSize + Vector2.one * 6f * scale,
+                new Color(0.035f, 0.028f, 0.024f, 0.88f), 3f * scale);
+            Text(drawList, heading, cameraLabel + "   /   " + lightingLabel, DrawListUi.TextPrimary, 12);
         }
 
         /// <summary>
-        /// Draws authored-decoration rotation and scale controls when supported.
+        /// Identifies content whose facing direction matters when positioning or inspecting it.
         /// </summary>
-        private void DrawElementControls(
-            FuDrawList drawList,
-            Rect body,
-            ref float y,
-            MapCreatorSelectionState selection,
-            float scale)
+        private static bool HasDirectionalSymbol(MapCreatorPaletteItem item)
         {
-            // Explicit adjustments are predictable and complement direct scene manipulation.
-            if (!selection.CanRotateElement &&
-                !selection.CanScaleElement)
-            {
-                return;
-            }
-
-            DrawListUi.DrawSectionLabel(
-                drawList,
-                new Vector2(body.x, y),
-                body.width,
-                "TRANSFORMATION DU DÉCOR",
-                DrawListUi.Success);
-            y += 22f * scale;
-            float gap = 7f * scale;
-            float half = (body.width - gap) * 0.5f;
-            if (selection.CanRotateElement)
-            {
-                Rect left = new Rect(body.x, y, half, 34f * scale);
-                Rect right =
-                    new Rect(left.xMax + gap, y, half, 34f * scale);
-                if (MapCreatorDrawListUi.DrawCompactButton(
-                        drawList,
-                        left,
-                        "− 90°",
-                        DrawListUi.Success))
-                {
-                    _viewModel.Actions.RotateElement(-90f);
-                }
-                if (MapCreatorDrawListUi.DrawCompactButton(
-                        drawList,
-                        right,
-                        "+ 90°",
-                        DrawListUi.Success))
-                {
-                    _viewModel.Actions.RotateElement(90f);
-                }
-                y += 41f * scale;
-            }
-            if (selection.CanScaleElement)
-            {
-                Rect smaller = new Rect(body.x, y, half, 34f * scale);
-                Rect larger =
-                    new Rect(smaller.xMax + gap, y, half, 34f * scale);
-                if (MapCreatorDrawListUi.DrawCompactButton(
-                        drawList,
-                        smaller,
-                        "ÉCHELLE  −",
-                        DrawListUi.Success))
-                {
-                    _viewModel.Actions.ScaleElement(-0.1f);
-                }
-                if (MapCreatorDrawListUi.DrawCompactButton(
-                        drawList,
-                        larger,
-                        "ÉCHELLE  +",
-                        DrawListUi.Success))
-                {
-                    _viewModel.Actions.ScaleElement(0.1f);
-                }
-                y += 41f * scale;
-            }
-            y += 5f * scale;
+            // Direction arrows are contextual, not permanent clutter over every decoration.
+            return item != null && (item.Group == MapCreatorPaletteGroup.Enemies ||
+                (item.Group == MapCreatorPaletteGroup.Decorations && item.Category != "Floor") ||
+                item.Id == "Spring" || item.Id == "MovingPlatform");
         }
 
         /// <summary>
-        /// Draws numeric or toggle controls for configurable puzzle cells.
+        /// Draws orientation using geometry rather than font-dependent arrow characters.
         /// </summary>
-        private void DrawMechanicControls(
-            FuDrawList drawList,
-            Rect body,
-            ref float y,
-            MapCreatorSelectionState selection,
-            float scale)
+        private static void DrawDirection(FuDrawList drawList, Vector2[] corners, Vector2 center, float radius, int orientation, Color color, float scale)
         {
-            // One common stepper handles spring distance and timed-bomb delay consistently.
-            bool isSpring = selection.CellType == "Spring";
-            bool isBomb = selection.CellType == "Bombe";
-            bool isNeedle = selection.CellType == "Needle";
-            if (!isSpring && !isBomb && !isNeedle)
-                return;
-
-            string title = isSpring
-                ? "PORTÉE DU RESSORT"
-                : isBomb
-                    ? "DÉLAI DE LA BOMBE"
-                    : "DÉCLENCHEMENT DES PICS";
-            DrawListUi.DrawSectionLabel(
-                drawList,
-                new Vector2(body.x, y),
-                body.width,
-                title,
-                DrawListUi.AccentBright);
-            y += 22f * scale;
-
-            if (isNeedle)
-            {
-                Rect toggle =
-                    new Rect(body.x, y, body.width, 36f * scale);
-                string label = selection.ArgumentValue == 1
-                    ? "IMMÉDIAT  ·  OUI"
-                    : "IMMÉDIAT  ·  NON";
-                if (MapCreatorDrawListUi.DrawCompactButton(
-                        drawList,
-                        toggle,
-                        label,
-                        selection.ArgumentValue == 1
-                            ? DrawListUi.Success
-                            : DrawListUi.Steel,
-                        true,
-                        selection.ArgumentValue == 1))
-                {
-                    _viewModel.Actions.ToggleNeedle();
-                }
-                y += 47f * scale;
-                return;
-            }
-
-            float buttonWidth = 48f * scale;
-            float gap = 7f * scale;
-            Rect minus = new Rect(
-                body.x,
-                y,
-                buttonWidth,
-                36f * scale);
-            Rect value = new Rect(
-                minus.xMax + gap,
-                y,
-                body.width - buttonWidth * 2f - gap * 2f,
-                36f * scale);
-            Rect plus = new Rect(
-                value.xMax + gap,
-                y,
-                buttonWidth,
-                36f * scale);
-            if (MapCreatorDrawListUi.DrawCompactButton(
-                    drawList,
-                    minus,
-                    "−",
-                    DrawListUi.Accent))
-            {
-                _viewModel.Actions.AdjustArgument(-1);
-            }
-            MapCreatorDrawListUi.DrawValueRow(
-                drawList,
-                value,
-                isSpring ? "Cases" : "Tours",
-                selection.ArgumentValue.ToString(),
-                DrawListUi.AccentBright);
-            if (MapCreatorDrawListUi.DrawCompactButton(
-                    drawList,
-                    plus,
-                    "+",
-                    DrawListUi.Accent))
-            {
-                _viewModel.Actions.AdjustArgument(1);
-            }
-            y += 47f * scale;
+            // The plan remains north-up, so cardinal arrows are unambiguous.
+            Vector2 edge = orientation == 2 ? (corners[1] + corners[2]) * 0.5f :
+                orientation == 3 ? (corners[2] + corners[3]) * 0.5f :
+                orientation == 4 ? (corners[3] + corners[0]) * 0.5f : (corners[0] + corners[1]) * 0.5f;
+            Vector2 direction = (edge - center).normalized;
+            Vector2 tip = center + direction * radius;
+            Vector2 side = new Vector2(-direction.y, direction.x) * 4f * scale;
+            drawList.AddTriangleFilled(tip, tip - direction * 9f * scale + side, tip - direction * 9f * scale - side, Fugui.GetColorU32(color));
         }
 
         /// <summary>
-        /// Draws path authoring controls for patrol enemies and moving platforms.
+        /// Shows the actual selected object, contextual foldouts, and persistent move/delete commands.
         /// </summary>
-        private void DrawPathControls(
-            FuDrawList drawList,
-            Rect body,
-            ref float y,
-            MapCreatorSelectionState selection,
-            float scale)
+        private void DrawInspector(FuDrawList drawList, Rect rect, MapCreatorViewState state, float scale)
         {
-            // Path editing has explicit begin, validate, and cancel states instead of hidden P/Enter behavior.
-            if (!selection.CanEditPath)
-                return;
-
-            DrawListUi.DrawSectionLabel(
-                drawList,
-                new Vector2(body.x, y),
-                body.width,
-                "TRAJECTOIRE · " + selection.PathPointCount + " POINTS",
-                DrawListUi.Danger);
-            y += 22f * scale;
-            if (!selection.IsEditingPath)
+            float x = rect.x + 15f * scale;
+            float width = rect.width - 30f * scale;
+            MapCreatorSelectionState selected = state.Selection;
+            bool inspecting = selected.HasSelection && (state.Viewport.BrushMode == "Select" || state.Viewport.BrushMode == "Move" || state.Viewport.BrushMode == "Erase" || selected.IsEditingPath);
+            bool choosing = !inspecting && (state.Viewport.BrushMode == "Select" || state.Viewport.BrushMode == "Pick" || state.Viewport.BrushMode == "Move");
+            MapCreatorPaletteItem armed = FindItem(state.ActiveToolId);
+            string id = inspecting ? !string.IsNullOrEmpty(selected.ElementId) ? selected.ElementId :
+                !string.IsNullOrEmpty(selected.EnemyId) ? selected.EnemyId : selected.GearId != "None" ? selected.GearId : selected.FloorId : state.ActiveToolId;
+            MapCreatorPaletteItem content = FindItem(id);
+            string key = inspecting ? selected.X + ":" + selected.Y + ":" + id : "brush:" + id;
+            if (_inspectedCell != key)
             {
-                Rect edit =
-                    new Rect(body.x, y, body.width, 36f * scale);
-                if (MapCreatorDrawListUi.DrawCompactButton(
-                        drawList,
-                        edit,
-                        "REDESSINER LA TRAJECTOIRE  ·  P",
-                        DrawListUi.Danger))
+                _inspectedCell = key;
+                _inspectorScroller.Offset = 0f;
+            }
+            MapCreatorTheme.Heading(drawList, new Vector2(x, rect.y + 14f * scale), inspecting ? "Objet sélectionné" : choosing ? "Choisis une case" : "Bloc à poser");
+            Rect preview = new Rect(x, rect.y + 47f * scale, 58f * scale, 58f * scale);
+            drawList.AddRectFilled(preview.min, preview.max, new Color(0.025f, 0.02f, 0.018f), 4f * scale);
+            Texture2D illustration = choosing ? MapCreatorTheme.GetTool("Select") : content?.Preview;
+            if (illustration != null) drawList.AddImage(illustration, preview.min, preview.max, Vector4.one);
+            string title = choosing ? "Sur la carte" : content != null ? content.Label : inspecting ? selected.CellType : "Sélection";
+            Text(drawList, new Vector2(preview.xMax + 9f * scale, preview.y + 8f * scale),
+                MapCreatorDrawListUi.TruncateText(title, width - 68f * scale, 14, FontType.Regular), DrawListUi.AccentBright, 14);
+            Text(drawList, new Vector2(preview.xMax + 9f * scale, preview.y + 34f * scale),
+                inspecting ? "Case " + selected.X + " : " + selected.Y : choosing ? "Clique pour inspecter" : "Pinceau actif", DrawListUi.TextSecondary, 12);
+            Rect viewport = new Rect(x, preview.yMax + 16f * scale, width, rect.yMax - preview.yMax - (inspecting ? 78f : 32f) * scale);
+            _inspectorScroller.Update(viewport, _inspectorContentHeight, !HasActiveModal());
+            Rect clip = new Rect(viewport.x, viewport.y, viewport.width - 18f * scale, viewport.height);
+            drawList.PushClipRect(clip.min, clip.max, true);
+            MapCreatorDrawListUi.SetInteractionClip(clip);
+            float y = viewport.y - _inspectorScroller.Offset;
+            float usable = clip.width;
+            if (!inspecting)
+            {
+                Text(drawList, new Vector2(x, y), choosing ? "Clique un objet sur la carte." : "Clique ou glisse pour placer.", DrawListUi.TextSecondary, 12);
+                y += 34f * scale;
+                if (!choosing && HasDirectionalSymbol(armed))
                 {
-                    _viewModel.Actions.BeginPath();
+                    if (InspectorSection(drawList, x, ref y, usable, "Orientation du pinceau", ref _showPlacement, scale))
+                    {
+                        Text(drawList, new Vector2(x + 5f * scale, y), DirectionLabel(state.Viewport.Orientation), DrawListUi.TextSecondary, 14);
+                        y += 25f * scale;
+                        if (Button(drawList, new Rect(x, y, usable, 33f * scale), "Pivoter · R")) _viewModel.Actions.RotatePlacement();
+                        y += 45f * scale;
+                    }
                 }
             }
             else
             {
-                float gap = 7f * scale;
-                float half = (body.width - gap) * 0.5f;
-                Rect cancel =
-                    new Rect(body.x, y, half, 36f * scale);
-                Rect confirm =
-                    new Rect(cancel.xMax + gap, y, half, 36f * scale);
-                if (MapCreatorDrawListUi.DrawCompactButton(
-                        drawList,
-                        cancel,
-                        "ANNULER",
-                        DrawListUi.Steel))
+                bool orientable = HasDirectionalSymbol(content) || (content != null && content.Group == MapCreatorPaletteGroup.Decorations);
+                if ((orientable || selected.CanScaleElement) && InspectorSection(drawList, x, ref y, usable, "Placement", ref _showPlacement, scale))
                 {
-                    _viewModel.Actions.CancelPath();
+                    if (orientable)
+                    {
+                        Text(drawList, new Vector2(x, y), "Orientation : " + selected.Orientation, DrawListUi.TextSecondary, 12);
+                        y += 25f * scale;
+                        string[] labels = { "Nord", "Est", "Sud", "Ouest" };
+                        for (int i = 0; i < 4; i++)
+                            if (Button(drawList, new Rect(x + i % 2 * (usable + 6f * scale) * 0.5f, y + i / 2 * 36f * scale, (usable - 6f * scale) * 0.5f, 31f * scale), labels[i]))
+                                _viewModel.Actions.SetOrientation(i + 1);
+                        y += 82f * scale;
+                    }
+                    if (selected.CanScaleElement)
+                    {
+                        Text(drawList, new Vector2(x, y), "Taille : " + selected.ElementScale.ToString("0.0"), DrawListUi.TextSecondary, 12);
+                        y += 24f * scale;
+                        if (Button(drawList, new Rect(x, y, usable * 0.48f, 31f * scale), "Réduire")) _viewModel.Actions.ScaleElement(-0.1f);
+                        if (Button(drawList, new Rect(x + usable * 0.52f, y, usable * 0.48f, 31f * scale), "Agrandir")) _viewModel.Actions.ScaleElement(0.1f);
+                        y += 46f * scale;
+                    }
                 }
-                if (MapCreatorDrawListUi.DrawCompactButton(
-                        drawList,
-                        confirm,
-                        "VALIDER",
-                        DrawListUi.Success))
+                bool spring = selected.CellType == "Ressort";
+                bool bomb = selected.CellType == "Bombe temporisée";
+                bool spikes = selected.CellType == "Pics";
+                if ((spring || bomb || spikes) && InspectorSection(drawList, x, ref y, usable, "Mécanique", ref _showMechanics, scale))
                 {
-                    _viewModel.Actions.ConfirmPath();
+                    if (spikes)
+                    {
+                        if (Button(drawList, new Rect(x, y, usable, 33f * scale), selected.ArgumentValue == 1 ? "Pics immédiats" : "Pics alternés"))
+                            _viewModel.Actions.ToggleNeedle();
+                        y += 45f * scale;
+                    }
+                    else
+                    {
+                        Text(drawList, new Vector2(x, y), (spring ? "Distance : " : "Délai : ") + selected.ArgumentValue + (spring ? " cases" : " tours"), DrawListUi.TextPrimary, 14);
+                        y += 25f * scale;
+                        if (Button(drawList, new Rect(x, y, usable * 0.48f, 31f * scale), "Diminuer")) _viewModel.Actions.AdjustArgument(-1);
+                        if (Button(drawList, new Rect(x + usable * 0.52f, y, usable * 0.48f, 31f * scale), "Augmenter")) _viewModel.Actions.AdjustArgument(1);
+                        y += 45f * scale;
+                    }
+                }
+                if (selected.CanEditPath && InspectorSection(drawList, x, ref y, usable, "Trajet", ref _showRoute, scale))
+                {
+                    Text(drawList, new Vector2(x, y), selected.PathPointCount + " points · cases alignées", DrawListUi.TextSecondary, 12);
+                    y += 26f * scale;
+                    if (selected.IsEditingPath)
+                    {
+                        if (Button(drawList, new Rect(x, y, usable * 0.48f, 33f * scale), "Valider")) _viewModel.Actions.ConfirmPath();
+                        if (Button(drawList, new Rect(x + usable * 0.52f, y, usable * 0.48f, 33f * scale), "Annuler")) _viewModel.Actions.CancelPath();
+                    }
+                    else if (Button(drawList, new Rect(x, y, usable, 33f * scale), "Dessiner le trajet"))
+                        _viewModel.Actions.BeginPath();
+                    y += 46f * scale;
+                }
+                Text(drawList, new Vector2(x, y), selected.CellType, DrawListUi.TextSecondary, 12);
+                y += 30f * scale;
+            }
+            if (InspectorSection(drawList, x, ref y, usable, "Aide et raccourcis", ref _showHelp, scale))
+            {
+                foreach (string line in new[] { "Sol : pinceau ou rectangle.", "Place un départ et une sortie.", "Ajoute décors et obstacles.", "Molette : zoom.", "Clic droit : déplacer ou tourner.", "Gizmo : choisir un point de vue.", "S : sélectionner · R : pivoter.", "Ctrl+Z : annuler un geste." })
+                {
+                    Text(drawList, new Vector2(x, y), line, DrawListUi.TextSecondary, 12);
+                    y += 25f * scale;
                 }
             }
-            y += 47f * scale;
+            _inspectorContentHeight = y + _inspectorScroller.Offset - viewport.y + 8f * scale;
+            MapCreatorDrawListUi.SetInteractionClip(null);
+            drawList.PopClipRect();
+            _inspectorScroller.Draw(drawList, viewport, _inspectorContentHeight);
+            if (inspecting)
+            {
+                float footer = rect.yMax - 51f * scale;
+                bool movable = !string.IsNullOrEmpty(selected.ElementId) || !string.IsNullOrEmpty(selected.EnemyId) || selected.GearId != "None";
+                if (Button(drawList, new Rect(x, footer, width * 0.48f, 35f * scale), "Déplacer", false, movable)) _viewModel.Actions.SetBrushMode("Move");
+                if (Button(drawList, new Rect(x + width * 0.52f, footer, width * 0.48f, 35f * scale), "Effacer")) _viewModel.Actions.DeleteSelection();
+            }
         }
 
         /// <summary>
-        /// Draws compact gear assignment controls for compatible walkable cells.
+        /// Draws a consistent property disclosure and advances the scroll-content cursor.
         /// </summary>
-        private void DrawGearControls(
-            FuDrawList drawList,
-            Rect body,
-            ref float y,
-            MapCreatorSelectionState selection,
-            float scale)
+        private static bool InspectorSection(FuDrawList drawList, float x, ref float y, float width, string title, ref bool expanded, float scale)
         {
-            // Every retained gear remains assignable while incompatible cells hide the whole section.
-            if (!selection.CanAssignGear)
-                return;
+            if (MapCreatorDrawListUi.DrawDisclosure(drawList, new Rect(x, y, width, 31f * scale), title, expanded)) expanded = !expanded;
+            y += 41f * scale;
+            return expanded;
+        }
 
-            DrawListUi.DrawSectionLabel(
-                drawList,
-                new Vector2(body.x, y),
-                body.width,
-                "GEAR DISPONIBLE",
-                DrawListUi.AccentBright);
-            y += 22f * scale;
-            List<MapCreatorPaletteItem> gears =
-                GetFilteredItems(
-                    MapCreatorPaletteGroup.Gears,
-                    string.Empty);
-            float gap = 6f * scale;
-            float width = (body.width - gap) * 0.5f;
-            float height = 31f * scale;
-            for (int index = 0; index < gears.Count; index++)
+        /// <summary>
+        /// Shows the active placement rule, feedback, and directly relevant navigation hints.
+        /// </summary>
+        private void DrawStatusBar(FuDrawList drawList, Rect rect, MapCreatorViewState state, float scale)
+        {
+            // Text feedback explains invalid placement instead of leaving clicks silently ineffective.
+            DrawWorkbenchPanel(drawList, rect, DrawListUi.Steel);
+            string hint = !string.IsNullOrEmpty(_hoverDescription) ? _hoverDescription : state.Viewport.Hint;
+            Text(drawList, rect.position + new Vector2(14f, 9f) * scale,
+                MapCreatorDrawListUi.TruncateText(hint, rect.width * 0.72f, 14, FontType.Regular),
+                state.Viewport.HoverValid ? DrawListUi.TextPrimary : DrawListUi.TextSecondary, 14);
+            string saved = state.IsDirty ? "Modifications à enregistrer" : "Enregistrée";
+            Vector2 size = DrawListUi.MeasureText(saved, 12);
+            Text(drawList, new Vector2(rect.xMax - size.x - 14f * scale, rect.y + 10f * scale), saved,
+                state.IsDirty ? DrawListUi.AccentBright : DrawListUi.TextSecondary, 12);
+        }
+
+        /// <summary>
+        /// Finds authored preview data from a stable identifier.
+        /// </summary>
+        private MapCreatorPaletteItem FindItem(string id)
+        {
+            // Palette data is reused by plan tiles, placement ghosts, and inspector headings.
+            return id != null && _catalogue.TryGetValue(id, out var item) ? item : null;
+        }
+
+        /// <summary>
+        /// Converts cardinal identifiers into explicit orientation labels.
+        /// </summary>
+        private static string DirectionLabel(int direction)
+        {
+            // Labels remain readable when a font lacks arrow glyphs.
+            return direction == 2 ? "Est" : direction == 3 ? "Sud" : direction == 4 ? "Ouest" : "Nord";
+        }
+
+        /// <summary>
+        /// Presents legacy database group identifiers as understandable browsing categories.
+        /// </summary>
+        private static string FriendlyCategory(string category)
+        {
+            // Database classification remains intact behind player-facing labels.
+            switch (category.ToLowerInvariant())
             {
-                int row = index / 2;
-                int column = index % 2;
-                Rect button = new Rect(
-                    body.x + column * (width + gap),
-                    y + row * (height + gap),
-                    width,
-                    height);
-                MapCreatorPaletteItem gear = gears[index];
-                if (MapCreatorDrawListUi.DrawCompactButton(
-                        drawList,
-                        button,
-                        gear.Label,
-                        DrawListUi.AccentBright,
-                        true,
-                        selection.GearId == gear.Id))
-                {
-                    _viewModel.Actions.SelectGear(gear.Id);
-                }
+                case "floor": return "Sols";
+                case "wall": return "Murs";
+                case "rock": return "Rochers";
+                case "prop": return "Mobilier";
+                case "floordeco": return "Petits décors";
+                case "pillar": return "Colonnes";
+                case "gear": return "Équipements";
+                default: return category;
             }
-            y +=
-                Mathf.CeilToInt(gears.Count * 0.5f) *
-                (height + gap);
         }
 
         #endregion
@@ -1350,14 +812,62 @@ namespace DodgeFromLight.FuguiUI.Screens
         #region Modals
 
         /// <summary>
+        /// Creates a sized local map while explicitly protecting unsaved work.
+        /// </summary>
+        private void DrawNewMapModal(FuDrawList drawList, Vector2 screenSize, MapCreatorViewState state, float scale)
+        {
+            // A new project changes no saved map until the player explicitly saves it.
+            DrawListUi.DrawScrim(drawList, screenSize, 0.72f);
+            Rect panel = DrawListUi.CenterRect(screenSize, new Vector2(560f, 342f) * scale);
+            DrawWorkbenchPanel(drawList, panel, DrawListUi.Accent, true);
+            float x = panel.x + 26f * scale;
+            float width = panel.width - 52f * scale;
+            Text(drawList, new Vector2(x, panel.y + 24f * scale), "NOUVELLE CARTE", DrawListUi.TextPrimary, 18, FontType.Bold);
+            Text(drawList, new Vector2(x, panel.y + 61f * scale), "Choisis une taille. Tous les blocs restent disponibles.", DrawListUi.TextSecondary, 14);
+            int[] sizes = { 8, 12, 20, 32 };
+            for (int i = 0; i < sizes.Length; i++)
+                if (Button(drawList, new Rect(x + i * width * 0.25f, panel.y + 97f * scale, width * 0.25f - 6f * scale, 34f * scale),
+                    sizes[i] + " x " + sizes[i], _newWidth == sizes[i] && _newHeight == sizes[i]))
+                    _newWidth = _newHeight = sizes[i];
+            Text(drawList, new Vector2(x, panel.y + 149f * scale), "Largeur : " + _newWidth, DrawListUi.TextPrimary, 14);
+            Text(drawList, new Vector2(x + width * 0.52f, panel.y + 149f * scale), "Profondeur : " + _newHeight, DrawListUi.TextPrimary, 14);
+            for (int i = 0; i < 4; i++)
+                if (Button(drawList, new Rect(x + i * width * 0.25f, panel.y + 178f * scale, width * 0.25f - 6f * scale, 31f * scale),
+                    i % 2 == 0 ? "Diminuer" : "Augmenter"))
+                {
+                    if (i < 2)
+                        _newWidth = Mathf.Clamp(_newWidth + (i == 0 ? -1 : 1), 4, 64);
+                    else
+                        _newHeight = Mathf.Clamp(_newHeight + (i == 2 ? -1 : 1), 4, 64);
+                }
+            Text(drawList, new Vector2(x, panel.y + 231f * scale), state.IsDirty
+                ? "La carte actuelle contient des modifications non enregistrées."
+                : "La carte actuelle reste disponible dans tes sauvegardes locales.", DrawListUi.TextSecondary, 12);
+            float buttonWidth = (width - 12f * scale) / 3f;
+            if (Button(drawList, new Rect(x, panel.yMax - 64f * scale, buttonWidth, 38f * scale), "Annuler"))
+                _showNewMap = false;
+            if (Button(drawList, new Rect(x + buttonWidth + 6f * scale, panel.yMax - 64f * scale, buttonWidth, 38f * scale), "Créer sans sauver"))
+            {
+                _viewModel.Actions.CreateMap(_newWidth, _newHeight, false);
+                _showNewMap = false;
+            }
+            if (Button(drawList, new Rect(x + 2f * (buttonWidth + 6f * scale), panel.yMax - 64f * scale, buttonWidth, 38f * scale), "Sauver et créer", true))
+            {
+                _viewModel.Actions.CreateMap(_newWidth, _newHeight, state.IsDirty);
+                _showNewMap = false;
+            }
+        }
+
+        /// <summary>
         /// Draws the currently active modal above all editor surfaces.
         /// </summary>
-        private void DrawActiveModal(
-            FuDrawList drawList,
-            Vector2 screenSize,
-            MapCreatorViewState state,
-            float scale)
+        private void DrawActiveModal(FuDrawList drawList, Vector2 screenSize, MapCreatorViewState state, float scale)
         {
+            if (_showNewMap)
+            {
+                DrawNewMapModal(drawList, screenSize, state, scale);
+                return;
+            }
             // Modal priority matches destructive risk, with exit confirmation always on top.
             if (_showExitPrompt)
             {
@@ -1374,8 +884,11 @@ namespace DodgeFromLight.FuguiUI.Screens
                 DrawValidationModal(drawList, screenSize, state, scale);
                 return;
             }
-            if (_showEnvironment)
-                DrawEnvironmentModal(drawList, screenSize, state, scale);
+            if (!string.IsNullOrEmpty(_activeEnvironmentColorId))
+            {
+                DrawListUi.DrawScrim(drawList, screenSize, 0.66f);
+                DrawEnvironmentColorEditor(drawList, screenSize, scale);
+            }
         }
 
         /// <summary>
@@ -1383,45 +896,42 @@ namespace DodgeFromLight.FuguiUI.Screens
         /// </summary>
         private bool HasActiveModal()
         {
-            // Text, validation, environment, and destructive confirmation overlays are all exclusive.
-            return _showExitPrompt ||
+            // Environment editing is docked; only its color picker and actual dialog overlays capture the board.
+            return _showNewMap || _showExitPrompt ||
                    _editingName ||
                    _showValidation ||
-                   _showEnvironment;
+                   !string.IsNullOrEmpty(_activeEnvironmentColorId);
         }
 
         /// <summary>
         /// Draws save, discard, and cancel choices before leaving a dirty map.
         /// </summary>
-        private void DrawExitPrompt(
-            FuDrawList drawList,
-            Vector2 screenSize,
-            float scale)
+        private void DrawExitPrompt(FuDrawList drawList, Vector2 screenSize, float scale)
         {
             // Explicit three-way wording prevents accidental loss of authored work.
             DrawListUi.DrawScrim(drawList, screenSize, 0.72f);
             Rect panel = DrawListUi.CenterRect(
                 screenSize,
                 new Vector2(590f, 270f) * scale);
-            DrawListUi.DrawPanel(
+            DrawWorkbenchPanel(
                 drawList,
                 panel,
                 DrawListUi.Danger,
                 true);
-            DrawListUi.DrawText(
+            Text(
                 drawList,
                 panel.position + new Vector2(30f, 29f) * scale,
-                "QUITTER LA FORGE ?",
+                "FERMER LA CARTE ?",
                 DrawListUi.TextPrimary,
                 17,
                 FontType.Bold);
-            DrawListUi.DrawText(
+            Text(
                 drawList,
                 panel.position + new Vector2(30f, 69f) * scale,
                 "Cette carte contient des modifications non enregistrées.",
                 DrawListUi.TextSecondary,
                 11);
-            DrawListUi.DrawText(
+            Text(
                 drawList,
                 panel.position + new Vector2(30f, 94f) * scale,
                 "Tu peux les sauvegarder, les abandonner, ou revenir à l’édition.",
@@ -1475,22 +985,19 @@ namespace DodgeFromLight.FuguiUI.Screens
         /// <summary>
         /// Draws a focused map-name editor with explicit validation and cancellation.
         /// </summary>
-        private void DrawNameEditor(
-            FuDrawList drawList,
-            Vector2 screenSize,
-            float scale)
+        private void DrawNameEditor(FuDrawList drawList, Vector2 screenSize, float scale)
         {
             // Naming is modal so board shortcuts cannot mutate the map while the user types.
             DrawListUi.DrawScrim(drawList, screenSize, 0.68f);
             Rect panel = DrawListUi.CenterRect(
                 screenSize,
                 new Vector2(560f, 220f) * scale);
-            DrawListUi.DrawPanel(
+            DrawWorkbenchPanel(
                 drawList,
                 panel,
                 DrawListUi.Accent,
                 true);
-            DrawListUi.DrawText(
+            Text(
                 drawList,
                 panel.position + new Vector2(28f, 26f) * scale,
                 "NOM DE LA CARTE",
@@ -1542,11 +1049,7 @@ namespace DodgeFromLight.FuguiUI.Screens
         /// <summary>
         /// Draws all grid validation results in a dedicated readable modal.
         /// </summary>
-        private void DrawValidationModal(
-            FuDrawList drawList,
-            Vector2 screenSize,
-            MapCreatorViewState state,
-            float scale)
+        private void DrawValidationModal(FuDrawList drawList, Vector2 screenSize, MapCreatorViewState state, float scale)
         {
             // Validation separates actionable blocking errors from the normal authoring workflow.
             DrawListUi.DrawScrim(drawList, screenSize, 0.7f);
@@ -1556,8 +1059,8 @@ namespace DodgeFromLight.FuguiUI.Screens
             Color accent = state.ValidationErrors.Count == 0
                 ? DrawListUi.Success
                 : DrawListUi.Danger;
-            DrawListUi.DrawPanel(drawList, panel, accent, true);
-            DrawListUi.DrawText(
+            DrawWorkbenchPanel(drawList, panel, accent, true);
+            Text(
                 drawList,
                 panel.position + new Vector2(30f, 27f) * scale,
                 state.ValidationErrors.Count == 0
@@ -1566,7 +1069,7 @@ namespace DodgeFromLight.FuguiUI.Screens
                 DrawListUi.TextPrimary,
                 17,
                 FontType.Bold);
-            DrawListUi.DrawText(
+            Text(
                 drawList,
                 panel.position + new Vector2(30f, 61f) * scale,
                 state.ValidationErrors.Count == 0
@@ -1600,7 +1103,7 @@ namespace DodgeFromLight.FuguiUI.Screens
                     Mathf.Min(state.ValidationErrors.Count, 10);
                 for (int index = 0; index < visibleCount; index++)
                 {
-                    DrawListUi.DrawText(
+                    Text(
                         drawList,
                         new Vector2(list.x + 16f * scale, y),
                         "◆  " + state.ValidationErrors[index],
@@ -1628,317 +1131,149 @@ namespace DodgeFromLight.FuguiUI.Screens
         }
 
         /// <summary>
-        /// Draws the complete built-in environment preset chooser.
+        /// Edits map lighting in a docked sidebar so presets and live tuning never hide the actual board.
         /// </summary>
-        private void DrawEnvironmentModal(
-            FuDrawList drawList,
-            Vector2 screenSize,
-            MapCreatorViewState state,
-            float scale)
+        private void DrawDockedEnvironment(FuDrawList drawList, Rect rect, MapCreatorViewState state, float scale)
         {
-            // Presets and complete advanced controls preserve every original environment capability.
-            DrawListUi.DrawScrim(drawList, screenSize, 0.66f);
-            if (!string.IsNullOrEmpty(_activeEnvironmentColorId))
-            {
-                DrawEnvironmentColorEditor(
-                    drawList,
-                    screenSize,
-                    scale);
-                return;
-            }
-
-            Vector2 panelSize = new Vector2(
-                820f * scale,
-                Mathf.Min(
-                    720f * scale,
-                    screenSize.y - 36f * scale));
-            Rect panel = DrawListUi.CenterRect(
-                screenSize,
-                panelSize);
-            DrawListUi.DrawPanel(
-                drawList,
-                panel,
-                DrawListUi.Steel,
-                true);
-            DrawListUi.DrawText(
-                drawList,
-                panel.position + new Vector2(30f, 27f) * scale,
-                "AMBIANCE DE LA CARTE",
-                DrawListUi.TextPrimary,
-                17,
-                FontType.Bold);
-            DrawListUi.DrawText(
-                drawList,
-                panel.position + new Vector2(30f, 61f) * scale,
-                "Applique un preset. Le rendu de la scène est mis à jour immédiatement.",
-                DrawListUi.TextSecondary,
-                10);
-
-            float tabGap = 8f * scale;
-            float tabWidth =
-                (panel.width - 60f * scale - tabGap) * 0.5f;
-            Rect presetsTab = new Rect(
-                panel.x + 30f * scale,
-                panel.y + 91f * scale,
-                tabWidth,
-                39f * scale);
-            Rect advancedTab = new Rect(
-                presetsTab.xMax + tabGap,
-                presetsTab.y,
-                tabWidth,
-                presetsTab.height);
-            if (MapCreatorDrawListUi.DrawTab(
-                    drawList,
-                    presetsTab,
-                    "PRESETS",
-                    !_showAdvancedEnvironment))
-            {
-                _showAdvancedEnvironment = false;
-                _environmentScroll = 0f;
-            }
-            if (MapCreatorDrawListUi.DrawTab(
-                    drawList,
-                    advancedTab,
-                    "RÉGLAGES AVANCÉS",
-                    _showAdvancedEnvironment))
-            {
-                _showAdvancedEnvironment = true;
-                _environmentScroll = 0f;
-            }
-
-            Rect viewport = new Rect(
-                panel.x + 30f * scale,
-                presetsTab.yMax + 17f * scale,
-                panel.width - 60f * scale,
-                panel.yMax - presetsTab.yMax - 82f * scale);
+            float x = rect.x + 15f * scale;
+            float width = rect.width - 30f * scale;
+            MapCreatorTheme.Heading(drawList, new Vector2(x, rect.y + 7f * scale), "Ambiance de la carte");
+            Text(drawList, new Vector2(x, rect.y + 37f * scale), state.EnvironmentLabel, DrawListUi.AccentBright, 14);
+            Text(drawList, new Vector2(x, rect.y + 65f * scale), state.Viewport.ShowEnvironment
+                ? "Aperçu : rendu du jeu" : "Aperçu : lumière de travail", DrawListUi.TextSecondary, 12);
+            Text(drawList, new Vector2(x, rect.y + 86f * scale), "Choisir une palette affiche son rendu.", DrawListUi.TextSecondary, 12);
+            Rect viewport = new Rect(x, rect.y + 119f * scale, width, rect.height - 134f * scale);
+            var environments = GetFilteredItems(MapCreatorPaletteGroup.Environments, string.Empty);
+            List<string> sections = GetEnvironmentSections(state);
+            float advancedHeight = 0f;
             if (_showAdvancedEnvironment)
             {
-                DrawAdvancedEnvironmentControls(
-                    drawList,
-                    viewport,
-                    state,
-                    scale);
+                advancedHeight = sections.Count * 41f * scale;
+                foreach (MapCreatorEnvironmentValue value in state.EnvironmentValues)
+                    if (_expandedEnvironmentSections.Contains(value.Section)) advancedHeight += 66f * scale;
+                foreach (MapCreatorEnvironmentColor color in state.EnvironmentColors)
+                    if (_expandedEnvironmentSections.Contains(color.Section)) advancedHeight += 52f * scale;
             }
-            else
+            float height = Mathf.CeilToInt(environments.Count / 2f) * 96f * scale + 76f * scale + advancedHeight;
+            _environmentScroller.Update(viewport, height, !HasActiveModal());
+            Rect clip = new Rect(viewport.x, viewport.y, viewport.width - 18f * scale, viewport.height);
+            drawList.PushClipRect(clip.min, clip.max, true);
+            MapCreatorDrawListUi.SetInteractionClip(clip);
+            float y = viewport.y - _environmentScroller.Offset;
+            Text(drawList, new Vector2(x, y), "PALETTES D’AMBIANCE", DrawListUi.TextSecondary, 12);
+            y += 26f * scale;
+            float cardWidth = (clip.width - 8f * scale) * 0.5f;
+            for (int i = 0; i < environments.Count; i++)
             {
-                DrawEnvironmentPresets(
-                    drawList,
-                    viewport,
-                    state,
-                    scale);
-            }
-
-            Rect close = new Rect(
-                panel.center.x - 100f * scale,
-                panel.yMax - 55f * scale,
-                200f * scale,
-                36f * scale);
-            if (MapCreatorDrawListUi.DrawCompactButton(
-                    drawList,
-                    close,
-                    "FERMER",
-                    DrawListUi.Steel))
-            {
-                _showEnvironment = false;
-            }
-        }
-
-        /// <summary>
-        /// Draws all built-in environment presets in a two-column chooser.
-        /// </summary>
-        private void DrawEnvironmentPresets(
-            FuDrawList drawList,
-            Rect viewport,
-            MapCreatorViewState state,
-            float scale)
-        {
-            // Preset selection is a fast starting point before optional advanced tuning.
-            List<MapCreatorPaletteItem> environments =
-                GetFilteredItems(
-                    MapCreatorPaletteGroup.Environments,
-                    string.Empty);
-            float gap = 10f * scale;
-            float width =
-                (viewport.width - gap) * 0.5f;
-            float height = 58f * scale;
-            for (int index = 0; index < environments.Count; index++)
-            {
-                int row = index / 2;
-                int column = index % 2;
-                MapCreatorPaletteItem environment = environments[index];
-                Rect button = new Rect(
-                    viewport.x + column * (width + gap),
-                    viewport.y + row * (height + gap),
-                    width,
-                    height);
-                if (MapCreatorDrawListUi.DrawCompactButton(
-                        drawList,
-                        button,
-                        environment.Label,
-                        DrawListUi.Steel,
-                        true,
-                        state.EnvironmentId == environment.Id))
+                MapCreatorPaletteItem environment = environments[i];
+                Rect choice = new Rect(x + i % 2 * (cardWidth + 8f * scale), y + i / 2 * 96f * scale, cardWidth, 88f * scale);
+                if (choice.yMax < clip.y || choice.y > clip.yMax) continue;
+                if (DrawEnvironmentCard(drawList, choice, environment, state.EnvironmentId == environment.Id, scale))
                 {
+                    // Applying a palette is an explicit preview action; opening this panel is not.
                     _viewModel.Actions.SelectEnvironment(environment.Id);
-                    _showEnvironment = false;
+                    _viewModel.Actions.SetEnvironmentPreview(true);
                 }
             }
+            y += Mathf.CeilToInt(environments.Count / 2f) * 96f * scale;
+            if (MapCreatorDrawListUi.DrawDisclosure(drawList, new Rect(x, y, clip.width, 32f * scale), "Réglages détaillés", _showAdvancedEnvironment))
+                _showAdvancedEnvironment = !_showAdvancedEnvironment;
+            y += 50f * scale;
+            if (_showAdvancedEnvironment)
+            {
+                foreach (string section in sections)
+                {
+                    bool expanded = _expandedEnvironmentSections.Contains(section);
+                    if (MapCreatorDrawListUi.DrawDisclosure(drawList, new Rect(x, y, clip.width, 31f * scale), section, expanded))
+                    {
+                        if (expanded) _expandedEnvironmentSections.Remove(section);
+                        else _expandedEnvironmentSections.Add(section);
+                        expanded = !expanded;
+                    }
+                    y += 41f * scale;
+                    if (!expanded) continue;
+                    foreach (MapCreatorEnvironmentValue value in state.EnvironmentValues)
+                    {
+                        if (value.Section != section) continue;
+                        Rect slider = new Rect(x, y + 20f * scale, clip.width, 25f * scale);
+                        if (slider.yMax >= clip.y && slider.y - 20f * scale <= clip.yMax &&
+                            MapCreatorDrawListUi.DrawSlider(drawList, slider, value.Label, value.Value, value.Minimum, value.Maximum, value.Format, DrawListUi.Accent, out float changed))
+                            _viewModel.Actions.SetEnvironmentValue(value.Id, changed);
+                        y += 66f * scale;
+                    }
+                    foreach (MapCreatorEnvironmentColor color in state.EnvironmentColors)
+                    {
+                        if (color.Section != section) continue;
+                        Rect swatch = new Rect(x, y, clip.width, 44f * scale);
+                        if (swatch.yMax >= clip.y && swatch.y <= clip.yMax &&
+                            MapCreatorDrawListUi.DrawColorSwatch(drawList, swatch, color.Label, color.Value, DrawListUi.Accent))
+                        {
+                            _activeEnvironmentColorId = color.Id;
+                            _activeEnvironmentColorLabel = color.Label;
+                            _environmentColorDraft = color.Value;
+                        }
+                        y += 52f * scale;
+                    }
+                }
+            }
+            MapCreatorDrawListUi.SetInteractionClip(null);
+            drawList.PopClipRect();
+            _environmentScroller.Draw(drawList, viewport, height);
         }
 
         /// <summary>
-        /// Draws every numeric and color environment control in a clipped scrollable workbench.
+        /// Collects the authored parameter sections in their stable display order.
         /// </summary>
-        private void DrawAdvancedEnvironmentControls(
-            FuDrawList drawList,
-            Rect viewport,
-            MapCreatorViewState state,
-            float scale)
+        private static List<string> GetEnvironmentSections(MapCreatorViewState state)
         {
-            // Two columns preserve readable labels while making the full environment payload practical.
-            float gap = 20f * scale;
-            float columnWidth =
-                (viewport.width - gap) * 0.5f;
-            float numericHeight = 58f * scale;
-            int numericRows =
-                Mathf.CeilToInt(
-                    state.EnvironmentValues.Count * 0.5f);
-            float colorsStart =
-                numericRows * numericHeight + 32f * scale;
-            float colorHeight = 48f * scale;
-            int colorRows =
-                Mathf.CeilToInt(
-                    state.EnvironmentColors.Count * 0.5f);
-            float contentHeight =
-                colorsStart +
-                colorRows * (colorHeight + 8f * scale);
-            float maximumScroll =
-                Mathf.Max(
-                    0f,
-                    contentHeight - viewport.height);
-            if (viewport.Contains(Fugui.DefaultContainer.Mouse.Position))
+            var sections = new List<string>();
+            foreach (MapCreatorEnvironmentValue value in state.EnvironmentValues)
+                if (!sections.Contains(value.Section)) sections.Add(value.Section);
+            foreach (MapCreatorEnvironmentColor color in state.EnvironmentColors)
+                if (!sections.Contains(color.Section)) sections.Add(color.Section);
+            return sections;
+        }
+
+        /// <summary>
+        /// Draws authored sky and ground colors as a selectable palette rather than a simulated map screenshot.
+        /// </summary>
+        private static bool DrawEnvironmentCard(FuDrawList drawList, Rect rect, MapCreatorPaletteItem item, bool selected, float scale)
+        {
+            bool hovered = MapCreatorDrawListUi.IsHovered(rect);
+            MapCreatorTheme.Surface(drawList, rect);
+            Rect palette = new Rect(rect.x + 7f * scale, rect.y + 7f * scale, rect.width - 14f * scale, 45f * scale);
+            MapCreatorEnvironmentPreview colors = item.EnvironmentPreview;
+            if (colors != null)
             {
-                _environmentScroll -=
-                    Fugui.DefaultContainer.Mouse.Wheel.y *
-                    58f *
-                    scale;
+                uint sky = Fugui.GetColorU32(colors.Sky);
+                uint horizon = Fugui.GetColorU32(colors.Horizon);
+                drawList.AddRectFilledMultiColor(palette.min, palette.max, sky, sky, horizon, horizon);
+                drawList.AddRectFilled(new Vector2(palette.x, palette.yMax - 9f * scale), palette.max, colors.Ground);
+                drawList.AddCircleFilled(new Vector2(palette.xMax - 13f * scale, palette.y + 12f * scale), 5f * scale, colors.Sun);
             }
-            _environmentScroll =
-                Mathf.Clamp(
-                    _environmentScroll,
-                    0f,
-                    maximumScroll);
-
-            drawList.PushClipRect(
-                viewport.min,
-                viewport.max,
-                true);
-            for (int index = 0;
-                 index < state.EnvironmentValues.Count;
-                 index++)
-            {
-                int row = index / 2;
-                int column = index % 2;
-                MapCreatorEnvironmentValue parameter =
-                    state.EnvironmentValues[index];
-                Rect slider = new Rect(
-                    viewport.x + column * (columnWidth + gap),
-                    viewport.y +
-                    23f * scale +
-                    row * numericHeight -
-                    _environmentScroll,
-                    columnWidth,
-                    24f * scale);
-                if (slider.yMax < viewport.y ||
-                    slider.y - 20f * scale > viewport.yMax)
-                {
-                    continue;
-                }
-
-                float changedValue;
-                if (MapCreatorDrawListUi.DrawSlider(
-                        drawList,
-                        slider,
-                        parameter.Section + " · " + parameter.Label,
-                        parameter.Value,
-                        parameter.Minimum,
-                        parameter.Maximum,
-                        parameter.Format,
-                        DrawListUi.Steel,
-                        out changedValue))
-                {
-                    _viewModel.Actions.SetEnvironmentValue(
-                        parameter.Id,
-                        changedValue);
-                }
-            }
-
-            float colorHeaderY =
-                viewport.y +
-                colorsStart -
-                _environmentScroll;
-            DrawListUi.DrawSectionLabel(
-                drawList,
-                new Vector2(viewport.x, colorHeaderY),
-                viewport.width,
-                "COULEURS",
-                DrawListUi.Accent);
-            float colorY = colorHeaderY + 24f * scale;
-            float colorWidth =
-                (viewport.width - 8f * scale) * 0.5f;
-            for (int index = 0;
-                 index < state.EnvironmentColors.Count;
-                 index++)
-            {
-                int row = index / 2;
-                int column = index % 2;
-                MapCreatorEnvironmentColor color =
-                    state.EnvironmentColors[index];
-                Rect swatch = new Rect(
-                    viewport.x +
-                    column * (colorWidth + 8f * scale),
-                    colorY +
-                    row * (colorHeight + 8f * scale),
-                    colorWidth,
-                    colorHeight);
-                if (swatch.yMax < viewport.y ||
-                    swatch.y > viewport.yMax)
-                {
-                    continue;
-                }
-
-                if (MapCreatorDrawListUi.DrawColorSwatch(
-                        drawList,
-                        swatch,
-                        color.Section + " · " + color.Label,
-                        color.Value,
-                        DrawListUi.Accent))
-                {
-                    _activeEnvironmentColorId = color.Id;
-                    _activeEnvironmentColorLabel = color.Label;
-                    _environmentColorDraft = color.Value;
-                }
-            }
-            drawList.PopClipRect();
+            Text(drawList, new Vector2(rect.x + 9f * scale, rect.y + 61f * scale), item.Label, selected ? DrawListUi.AccentBright : DrawListUi.TextPrimary, 14);
+            if (selected || hovered)
+                drawList.AddRect(rect.min, rect.max, selected ? DrawListUi.AccentBright : DrawListUi.Steel, 4f * scale, FuDrawFlags.RoundCornersAll, (selected ? 2f : 1f) * scale);
+            if (selected)
+                drawList.AddCircleFilled(new Vector2(rect.xMax - 9f * scale, rect.y + 64f * scale), 3f * scale, DrawListUi.AccentBright);
+            return MapCreatorDrawListUi.WasClicked(rect);
         }
 
         /// <summary>
         /// Draws RGB channel controls for one selected environment color.
         /// </summary>
-        private void DrawEnvironmentColorEditor(
-            FuDrawList drawList,
-            Vector2 screenSize,
-            float scale)
+        private void DrawEnvironmentColorEditor(FuDrawList drawList, Vector2 screenSize, float scale)
         {
             // Live channel updates make color tuning immediately visible on the authored scene.
             Rect panel = DrawListUi.CenterRect(
                 screenSize,
                 new Vector2(560f, 420f) * scale);
-            DrawListUi.DrawPanel(
+            DrawWorkbenchPanel(
                 drawList,
                 panel,
                 DrawListUi.Accent,
                 true);
-            DrawListUi.DrawText(
+            Text(
                 drawList,
                 panel.position + new Vector2(28f, 26f) * scale,
                 "COULEUR · " +
@@ -2020,13 +1355,7 @@ namespace DodgeFromLight.FuguiUI.Screens
         /// <summary>
         /// Draws and applies one RGB color channel slider.
         /// </summary>
-        private void DrawColorChannel(
-            FuDrawList drawList,
-            Rect rect,
-            string label,
-            float value,
-            Color accent,
-            int channel)
+        private void DrawColorChannel(FuDrawList drawList, Rect rect, string label, float value, Color accent, int channel)
         {
             // Channel updates preserve alpha and the other two current draft channels.
             float changedValue;
@@ -2064,18 +1393,14 @@ namespace DodgeFromLight.FuguiUI.Screens
         /// <summary>
         /// Draws a blocking save or scene-transition indicator.
         /// </summary>
-        private static void DrawBusyState(
-            FuDrawList drawList,
-            Vector2 screenSize,
-            MapCreatorViewState state,
-            float scale)
+        private static void DrawBusyState(FuDrawList drawList, Vector2 screenSize, MapCreatorViewState state, float scale)
         {
             // Busy feedback blocks repeated destructive actions while keeping progress explicit.
             DrawListUi.DrawScrim(drawList, screenSize, 0.62f);
             Rect panel = DrawListUi.CenterRect(
                 screenSize,
                 new Vector2(420f, 156f) * scale);
-            DrawListUi.DrawPanel(
+            DrawWorkbenchPanel(
                 drawList,
                 panel,
                 DrawListUi.Accent,
@@ -2086,14 +1411,14 @@ namespace DodgeFromLight.FuguiUI.Screens
                 24f * scale,
                 DrawListUi.Accent,
                 Mathf.Repeat(Time.unscaledTime * 0.12f, 1f));
-            DrawListUi.DrawText(
+            Text(
                 drawList,
                 panel.position + new Vector2(112f, 48f) * scale,
-                "LA FORGE TRAVAILLE",
+                "CHARGEMENT",
                 DrawListUi.TextPrimary,
                 14,
                 FontType.Bold);
-            DrawListUi.DrawText(
+            Text(
                 drawList,
                 panel.position + new Vector2(112f, 80f) * scale,
                 string.IsNullOrWhiteSpace(state.StatusMessage)
@@ -2172,15 +1497,17 @@ namespace DodgeFromLight.FuguiUI.Screens
         private void HandleSearchInput()
         {
             // Search updates immediately; Escape clears a non-empty query before releasing focus.
+            string previous = _search;
             AppendTextInput(
                 ref _search,
                 MaximumSearchLength);
+            if (previous != _search) _paletteScroller.Offset = 0f;
             if (Input.GetKeyDown(KeyCode.Escape))
             {
                 if (_search.Length > 0)
                 {
                     _search = string.Empty;
-                    _paletteScroll = 0f;
+                    _paletteScroller.Offset = 0f;
                 }
                 else
                 {
@@ -2197,9 +1524,7 @@ namespace DodgeFromLight.FuguiUI.Screens
         /// <summary>
         /// Appends Unity text input to one bounded DrawList field and handles backspace.
         /// </summary>
-        private static void AppendTextInput(
-            ref string value,
-            int maximumLength)
+        private static void AppendTextInput(ref string value, int maximumLength)
         {
             // Control characters are ignored except backspace, matching conventional desktop fields.
             string input = Input.inputString;
@@ -2229,7 +1554,9 @@ namespace DodgeFromLight.FuguiUI.Screens
         private void CloseTopModal()
         {
             // Escape is non-destructive and always dismisses only one overlay.
-            if (_showExitPrompt)
+            if (_showNewMap)
+                _showNewMap = false;
+            else if (_showExitPrompt)
                 _showExitPrompt = false;
             else if (_showValidation)
                 _showValidation = false;
@@ -2258,26 +1585,23 @@ namespace DodgeFromLight.FuguiUI.Screens
         /// <summary>
         /// Updates the controller input guard from all visible editor and modal rectangles.
         /// </summary>
-        private void UpdatePointerGuard(
-            Rect top,
-            Rect left,
-            Rect right,
-            Rect bottom,
-            Vector2 screenSize)
+        private void UpdatePointerGuard(Rect top, Rect left, Rect right, Rect bottom, Vector2 screenSize)
         {
             // Modal scrims consume the full pointer surface; normal editing leaves the center viewport free.
             Vector2 pointer =
                 Fugui.DefaultContainer.Mouse.Position;
             bool modal =
-                _showExitPrompt ||
+                _showNewMap || _showExitPrompt ||
                 _editingName ||
                 _showValidation ||
-                _showEnvironment;
+                !string.IsNullOrEmpty(_activeEnvironmentColorId);
             bool overUi =
                 modal && new Rect(Vector2.zero, screenSize).Contains(pointer) ||
                 top.Contains(pointer) ||
+                GetViewportToolbar(screenSize, DrawListUi.GetScale()).Contains(pointer) ||
                 left.Contains(pointer) ||
                 right.Contains(pointer) ||
+                GetGizmoRect(screenSize, DrawListUi.GetScale()).Contains(pointer) ||
                 bottom.Contains(pointer);
             _viewModel.Actions.SetPointerOverUi(overUi);
         }
@@ -2306,12 +1630,7 @@ namespace DodgeFromLight.FuguiUI.Screens
         /// <summary>
         /// Places one toolbar button from right to left and advances the placement cursor.
         /// </summary>
-        private static Rect PlaceToolbarButton(
-            ref float rightEdge,
-            float y,
-            float width,
-            float height,
-            float gap)
+        private static Rect PlaceToolbarButton(ref float rightEdge, float y, float width, float height, float gap)
         {
             // Right-aligned command placement remains stable as map-name space flexes.
             rightEdge -= width;
@@ -2321,80 +1640,67 @@ namespace DodgeFromLight.FuguiUI.Screens
         }
 
         /// <summary>
-        /// Computes the responsive top command bar.
+        /// Reserves the document-command row across the complete window.
         /// </summary>
-        private static Rect GetTopBar(
-            Vector2 screenSize,
-            float scale)
+        private static Rect GetTopBar(Vector2 screenSize, float scale)
         {
-            // A small safe margin separates the workbench from display edges.
-            float margin = Mathf.Max(10f * scale, screenSize.y * 0.012f);
-            return new Rect(
-                margin,
-                margin,
-                screenSize.x - margin * 2f,
-                76f * scale);
+            // A stable command row avoids crowding the camera controls.
+            return new Rect(8f * scale, 8f * scale, screenSize.x - 16f * scale, 64f * scale);
         }
 
         /// <summary>
-        /// Computes the responsive left palette panel.
+        /// Allocates readable catalogue space while keeping the board central.
         /// </summary>
-        private static Rect GetPalettePanel(
-            Vector2 screenSize,
-            float scale)
+        private static Rect GetPalettePanel(Vector2 screenSize, float scale)
         {
-            // Width is capped to preserve the board viewport at common 16:9 resolutions.
-            float margin = Mathf.Max(10f * scale, screenSize.y * 0.012f);
-            float top = margin + 86f * scale;
-            float bottom = margin + 48f * scale;
-            float width =
-                Mathf.Min(390f * scale, screenSize.x * 0.25f);
-            return new Rect(
-                margin,
-                top,
-                width,
-                screenSize.y - top - bottom);
+            // Width scales consistently with the project's reference resolution.
+            return new Rect(8f * scale, 80f * scale, 304f * scale, screenSize.y - 130f * scale);
         }
 
         /// <summary>
-        /// Computes the responsive right inspector panel.
+        /// Allocates only the width needed by contextual object properties.
         /// </summary>
-        private static Rect GetInspectorPanel(
-            Vector2 screenSize,
-            float scale)
+        private static Rect GetInspectorPanel(Vector2 screenSize, float scale)
         {
-            // The inspector receives slightly more width for readable values and contextual controls.
-            float margin = Mathf.Max(10f * scale, screenSize.y * 0.012f);
-            float top = margin + 86f * scale;
-            float bottom = margin + 48f * scale;
-            float width =
-                Mathf.Min(390f * scale, screenSize.x * 0.25f);
-            return new Rect(
-                screenSize.x - margin - width,
-                top,
-                width,
-                screenSize.y - top - bottom);
+            // A fixed-width inspector keeps controls predictable as selection changes.
+            return new Rect(screenSize.x - 328f * scale, 80f * scale, 320f * scale, screenSize.y - 130f * scale);
         }
 
         /// <summary>
-        /// Computes the responsive bottom status bar.
+        /// Places the always-visible feedback strip along the lower edge.
         /// </summary>
-        private static Rect GetStatusBar(
-            Vector2 screenSize,
-            float scale)
+        private static Rect GetStatusBar(Vector2 screenSize, float scale)
         {
-            // The status surface spans only the viewport gap between both side panels.
-            float margin = Mathf.Max(10f * scale, screenSize.y * 0.012f);
-            float sideWidth =
-                Mathf.Min(390f * scale, screenSize.x * 0.25f);
-            float x = margin + sideWidth + 10f * scale;
-            float right =
-                screenSize.x - margin - sideWidth - 10f * scale;
-            return new Rect(
-                x,
-                screenSize.y - margin - 38f * scale,
-                right - x,
-                38f * scale);
+            // Status includes the reason an operation is accepted or rejected.
+            return new Rect(8f * scale, screenSize.y - 42f * scale, screenSize.x - 16f * scale, 34f * scale);
+        }
+
+        /// <summary>
+        /// Reserves two compact rows for gestures and camera modes above the board.
+        /// </summary>
+        private static Rect GetViewportToolbar(Vector2 screenSize, float scale)
+        {
+            // Gestures use explicit labels rather than undocumented mouse combinations.
+            return new Rect(320f * scale, 80f * scale, screenSize.x - 656f * scale, 66f * scale);
+        }
+
+        /// <summary>
+        /// Reserves a compact camera compass in the upper-right corner of the visible board.
+        /// </summary>
+        private static Rect GetGizmoRect(Vector2 screenSize, float scale)
+        {
+            Rect board = GetBoardViewport(screenSize, scale);
+            return new Rect(board.xMax - 152f * scale, board.y + 8f * scale, 144f * scale, 208f * scale);
+        }
+
+        /// <summary>
+        /// Computes the unobstructed board viewport beneath the gesture toolbar.
+        /// </summary>
+        public static Rect GetBoardViewport(Vector2 screenSize, float scale)
+        {
+            // Clipping prevents grid feedback from being drawn over panels.
+            float top = GetViewportToolbar(screenSize, scale).yMax + 8f * scale;
+            return new Rect(320f * scale, top, screenSize.x - 656f * scale, screenSize.y - top - 50f * scale);
         }
 
         #endregion

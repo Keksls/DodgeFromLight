@@ -1,251 +1,213 @@
-using System;
 using UnityEngine;
 
 /// <summary>
-/// Provides orbit, pan, focus, and zoom controls for the map-creator camera.
+/// Owns smooth orbit poses and a focus-normalized perspective-to-orthographic projection transition.
 /// </summary>
 public sealed class CameraOrbit : MonoBehaviour
 {
     public Camera Camera;
     public Vector3 targetPos;
-    public float distance = 10f;
+    public float distance = 15f;
     public float mouseSensitivity = 1f;
-    public float xSpeed = 250f;
-    public float ySpeed = 120f;
-    public float yMinLimit = -20f;
+    public float xSpeed = 180f;
+    public float ySpeed = 100f;
+    public float yMinLimit = 20f;
     public float yMaxLimit = 80f;
     public float scrollSpeed = 5f;
     public bool forceUpdate;
+    public float transitionDuration = 0.48f;
 
-    private Vector3 _lastPosition;
-    private MapCreatorController _mapCreator;
-    private float _x;
-    private float _y;
-    private float _previousDistance;
-    private bool _hasMoved;
-
+    private MapCreatorController _creator;
+    private Vector3 _previousPointer;
+    private float _yaw = 35f;
+    private float _pitch = 50f;
+    private bool _panning;
+    private bool _orbiting;
+    private Rect _editingViewport;
+    private Quaternion _rotation = Quaternion.Euler(90f, 0f, 0f);
+    private Quaternion _fromRotation;
+    private Quaternion _toRotation;
+    private float _projectionBlend = 1f;
+    private float _fromBlend;
+    private float _toBlend;
+    private float _transitionStart = -1f;
+    private float _perspectiveFieldOfView = 60f;
+    public bool IsPlanView { get; private set; } = true;
+    public bool IsTransitioning => _transitionStart >= 0f;
     public static CameraOrbit Instance;
-    public static Action PostRenderCallback;
 
     /// <summary>
-    /// Registers the active map-creator camera instance.
+    /// Registers the authored camera and remembers its perspective lens.
     /// </summary>
     private void Awake()
     {
-        // The creator scene contains a single authoring camera.
         Instance = this;
+        if (Camera == null) Camera = GetComponent<Camera>();
+        if (Camera != null) _perspectiveFieldOfView = Mathf.Clamp(Camera.fieldOfView, 20f, 90f);
     }
 
     /// <summary>
-    /// Captures the authored camera orientation and resolves the Fugui input guard.
+    /// Resolves the board input owner and applies the initial orthographic work view.
     /// </summary>
     private void Start()
     {
-        // Initial Euler values preserve the scene-authored opening angle.
-        Vector3 angles = transform.eulerAngles;
-        _x = angles.y;
-        _y = angles.x;
-        _mapCreator =
-            FindFirstObjectByType<MapCreatorController>();
+        _creator = FindFirstObjectByType<MapCreatorController>();
+        ApplyPose();
     }
 
     /// <summary>
-    /// Updates map-creator camera gestures after board and UI input state is known.
+    /// Advances camera animation independently from pointer capture and applies deliberate navigation gestures.
     /// </summary>
     private void LateUpdate()
     {
-        // Fugui panels and modals reserve pointer gestures while forced framing remains available.
-        if (IsPointerBlocked() && !forceUpdate)
-            return;
-
-        HandlePan();
-        HandleZoom();
-        HandleOrbit();
-        HandlePanRelease();
-    }
-
-    /// <summary>
-    /// Pans the target and camera while the middle mouse button is dragged.
-    /// </summary>
-    private void HandlePan()
-    {
-        // Panning speed scales with distance so large maps remain navigable.
-        if (Input.GetMouseButtonDown(2))
+        if (IsTransitioning)
         {
-            _lastPosition = Input.mousePosition;
-            _hasMoved = false;
+            float progress = Mathf.Clamp01((Time.unscaledTime - _transitionStart) / Mathf.Max(0.05f, transitionDuration));
+            float eased = progress * progress * (3f - 2f * progress);
+            _rotation = Quaternion.Slerp(_fromRotation, _toRotation, eased);
+            _projectionBlend = Mathf.Lerp(_fromBlend, _toBlend, eased);
+            if (progress >= 1f) _transitionStart = -1f;
+            ApplyPose();
         }
-        if (!Input.GetMouseButton(2) ||
-            GameContext.CurrentMap == null)
+        if (!Input.GetMouseButton(2) && !Input.GetMouseButton(1))
         {
-            return;
+            _panning = false;
+            _orbiting = false;
         }
-
-        if (Vector3.Distance(
-                _lastPosition,
-                Input.mousePosition) <= 0.25f)
+        bool blocked = _creator == null || _creator.IsPointerOverUi || _creator.IsBusy || IsTransitioning;
+        if (!blocked)
         {
-            return;
-        }
-
-        _hasMoved = true;
-        Vector3 delta =
-            Input.mousePosition - _lastPosition;
-        Vector3 movement =
-            delta *
-            (mouseSensitivity * distance * 0.1f);
-        transform.Translate(
-            movement.x,
-            movement.y,
-            0f);
-        targetPos += movement;
-        _lastPosition = Input.mousePosition;
-    }
-
-    /// <summary>
-    /// Changes camera distance from the wheel and keypad zoom shortcuts.
-    /// </summary>
-    private void HandleZoom()
-    {
-        // Exponential distance scaling gives precision nearby and speed on large maps.
-        distance = Mathf.Max(2f, distance);
-        float scroll =
-            Input.GetAxis("Mouse ScrollWheel");
-        if (Input.GetKeyDown(KeyCode.KeypadPlus))
-            scroll += 0.1f;
-        else if (Input.GetKeyDown(KeyCode.KeypadMinus))
-            scroll -= 0.1f;
-
-        distance -=
-            scroll *
-            scrollSpeed *
-            Mathf.Pow(
-                Vector3.Distance(
-                    transform.position,
-                    targetPos),
-                0.9f);
-        distance = Mathf.Max(2f, distance);
-        if (Math.Abs(_previousDistance - distance) <= 0.001f)
-            return;
-
-        _previousDistance = distance;
-        ApplyCameraTransform();
-    }
-
-    /// <summary>
-    /// Orbits around the target while the right mouse button is held.
-    /// </summary>
-    private void HandleOrbit()
-    {
-        // Forced updates reuse the same transform path without needing synthetic input.
-        if (!Input.GetMouseButton(1) && !forceUpdate)
-            return;
-
-        _x +=
-            Input.GetAxis("Mouse X") *
-            xSpeed *
-            0.02f;
-        _y -=
-            Input.GetAxis("Mouse Y") *
-            ySpeed *
-            0.02f;
-        _y =
-            ClampAngle(
-                _y,
-                yMinLimit,
-                yMaxLimit);
-        ApplyCameraTransform();
-        forceUpdate = false;
-    }
-
-    /// <summary>
-    /// Refocuses the camera target when a middle-button pan gesture ends.
-    /// </summary>
-    private void HandlePanRelease()
-    {
-        // A middle click targets the pointed surface; a completed drag targets the view center.
-        if (!Input.GetMouseButtonUp(2))
-            return;
-
-        RaycastHit hit;
-        if (!_hasMoved)
-        {
-            if (Camera == null ||
-                !Physics.Raycast(
-                    Camera.ScreenPointToRay(Input.mousePosition),
-                    out hit))
+            if (Input.GetMouseButtonDown(2) || (IsPlanView && Input.GetMouseButtonDown(1)))
             {
-                return;
+                _panning = true;
+                _previousPointer = Input.mousePosition;
             }
-            targetPos = hit.point;
+            if (!IsPlanView && Input.GetMouseButtonDown(1)) _orbiting = true;
+            float wheel = Input.GetAxis("Mouse ScrollWheel");
+            if (Mathf.Abs(wheel) > 0.001f)
+            {
+                distance = Mathf.Clamp(distance * Mathf.Exp(-wheel * 1.8f), 3f, 180f);
+                forceUpdate = true;
+            }
         }
-        else if (Physics.Raycast(
-                     transform.position,
-                     transform.forward,
-                     out hit))
+        if (_panning && !blocked)
         {
-            targetPos = hit.point;
-            distance =
-                Vector3.Distance(
-                    transform.position,
-                    targetPos);
+            var plane = new Plane(Vector3.up, Vector3.zero);
+            Ray oldRay = Camera.ScreenPointToRay(_previousPointer);
+            Ray newRay = Camera.ScreenPointToRay(Input.mousePosition);
+            if (plane.Raycast(oldRay, out float oldDistance) && plane.Raycast(newRay, out float newDistance))
+                targetPos += oldRay.GetPoint(oldDistance) - newRay.GetPoint(newDistance);
+            _previousPointer = Input.mousePosition;
+            forceUpdate = true;
         }
-        else
+        if (_orbiting && !blocked)
         {
+            _yaw += Input.GetAxis("Mouse X") * xSpeed * 0.02f;
+            _pitch = Mathf.Clamp(_pitch - Input.GetAxis("Mouse Y") * ySpeed * 0.02f, yMinLimit, yMaxLimit);
+            _rotation = Quaternion.Euler(_pitch, _yaw, 0f);
+            forceUpdate = true;
+        }
+        if (forceUpdate)
+        {
+            ApplyPose();
+            forceUpdate = false;
+        }
+    }
+
+    /// <summary>
+    /// Animates the existing keyboard projection shortcut through the same navigation workflow as the gizmo.
+    /// </summary>
+    public void SetPlanView(bool plan)
+    {
+        SetView(plan ? "Top" : "Perspective");
+    }
+
+    /// <summary>
+    /// Selects an understandable top or cardinal observer pose while preserving zoom and the orbit target.
+    /// </summary>
+    public void SetView(string view)
+    {
+        if (view != "Top" && view != "Perspective" && view != "North" && view != "East" && view != "South" && view != "West")
+            return;
+        if (view == "East") _yaw = -90f;
+        if (view == "West") _yaw = 90f;
+        if (view == "North") _yaw = 180f;
+        if (view == "South") _yaw = 0f;
+        if (view != "Top" && view != "Perspective") _pitch = 45f;
+        IsPlanView = view == "Top";
+        _fromRotation = _rotation;
+        _toRotation = IsPlanView ? Quaternion.Euler(90f, 0f, 0f) : Quaternion.Euler(_pitch, _yaw, 0f);
+        _fromBlend = _projectionBlend;
+        _toBlend = IsPlanView ? 1f : 0f;
+        if (Quaternion.Angle(_fromRotation, _toRotation) < 0.01f && Mathf.Abs(_fromBlend - _toBlend) < 0.0001f)
+        {
+            _transitionStart = -1f;
             return;
         }
-
-        ApplyCameraTransform();
+        _transitionStart = Time.unscaledTime;
+        _panning = false;
+        _orbiting = false;
     }
 
     /// <summary>
-    /// Applies the current orbit angles and distance around the target.
+    /// Fits the complete board inside the unobstructed editor area in either projection.
     /// </summary>
-    private void ApplyCameraTransform()
+    public void FrameBoard(int width, int height)
     {
-        // One transform function prevents orbit, zoom, and refocus from drifting apart.
-        Quaternion rotation =
-            Quaternion.Euler(_y, _x, 0f);
-        Vector3 position =
-            rotation *
-            new Vector3(0f, 0f, -distance) +
-            targetPos;
-        transform.rotation = rotation;
-        transform.position = position;
+        targetPos = new Vector3((width - 1) * 0.5f, 0f, (height - 1) * 0.5f);
+        float viewportHeight = _editingViewport.height > 0f ? _editingViewport.height : Screen.height * 0.72f;
+        float viewportWidth = _editingViewport.width > 0f ? _editingViewport.width : Screen.width * 0.60f;
+        distance = Mathf.Max(5f, Mathf.Max(height * Screen.height / viewportHeight, width * Screen.height / viewportWidth) * 1.16f);
+        ApplyPose();
     }
 
     /// <summary>
-    /// Reports whether a visible Fugui editor surface currently owns the pointer.
+    /// Keeps the logical target centered beside the panels without cropping the overlay camera stack.
     /// </summary>
-    private bool IsPointerBlocked()
+    public void SetEditingViewport(Rect viewport)
     {
-        // The controller receives precise responsive rectangles from the foreground presenter.
-        return _mapCreator != null &&
-               _mapCreator.IsPointerOverUi;
+        if (_editingViewport == viewport) return;
+        bool firstLayout = _editingViewport.width <= 0f;
+        _editingViewport = viewport;
+        if (firstLayout && _creator != null && _creator.IsReady) _creator.FocusSelection();
+        else ApplyPose();
     }
 
     /// <summary>
-    /// Normalizes and clamps one camera orbit angle.
+    /// Applies the animated pose and morphs homogeneous projection matrices normalized at the focus plane.
     /// </summary>
-    private static float ClampAngle(
-        float angle,
-        float minimum,
-        float maximum)
+    private void ApplyPose()
     {
-        // Normalization avoids precision drift across repeated full rotations.
-        if (angle < -360f)
-            angle += 360f;
-        if (angle > 360f)
-            angle -= 360f;
-        return Mathf.Clamp(angle, minimum, maximum);
+        if (Camera == null || Screen.height <= 0) return;
+        float halfHeight = distance * 0.5f;
+        float focusDistance = Mathf.Max(12f, halfHeight / Mathf.Tan(_perspectiveFieldOfView * Mathf.Deg2Rad * 0.5f));
+        float fieldOfView = 2f * Mathf.Atan(halfHeight / focusDistance) * Mathf.Rad2Deg;
+        Vector3 offset = Vector3.zero;
+        if (_editingViewport.width > 0f)
+        {
+            Vector2 desiredCenter = new Vector2(_editingViewport.center.x, Screen.height - _editingViewport.center.y);
+            Vector2 shift = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f) - desiredCenter;
+            offset = _rotation * new Vector3(shift.x * distance / Screen.height, shift.y * distance / Screen.height, 0f);
+        }
+        transform.SetPositionAndRotation(targetPos + offset + _rotation * new Vector3(0f, 0f, -focusDistance), _rotation);
+        Camera.orthographic = _projectionBlend >= 0.99999f;
+        Camera.orthographicSize = halfHeight;
+        Camera.fieldOfView = fieldOfView;
+        Matrix4x4 perspective = Matrix4x4.Perspective(fieldOfView, Camera.aspect, Camera.nearClipPlane, Camera.farClipPlane);
+        Matrix4x4 orthographic = Matrix4x4.Ortho(-halfHeight * Camera.aspect, halfHeight * Camera.aspect, -halfHeight, halfHeight, Camera.nearClipPlane, Camera.farClipPlane);
+        var projection = new Matrix4x4();
+        // Both matrices have w=1 at the target distance, avoiding a scale pop halfway through the morph.
+        for (int i = 0; i < 16; i++)
+            projection[i] = Mathf.Lerp(perspective[i] / focusDistance, orthographic[i], _projectionBlend);
+        Camera.projectionMatrix = projection;
     }
 
     /// <summary>
-    /// Invokes map path rendering after the camera completes its frame.
+    /// Releases the custom projection and static scene reference when the rig leaves the editor.
     /// </summary>
-    private void OnPostRender()
+    private void OnDestroy()
     {
-        // Runtime entities draw their existing path visualization in camera space.
-        PostRenderCallback?.Invoke();
+        if (Camera != null) Camera.ResetProjectionMatrix();
+        if (Instance == this) Instance = null;
     }
 }

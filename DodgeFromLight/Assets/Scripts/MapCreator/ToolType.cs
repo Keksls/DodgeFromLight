@@ -30,5 +30,6 @@ public enum ToolType
     Bombe = 220,
     Needle = 230,
     MovingPlatform = 240,
-    SwordSocle = 250
+    SwordSocle = 250,
+    Gear = 260
 }

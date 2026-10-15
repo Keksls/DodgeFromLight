@@ -42,7 +42,7 @@ Camera:
   m_GameObject: {fileID: 963194225}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 4
+  m_ClearFlags: 3
   m_BackGroundColor: {r: 0.176, g: 0.176, b: 0.176, a: 1}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
@@ -96,10 +96,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_RenderShadows: 1
+  m_RenderShadows: 0
   m_RequiresDepthTextureOption: 2
   m_RequiresOpaqueTextureOption: 2
-  m_CameraType: 0
+  m_CameraType: 1
   m_Cameras: []
   m_RendererIndex: 0
   m_VolumeLayerMask:
@@ -202,7 +202,7 @@ MonoBehaviour:
     NotifyIconSize: 16
     NotifyPanelWidth: 420
     NotificationDefaultDuration: 7
-    FontConfig: {fileID: 11400000, guid: 53d60e85cd0bf4b44aa69c57edb412a8, type: 2}
+    FontConfig: {fileID: 11400000, guid: fe42833711be973479dfc65585d6a1d2, type: 2}
     UILayer:
       serializedVersion: 2
       m_Bits: 32
@@ -248,7 +248,7 @@ MonoBehaviour:
   _uiCamera: {fileID: 963194227}
   EnableMainContainer: 1
   _logErrors: 1
-  _keepControllerBetweenScenes: 1
+  _keepControllerBetweenScenes: 0
   _updateMode: 0
 --- !u!114 &7845437560097682548
 MonoBehaviour:

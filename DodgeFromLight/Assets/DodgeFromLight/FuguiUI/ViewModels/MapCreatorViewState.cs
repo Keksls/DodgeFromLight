@@ -7,6 +7,7 @@ namespace DodgeFromLight.FuguiUI.ViewModels
     /// </summary>
     public sealed class MapCreatorViewState
     {
+        public MapCreatorViewportState Viewport { get; }
         public string MapName { get; }
         public int Width { get; }
         public int Height { get; }
@@ -28,25 +29,9 @@ namespace DodgeFromLight.FuguiUI.ViewModels
         /// <summary>
         /// Creates one complete editor state consumed by the foreground DrawList.
         /// </summary>
-        public MapCreatorViewState(
-            string mapName,
-            int width,
-            int height,
-            string activeToolId,
-            string activeToolLabel,
-            string environmentId,
-            string environmentLabel,
-            string statusMessage,
-            bool isReady,
-            bool isBusy,
-            bool isDirty,
-            bool canUndo,
-            bool canRedo,
-            IReadOnlyList<string> validationErrors,
-            MapCreatorSelectionState selection,
-            IReadOnlyList<MapCreatorEnvironmentValue> environmentValues,
-            IReadOnlyList<MapCreatorEnvironmentColor> environmentColors)
+        public MapCreatorViewState(string mapName, int width, int height, string activeToolId, string activeToolLabel, string environmentId, string environmentLabel, string statusMessage, bool isReady, bool isBusy, bool isDirty, bool canUndo, bool canRedo, IReadOnlyList<string> validationErrors, MapCreatorSelectionState selection, IReadOnlyList<MapCreatorEnvironmentValue> environmentValues, IReadOnlyList<MapCreatorEnvironmentColor> environmentColors, MapCreatorViewportState viewport)
         {
+            Viewport = viewport;
             // Null values are normalized so rendering never needs defensive branches.
             MapName = mapName ?? string.Empty;
             Width = width;

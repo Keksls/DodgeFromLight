@@ -2,7 +2,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 /// <summary>
 /// Owns map-authoring state, board interaction, persistence, and playtest transitions.
@@ -12,26 +15,21 @@ public sealed class MapCreatorController : MonoBehaviour
     public Camera ScreenshotCamera;
     public Camera Camera;
     public GridController GridController;
-    public Material SelectedMaterial;
-    public GameObject UnwalkableFeedbackPrefab;
 
-    private readonly List<GameObject> _unwalkableFeedback =
-        new List<GameObject>();
     private readonly List<string> _errors =
         new List<string>();
     private readonly List<CellPos> _pathBackup =
         new List<CellPos>();
-    private MaterialChanger _materialChanger;
     private Cell _selectedCell;
     private MapDecoData _selectedMapDeco;
     private Ennemy _selectedEnnemy;
     private MovingPlatform _selectedMovingPlatform;
-    private Action _postRenderCallback;
     private bool _pointerOverUi;
     private bool _keyboardCaptured;
     private bool _isReady;
     private bool _isBusy;
     private bool _isDirty;
+    private MapCreatorSceneView _sceneView;
     private string _statusMessage = string.Empty;
     private string _environmentId = "Default";
     private string _environmentLabel = "Par défaut";
@@ -41,6 +39,7 @@ public sealed class MapCreatorController : MonoBehaviour
     public bool IsReady => _isReady;
     public bool IsBusy => _isBusy;
     public bool IsDirty => _isDirty;
+    public bool ShowEnvironment => _sceneView != null && _sceneView.ShowEnvironment;
     public bool IsPointerOverUi => _pointerOverUi;
     public string StatusMessage => _statusMessage;
     public string EnvironmentId => _environmentId;
@@ -49,6 +48,24 @@ public sealed class MapCreatorController : MonoBehaviour
     public Cell SelectedCell => _selectedCell;
     public Ennemy SelectedEnnemy => _selectedEnnemy;
     public MovingPlatform SelectedMovingPlatform => _selectedMovingPlatform;
+
+    private readonly JsonSerializerSettings _snapshotSettings = new JsonSerializerSettings { ContractResolver = new MapCreatorSnapshotResolver() };
+    private string _revisionSnapshot;
+    private readonly HashSet<string> _paintedCells = new HashSet<string>();
+    private CellPos? _hoveredPosition;
+    private CellPos? _strokeStart;
+    private CellPos? _lastPaintPosition;
+    private bool _strokeActive;
+    private bool _strokeChanged;
+    private GearType _armedGear;
+    public string BrushMode { get; private set; } = "Paint";
+    public bool ShowGrid { get; private set; } = true;
+    public Orientation PlacementOrientation { get; private set; } = Orientation.Up;
+    public CellPos? HoveredPosition => _hoveredPosition;
+    public bool HoverAllowed { get; private set; }
+    public string HoverHint { get; private set; } = "Choisis un bloc, puis clique sur la grille.";
+    public string ArmedGearId => _armedGear.ToString();
+    public int PresentationRevision { get; private set; }
 
     #region Lifecycle and input
 
@@ -62,24 +79,65 @@ public sealed class MapCreatorController : MonoBehaviour
         if (obsoleteCanvas != null)
             obsoleteCanvas.gameObject.SetActive(false);
 
-        _materialChanger = new MaterialChanger();
         UndoableActionsManager.Clear();
-        _postRenderCallback = DrawActivePaths;
-        CameraOrbit.PostRenderCallback = _postRenderCallback;
+        _sceneView = new MapCreatorSceneView(Camera);
+    }
+
+    /// <summary>
+    /// Restores the authored render state and releases editor-camera callbacks when leaving the creator.
+    /// </summary>
+    private void OnDestroy()
+    {
+        _sceneView?.Dispose();
+        _sceneView = null;
     }
 
     /// <summary>
     /// Opens the current local workspace or creates a new authored map.
     /// </summary>
-    private void Start()
+    private IEnumerator Start()
     {
         // Continuing the local workspace makes the creator immediately useful after every scene entry.
         _isBusy = true;
         _statusMessage = "Chargement de la carte…";
+        // Enemy overlays use pooled objects, so direct scene entry must wait for all pools.
+        if (PoolManager.Instance == null)
+        {
+            _isBusy = false;
+            _statusMessage = "Initialisation impossible : PoolManager absent de la scène";
+            Debug.LogError(_statusMessage, this);
+            yield break;
+        }
+        while (!PoolManager.PoolReady)
+            yield return null;
+
+        bool needsInitialSave = false;
+        try
+        {
+            needsInitialSave = OpenWorkspace();
+        }
+        catch (Exception exception)
+        {
+            // An invalid local workspace must report its cause instead of keeping the loading scrim forever.
+            _isBusy = false;
+            _statusMessage = "Échec du chargement : " + exception.Message;
+            Debug.LogException(exception, this);
+        }
+
+        if (needsInitialSave)
+            yield return SaveMap(LoadMap);
+    }
+
+    /// <summary>
+    /// Opens the saved workspace or creates a new map and reports whether it needs its first save.
+    /// </summary>
+    private bool OpenWorkspace()
+    {
+        // Preserve existing authored content; only an absent workspace creates the default board.
         if (GridManager.GetGrid() != null && GridManager.GetMap() != null)
         {
             LoadMap();
-            return;
+            return false;
         }
 
         const int defaultSize = 8;
@@ -97,57 +155,90 @@ public sealed class MapCreatorController : MonoBehaviour
         _environmentLabel =
             GetEnvironmentLabel(BuildInEnvironments.Default);
         UpdateMap();
-        StartCoroutine(SaveMap(LoadMap));
+        return true;
     }
 
     /// <summary>
-    /// Handles board clicks and keyboard authoring shortcuts outside Fugui surfaces.
+    /// Resolves explicit pointer gestures and shortcuts while respecting UI capture.
     /// </summary>
     private void Update()
     {
-        // UI capture prevents a button click or typed character from also mutating the board.
+        // Picking uses the board plane, so tall props and holes cannot steal a tile click.
         if (!_isReady || _isBusy)
             return;
+        CellPos? previousHover = _hoveredPosition;
+        _hoveredPosition = _pointerOverUi || (CameraOrbit.Instance != null && CameraOrbit.Instance.IsTransitioning) ? null : GetClickedCell();
+        if (!Nullable.Equals(previousHover, _hoveredPosition))
+            PresentationRevision++;
+        Cell hovered = _hoveredPosition.HasValue ? GameContext.CurrentMap.Grid.GetCell(_hoveredPosition.Value) : null;
+        HoverHint = GetPlacementReason(hovered);
+        HoverAllowed = hovered != null && string.IsNullOrEmpty(HoverHint);
+        if (HoverAllowed)
+            HoverHint = BrushMode == "Select" ? "Clique pour modifier ce bloc." :
+                BrushMode == "Move" ? "Clique sur une case libre pour déplacer la sélection." :
+                BrushMode == "Pick" ? "Clique pour reprendre ce bloc et son orientation." :
+                BrushMode == "Rectangle" ? "Glisse pour dessiner une zone, puis relâche." :
+                "Clique ou maintiens pour placer. R : pivoter. Échap : sélectionner.";
 
-        if (!_pointerOverUi &&
-            Input.GetMouseButtonDown(0))
+        if (!_keyboardCaptured)
         {
-            CellPos? cellPosition = GetClickedCell();
-            if (cellPosition.HasValue)
+            HandleSelectionShortcuts();
+            HandleGlobalShortcuts();
+            HandlePathShortcuts();
+            if (Input.GetKeyDown(KeyCode.R))
+                RotatePlacement();
+            if (Input.GetKeyDown(KeyCode.V))
+                SetViewMode(CameraOrbit.Instance == null || !CameraOrbit.Instance.IsPlanView);
+        }
+        if (Input.GetMouseButtonDown(0) && hovered != null && !_keyboardCaptured)
+        {
+            _strokeActive = true;
+            PresentationRevision++;
+            _strokeChanged = false;
+            _strokeStart = _hoveredPosition;
+            _lastPaintPosition = _hoveredPosition;
+            _paintedCells.Clear();
+            if (BrushMode != "Rectangle")
+                PaintCell(hovered);
+        }
+        if (_strokeActive && Input.GetMouseButton(0) && hovered != null && !_keyboardCaptured &&
+            BrushMode != "Rectangle" && SupportsContinuousPaint())
+        {
+            // Interpolate fast pointer motion so a stroke leaves no accidental gaps.
+            CellPos previous = _lastPaintPosition ?? hovered.GetCellPos();
+            int steps = Mathf.Max(Mathf.Abs(hovered.X - previous.X), Mathf.Abs(hovered.Y - previous.Y));
+            for (int step = 0; step <= steps; step++)
             {
-                Cell cell =
-                    GameContext.CurrentMap.Grid.GetCell(
-                        cellPosition.Value);
-                if (ApplyCurrentTool(cell))
-                    MarkDirty("Carte modifiée");
-                ValidateGrid();
+                float t = steps == 0 ? 1f : (float)step / steps;
+                PaintCell(GameContext.CurrentMap.Grid.GetCell(
+                    Mathf.RoundToInt(Mathf.Lerp(previous.X, hovered.X, t)),
+                    Mathf.RoundToInt(Mathf.Lerp(previous.Y, hovered.Y, t))));
             }
-            else
-            {
-                UnselectCell();
-            }
+            _lastPaintPosition = hovered.GetCellPos();
         }
 
-        if (_keyboardCaptured)
-            return;
-
-        HandleSelectionShortcuts();
-        HandleGlobalShortcuts();
-        HandlePathShortcuts();
+        if (_strokeActive && (Input.GetMouseButtonUp(0) || _keyboardCaptured))
+        {
+            // Releasing over a panel cancels rectangle application, but commits already painted cells safely.
+            if (BrushMode == "Rectangle" && hovered != null && _strokeStart.HasValue && !_keyboardCaptured)
+            {
+                for (int x = Mathf.Min(_strokeStart.Value.X, hovered.X); x <= Mathf.Max(_strokeStart.Value.X, hovered.X); x++)
+                    for (int y = Mathf.Min(_strokeStart.Value.Y, hovered.Y); y <= Mathf.Max(_strokeStart.Value.Y, hovered.Y); y++)
+                        PaintCell(GameContext.CurrentMap.Grid.GetCell(x, y));
+            }
+            _strokeActive = false;
+            PresentationRevision++;
+            _strokeStart = null;
+            if (_strokeChanged)
+            {
+                UpdateMap();
+                ValidateGrid();
+                MarkDirty("Modification appliquée. Annuler : Ctrl+Z.");
+            }
+        }
     }
 
-    /// <summary>
-    /// Releases path rendering and scene-selection feedback.
-    /// </summary>
-    private void OnDestroy()
-    {
-        // Only clear the shared callback when this controller still owns it.
-        if (CameraOrbit.PostRenderCallback == _postRenderCallback)
-            CameraOrbit.PostRenderCallback = null;
-        ClearFeedbacks();
-        _materialChanger?.ResetAllRenderers();
-        _materialChanger?.Clear();
-    }
+
 
     /// <summary>
     /// Handles Escape, delete, orientation, path, and focus shortcuts for the selected cell.
@@ -158,6 +249,7 @@ public sealed class MapCreatorController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Escape) &&
             CurrentTool != ToolType.Path)
         {
+            SetBrushMode("Select");
             UnselectCell();
         }
 
@@ -197,7 +289,7 @@ public sealed class MapCreatorController : MonoBehaviour
             if (control)
                 RequestSave();
             else
-                SetTool(ToolType.Select);
+                SetBrushMode("Select");
         }
         if (Input.GetKeyDown(KeyCode.W))
             SetTool(ToolType.Walkable);
@@ -229,29 +321,7 @@ public sealed class MapCreatorController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Draws all paths on demand or the selected entity path during camera rendering.
-    /// </summary>
-    private void DrawActivePaths()
-    {
-        // Holding P keeps the useful overview behavior from the original creator.
-        if (!enabled)
-            return;
 
-        if (Input.GetKey(KeyCode.P))
-        {
-            foreach (Ennemy enemy in GameContext.Ennemies)
-                enemy.DrawPath(transform);
-            foreach (MovingPlatform platform in GameContext.MovingPlatforms)
-                platform.DrawPath(transform);
-            return;
-        }
-
-        if (_selectedEnnemy != null)
-            _selectedEnnemy.DrawPath(transform);
-        else if (_selectedMovingPlatform != null)
-            _selectedMovingPlatform.DrawPath(transform);
-    }
 
     #endregion
 
@@ -312,6 +382,7 @@ public sealed class MapCreatorController : MonoBehaviour
     /// </summary>
     public void SelectDecoration(string decorationId)
     {
+        PresentationRevision++;
         // Resource validation avoids retaining an invalid palette selection.
         if (string.IsNullOrWhiteSpace(decorationId) ||
             !GameContext.Databases.ResourcesData.HasMapDeco(decorationId))
@@ -323,20 +394,22 @@ public sealed class MapCreatorController : MonoBehaviour
             GameContext.Databases.ResourcesData.GetMapDeco(decorationId);
         CurrentDecorationId = decorationId;
         CurrentTool = ToolType.MapDeco;
+        BrushMode = "Paint";
         _statusMessage =
             "Décor armé : " + _selectedMapDeco.ID;
     }
 
     /// <summary>
-    /// Assigns a gear to the selected compatible cell from its stable enum name.
+    /// Arms a gear for direct placement on the board.
     /// </summary>
     public void SelectGear(string gearId)
     {
-        // Invalid and incompatible assignments are ignored without disturbing selection.
-        GearType gear;
-        if (!Enum.TryParse(gearId, true, out gear))
+        // Gear authoring uses the same palette-to-grid workflow as enemies and decoration.
+        if (!Enum.TryParse(gearId, true, out _armedGear))
             return;
-        SetGearOnCell(gear);
+        SetTool(ToolType.Gear);
+        BrushMode = "Paint";
+        _statusMessage = "Clique sur le sol pour placer cet équipement.";
     }
 
     /// <summary>
@@ -476,6 +549,474 @@ public sealed class MapCreatorController : MonoBehaviour
 
     #endregion
 
+    #region Workbench gestures and history
+
+    /// <summary>
+    /// Creates a fresh local document after the UI explicitly resolves unsaved changes.
+    /// </summary>
+    public void CreateMap(int width, int height, bool saveCurrent)
+    {
+        // Existing library entries are never deleted when beginning a different project.
+        if (_isBusy || width < 4 || height < 4 || width > 64 || height > 64)
+            return;
+        CancelPathEditing();
+        if (saveCurrent)
+        {
+            StartCoroutine(SaveMap(() => CreateMap(width, height, false)));
+            return;
+        }
+        _selectedCell = null;
+        _selectedEnnemy = null;
+        _selectedMovingPlatform = null;
+        var metadata = new Map("Nouvelle carte", width, height);
+        metadata.SetAuthor(SaveManager.CurrentSave.DisplayName);
+        GameContext.CurrentMap = new FullMap(new Grid(width, height), metadata);
+        GameContext.CurrentMap.Grid.Environment = GameContext.EnvironmentController.GetBuildinEnvironment(BuildInEnvironments.Default);
+        SetTool(ToolType.Walkable);
+        UndoableActionsManager.Clear();
+        UpdateMap();
+        ValidateGrid();
+        _revisionSnapshot = CaptureRevision();
+        _isReady = true;
+        _isDirty = true;
+        _statusMessage = "Nouvelle carte créée. Clique sur son nom pour la renommer.";
+        FocusSelection();
+    }
+
+    /// <summary>
+    /// Chooses one explicit gesture rather than overloading a selected palette item.
+    /// </summary>
+    public void SetBrushMode(string mode)
+    {
+        PresentationRevision++;
+        // Rectangle fill is restricted to terrain and floor appearance.
+        CancelPathEditing();
+        if ((mode == "Paint" || mode == "Rectangle") && CurrentTool == ToolType.Select)
+            SetTool(ToolType.Walkable);
+        BrushMode = mode == "Rectangle" && !SupportsRectangle() ? "Paint" : mode;
+        _statusMessage = mode == "Rectangle" && !SupportsRectangle()
+            ? "Le rectangle sert au sol et au vide. Ce bloc se pose individuellement."
+            : "Mode actif : " + BrushMode;
+    }
+
+    /// <summary>
+    /// Switches the same physical board between top-down orthographic and perspective views.
+    /// </summary>
+    public void SetViewMode(bool plan)
+    {
+        // Camera state remains independent of map data and document history.
+        if (CameraOrbit.Instance != null)
+            CameraOrbit.Instance.SetPlanView(plan);
+        PresentationRevision++;
+    }
+
+    /// <summary>
+    /// Selects a named gizmo viewpoint while keeping camera presentation separate from document history.
+    /// </summary>
+    public void SetCameraView(string view)
+    {
+        if (CameraOrbit.Instance != null) CameraOrbit.Instance.SetView(view);
+        PresentationRevision++;
+    }
+
+    /// <summary>
+    /// Selects neutral work lighting or the map's authored environment without changing saved content.
+    /// </summary>
+    public void SetEnvironmentPreview(bool show)
+    {
+        _sceneView?.SetEnvironmentPreview(show);
+        PresentationRevision++;
+        _statusMessage = show ? "Ambiance du jeu : aperçu du rendu final." : "Éclairage de travail : couleurs neutres, effets masqués.";
+    }
+
+    /// <summary>
+    /// Toggles the unobtrusive projected grid in the three-dimensional view.
+    /// </summary>
+    public void ToggleGrid()
+    {
+        PresentationRevision++;
+        // Both camera projections share this optional overlay; selection feedback stays visible independently.
+        ShowGrid = !ShowGrid;
+    }
+
+    /// <summary>
+    /// Rotates the armed placement direction in ninety-degree steps.
+    /// </summary>
+    public void RotatePlacement()
+    {
+        PresentationRevision++;
+        // The same direction is used by the ghost indicator and committed authored data.
+        PlacementOrientation = (Orientation)((int)PlacementOrientation % 4 + 1);
+    }
+
+    /// <summary>
+    /// Reports whether a tile belongs to the currently previewed brush footprint.
+    /// </summary>
+    public bool IsPreviewCell(int x, int y)
+    {
+        // Hover feedback allocates no temporary scene objects.
+        if (!_hoveredPosition.HasValue)
+            return false;
+        if (BrushMode != "Rectangle" || !_strokeStart.HasValue)
+        {
+            if (_hoveredPosition.Value.X == x && _hoveredPosition.Value.Y == y)
+                return true;
+            if (CurrentTool == ToolType.MapDeco && _selectedMapDeco != null && BrushMode == "Paint")
+                foreach (var offset in _selectedMapDeco.UnWalkableCells)
+                {
+                    Vector3 rotated = Quaternion.Euler(0f, GetOrientationAngle(PlacementOrientation), 0f) * new Vector3(offset.X, 0f, offset.Y);
+                    if (_hoveredPosition.Value.X + Mathf.RoundToInt(rotated.x) == x &&
+                        _hoveredPosition.Value.Y + Mathf.RoundToInt(rotated.z) == y)
+                        return true;
+                }
+            return false;
+        }
+        return x >= Mathf.Min(_strokeStart.Value.X, _hoveredPosition.Value.X) &&
+               x <= Mathf.Max(_strokeStart.Value.X, _hoveredPosition.Value.X) &&
+               y >= Mathf.Min(_strokeStart.Value.Y, _hoveredPosition.Value.Y) &&
+               y <= Mathf.Max(_strokeStart.Value.Y, _hoveredPosition.Value.Y);
+    }
+
+    /// <summary>
+    /// Indicates which tools support continuous painting.
+    /// </summary>
+    private bool SupportsContinuousPaint()
+    {
+        // Selection, paths, objectives, and moves remain deliberate single-click operations.
+        return (BrushMode == "Erase" || CurrentTool != ToolType.Select) && CurrentTool != ToolType.Path && BrushMode != "Select" && BrushMode != "Move" &&
+               BrushMode != "Pick" && CurrentTool != ToolType.Start && CurrentTool != ToolType.End;
+    }
+
+    /// <summary>
+    /// Indicates which palette choices can fill rectangular regions safely.
+    /// </summary>
+    private bool SupportsRectangle()
+    {
+        // Enemy and prop repetition stays explicit instead of accidentally filling the map.
+        return CurrentTool == ToolType.Walkable || CurrentTool == ToolType.UnWalkable ||
+               (CurrentTool == ToolType.MapDeco && _selectedMapDeco != null && _selectedMapDeco.Type == "Floor");
+    }
+
+    /// <summary>
+    /// Explains a rejected placement before the player commits it.
+    /// </summary>
+    private string GetPlacementReason(Cell cell)
+    {
+        // Placement rules and hover feedback share one source of truth.
+        if (cell == null)
+            return "Déplace la souris sur la grille.";
+        Grid grid = GameContext.CurrentMap.Grid;
+        if (BrushMode == "Select" || BrushMode == "Pick")
+            return string.Empty;
+        if (CurrentTool == ToolType.Path)
+        {
+            if (cell.HasElement || !string.IsNullOrEmpty(cell.ElementID))
+                return "Le trajet est bloqué par un décor.";
+            if (_selectedEnnemy != null && !cell.Walkable)
+                return "Un ennemi ne traverse pas le vide.";
+            if (_selectedMovingPlatform != null && cell.Type != CellType.NotWalkable)
+                return "Le trajet d'une plateforme reste sur le vide.";
+            var points = GetSelectedWaypoints();
+            return points != null && points.Count > 0 && !cell.IsInLine(points.Last())
+                ? "Chaque segment doit être horizontal ou vertical." : string.Empty;
+        }
+        if (BrushMode == "Move")
+        {
+            if (_selectedCell == null)
+                return "Sélectionne d'abord un objet à déplacer.";
+            if (cell.Equals(_selectedCell))
+                return "Choisis la case de destination.";
+            if (cell.EntityOnCell != null || cell.HasElement || !string.IsNullOrEmpty(cell.ElementID) || cell.GearType != GearType.None)
+                return "Cette case est occupée.";
+            if (!cell.Walkable)
+                return "Le déplacement nécessite du sol.";
+            if (_selectedEnnemy == null && string.IsNullOrEmpty(_selectedCell.ElementID) && _selectedCell.GearType == GearType.None)
+                return "Choisis un décor, un ennemi ou un équipement à déplacer.";
+            if (!string.IsNullOrEmpty(_selectedCell.ElementID))
+                return GetDecorationFootprintReason(_selectedCell.ElementID, cell, _selectedCell.ElementOrientation, _selectedCell);
+            return string.Empty;
+        }
+        if (BrushMode == "Erase")
+            return grid.IsStart(cell) || grid.IsEnd(cell) ? "Déplace le départ ou la sortie avant d'effacer ce sol." : string.Empty;
+        if (CurrentTool == ToolType.Select)
+            return string.Empty;
+        if (CurrentTool == ToolType.MapDeco && _selectedMapDeco != null && _selectedMapDeco.Type == "Floor")
+            return cell.Walkable ? string.Empty : "Peins du sol avant de choisir son apparence.";
+        if (cell.EntityOnCell != null || cell.HasElement || !string.IsNullOrEmpty(cell.ElementID))
+            return "Case occupée : sélectionne, déplace ou efface d'abord son contenu.";
+        if (CurrentTool == ToolType.MovingPlatform)
+            return cell.Type == CellType.NotWalkable && !GridController.Platforms.ContainsKey(cell.ToString())
+                ? string.Empty : "Une plateforme se place sur le vide.";
+        if (GridController.Platforms.ContainsKey(cell.ToString()))
+            return "Efface la plateforme avant de modifier son support.";
+        if (CurrentTool == ToolType.MapDeco && _selectedMapDeco != null)
+        {
+            string footprint = GetDecorationFootprintReason(_selectedMapDeco.ID, cell, GetOrientationAngle(PlacementOrientation), null);
+            if (!string.IsNullOrEmpty(footprint))
+                return footprint;
+        }
+        if (CurrentTool == ToolType.UnWalkable && (grid.IsStart(cell) || grid.IsEnd(cell)))
+            return "Déplace le départ ou la sortie avant de retirer ce sol.";
+        if ((int)CurrentTool < 99 || CurrentTool == ToolType.Gear || CurrentTool == ToolType.MapDeco)
+            return cell.Type == CellType.Walkable && !grid.IsStart(cell) && !grid.IsEnd(cell)
+                ? string.Empty : "Choisis une case de sol libre, hors départ et sortie.";
+        return string.Empty;
+    }
+
+    /// <summary>
+    /// Checks every occupied tile of a rotated decoration before placement or movement.
+    /// </summary>
+    private string GetDecorationFootprintReason(string id, Cell anchor, float angle, Cell movingSource)
+    {
+        // No invalid footprint is committed merely because its anchor tile is free.
+        var data = GameContext.Databases.ResourcesData.GetMapDeco(id);
+        if (anchor == null || data == null)
+            return "Ce décor n'est pas disponible sur cette case.";
+        Grid grid = GameContext.CurrentMap.Grid;
+        foreach (var offset in data.UnWalkableCells)
+        {
+            Vector3 rotated = Quaternion.Euler(0f, angle, 0f) * new Vector3(offset.X, 0f, offset.Y);
+            Cell covered = grid.GetCell(anchor.X + Mathf.RoundToInt(rotated.x), anchor.Y + Mathf.RoundToInt(rotated.z));
+            if (covered == null)
+                return "Le décor dépasse la carte. Pivote-le ou rapproche-le du centre.";
+            bool sourceFootprint = false;
+            if (movingSource != null)
+                foreach (var sourceOffset in data.UnWalkableCells)
+                {
+                    Vector3 previous = Quaternion.Euler(0f, movingSource.ElementOrientation, 0f) * new Vector3(sourceOffset.X, 0f, sourceOffset.Y);
+                    if (movingSource.X + Mathf.RoundToInt(previous.x) == covered.X && movingSource.Y + Mathf.RoundToInt(previous.z) == covered.Y)
+                        sourceFootprint = true;
+                }
+            if (!covered.Equals(movingSource) &&
+                ((covered.HasElement && !sourceFootprint) || covered.EntityOnCell != null ||
+                 covered.GearType != GearType.None || grid.IsStart(covered) || grid.IsEnd(covered) ||
+                 (!string.IsNullOrEmpty(covered.ElementID) && !covered.Equals(anchor))))
+                return "Le décor recouvre un autre objet ou un objectif.";
+        }
+        return string.Empty;
+    }
+
+    /// <summary>
+    /// Applies one tile within a gesture and records it only once per stroke.
+    /// </summary>
+    private void PaintCell(Cell cell)
+    {
+        // Painting over the same tile cannot rotate or recreate content repeatedly.
+        if (cell != null && (BrushMode == "Select" || BrushMode == "Pick" || BrushMode == "Erase"))
+            cell = ResolveDecorationAnchor(cell);
+        if (cell == null || !_paintedCells.Add(cell.ToString()))
+            return;
+        string rejection = GetPlacementReason(cell);
+        if (!string.IsNullOrEmpty(rejection))
+        {
+            _statusMessage = rejection;
+            return;
+        }
+        if (BrushMode == "Select")
+        {
+            SelectCell(cell);
+            return;
+        }
+        if (BrushMode == "Pick")
+        {
+            PickCell(cell);
+            return;
+        }
+        if (BrushMode == "Move")
+        {
+            MoveSelectedContent(cell);
+            return;
+        }
+        if (BrushMode == "Erase")
+        {
+            // Consume the complete footprint so one eraser stroke cannot also remove its supporting floor.
+            if (!string.IsNullOrEmpty(cell.ElementID))
+            {
+                var data = GameContext.Databases.ResourcesData.GetMapDeco(cell.ElementID);
+                foreach (var offset in data.UnWalkableCells)
+                {
+                    Vector3 rotated = Quaternion.Euler(0f, cell.ElementOrientation, 0f) * new Vector3(offset.X, 0f, offset.Y);
+                    Cell covered = GameContext.CurrentMap.Grid.GetCell(cell.X + Mathf.RoundToInt(rotated.x), cell.Y + Mathf.RoundToInt(rotated.z));
+                    if (covered != null)
+                        _paintedCells.Add(covered.ToString());
+                }
+            }
+            EraseCell(cell);
+            DrawFeedbacks();
+            return;
+        }
+        bool changed = ApplyCurrentTool(cell);
+        if (!changed)
+            return;
+        if (CurrentTool == ToolType.MapDeco && _selectedMapDeco != null && _selectedMapDeco.Type != "Floor")
+            cell.ElementOrientation = GetOrientationAngle(PlacementOrientation);
+        else if (cell.EntityOnCell is Ennemy enemy)
+        {
+            var definition = GameContext.CurrentMap.Grid.GetEnnemyOnCell(cell);
+            definition.StartOrientation = PlacementOrientation;
+            enemy.SetOrientation(PlacementOrientation);
+        }
+        else
+            cell.FloorOrientation = PlacementOrientation;
+        if (CurrentTool == ToolType.MapDeco)
+            DrawFeedbacks();
+        MarkDirty("Bloc placé.");
+    }
+
+    /// <summary>
+    /// Resolves any covered tile to the anchor of the decoration occupying it.
+    /// </summary>
+    private Cell ResolveDecorationAnchor(Cell target)
+    {
+        // Large walls and props can be selected or erased anywhere on their footprint.
+        if (!target.HasElement || !string.IsNullOrEmpty(target.ElementID))
+            return target;
+        Grid grid = GameContext.CurrentMap.Grid;
+        for (int x = 0; x < grid.Width; x++)
+            for (int y = 0; y < grid.Height; y++)
+            {
+                Cell anchor = grid.GetCell(x, y);
+                if (string.IsNullOrEmpty(anchor.ElementID))
+                    continue;
+                var data = GameContext.Databases.ResourcesData.GetMapDeco(anchor.ElementID);
+                foreach (var offset in data.UnWalkableCells)
+                {
+                    Vector3 rotated = Quaternion.Euler(0f, anchor.ElementOrientation, 0f) * new Vector3(offset.X, 0f, offset.Y);
+                    if (anchor.X + Mathf.RoundToInt(rotated.x) == target.X && anchor.Y + Mathf.RoundToInt(rotated.z) == target.Y)
+                        return anchor;
+                }
+            }
+        return target;
+    }
+
+    /// <summary>
+    /// Removes only the topmost content layer, leaving supporting terrain intact.
+    /// </summary>
+    private void EraseCell(Cell cell)
+    {
+        // Repeated explicit gestures peel prop, enemy, gear, mechanic, then floor.
+        Grid grid = GameContext.CurrentMap.Grid;
+        if (!string.IsNullOrEmpty(cell.ElementID))
+            cell.RemoveElement();
+        else if (grid.GetEnnemyOnCell(cell) != null)
+            grid.RemoveEnnemy(cell.GetCellPos());
+        else if (GridController.Platforms.ContainsKey(cell.ToString()))
+            grid.RemoveMovingPlatform(cell.GetCellPos());
+        else if (cell.GearType != GearType.None)
+            cell.SetGear(GearType.None);
+        else if (cell.Type != CellType.Walkable && cell.Type != CellType.NotWalkable)
+            cell.SetType(CellType.Walkable);
+        else
+        {
+            cell.SetType(CellType.NotWalkable);
+            cell.SetWalkable(false);
+        }
+        MarkDirty("Contenu effacé.");
+    }
+
+    /// <summary>
+    /// Arms the content under the pointer for convenient reuse.
+    /// </summary>
+    private void PickCell(Cell cell)
+    {
+        // The most visible content layer takes priority over its supporting floor.
+        var enemy = GameContext.CurrentMap.Grid.GetEnnemyOnCell(cell);
+        if (!string.IsNullOrEmpty(cell.ElementID))
+            SelectDecoration(cell.ElementID);
+        else if (enemy != null)
+            SetTool((ToolType)enemy.Type);
+        else if (cell.GearType != GearType.None)
+            SelectGear(cell.GearType.ToString());
+        else if (!string.IsNullOrEmpty(cell.FloorID))
+            SelectDecoration(cell.FloorID);
+        PlacementOrientation = enemy != null ? enemy.StartOrientation :
+            !string.IsNullOrEmpty(cell.ElementID) ? (Orientation)(Mathf.RoundToInt(cell.ElementOrientation / 90f) % 4 + 1) : cell.FloorOrientation;
+        BrushMode = "Paint";
+    }
+
+    /// <summary>
+    /// Moves selected decoration, gear, or enemy data to a free tile.
+    /// </summary>
+    private void MoveSelectedContent(Cell destination)
+    {
+        // Validate every translated route point before modifying either source or destination.
+        Cell source = _selectedCell;
+        if (source == null)
+            return;
+        Grid grid = GameContext.CurrentMap.Grid;
+        var enemy = grid.GetEnnemyOnCell(source);
+        if (enemy != null)
+        {
+            int dx = destination.X - source.X;
+            int dy = destination.Y - source.Y;
+            var route = enemy.WayPoints.Select(point => new CellPos(point.X + dx, point.Y + dy)).ToList();
+            if (route.Any(point => grid.GetCell(point) == null || !grid.GetCell(point).Walkable))
+            {
+                _statusMessage = "Le trajet sortirait du sol. Modifie-le avant de déplacer cet ennemi.";
+                return;
+            }
+            enemy.StartPos = destination.GetCellPos();
+            enemy.WayPoints = route;
+        }
+        else if (!string.IsNullOrEmpty(source.ElementID))
+        {
+            destination.SetElement(source.ElementID);
+            destination.ElementOrientation = source.ElementOrientation;
+            destination.ElementScale = source.ElementScale;
+            source.RemoveElement();
+        }
+        else if (source.GearType != GearType.None)
+        {
+            destination.SetGear(source.GearType);
+            source.SetGear(GearType.None);
+        }
+        else
+        {
+            _statusMessage = "Sélectionne un décor, un ennemi ou un équipement à déplacer.";
+            return;
+        }
+        _selectedCell = destination;
+        MarkDirty("Objet déplacé.");
+    }
+
+    /// <summary>
+    /// Captures canonical authored data without transient scene entity references.
+    /// </summary>
+    private string CaptureRevision()
+    {
+        // Whole-document snapshots preserve content combinations that field-specific undo could lose.
+        return JsonConvert.SerializeObject(GameContext.CurrentMap, _snapshotSettings);
+    }
+
+    /// <summary>
+    /// Records a changed document after a complete gesture.
+    /// </summary>
+    private void RecordRevision(bool coalesce = false)
+    {
+        // The bounded history shares immutable serialized strings rather than cloning Unity objects.
+        string current = CaptureRevision();
+        UndoableActionsManager.Record(_revisionSnapshot, current, coalesce);
+        _revisionSnapshot = current;
+    }
+
+    /// <summary>
+    /// Rebuilds the editor from one canonical in-memory document revision.
+    /// </summary>
+    private void RestoreRevision(string revision)
+    {
+        // No disk file is written by undo or redo.
+        _selectedCell = null;
+        _selectedEnnemy = null;
+        _selectedMovingPlatform = null;
+        GameContext.CurrentMap = JsonConvert.DeserializeObject<FullMap>(revision, _snapshotSettings);
+        _revisionSnapshot = revision;
+        _isDirty = true;
+        UpdateMap();
+        ValidateGrid();
+    }
+
+    #endregion
+
     #region Tools and board mutation
 
     /// <summary>
@@ -483,6 +1024,7 @@ public sealed class MapCreatorController : MonoBehaviour
     /// </summary>
     public void SetTool(ToolType tool)
     {
+        PresentationRevision++;
         // Switching away from an unfinished path restores its previous authored value.
         if (CurrentTool == ToolType.Path &&
             tool != ToolType.Path)
@@ -491,6 +1033,7 @@ public sealed class MapCreatorController : MonoBehaviour
         }
 
         CurrentTool = tool;
+        BrushMode = tool == ToolType.Select ? "Select" : "Paint";
         if (tool != ToolType.MapDeco)
         {
             _selectedMapDeco = null;
@@ -522,6 +1065,11 @@ public sealed class MapCreatorController : MonoBehaviour
                 return SetCellType(cell, CellType.NotWalkable, false);
             case ToolType.MapDeco:
                 return PlaceDecoration(cell);
+            case ToolType.Gear:
+                if (cell.GearType == _armedGear)
+                    return false;
+                cell.SetGear(_armedGear);
+                return true;
             case ToolType.TP:
                 return SetCellType(cell, CellType.TP, true);
             case ToolType.FlipACoin:
@@ -577,10 +1125,7 @@ public sealed class MapCreatorController : MonoBehaviour
     /// <summary>
     /// Changes one cell type, walkability, visuals, and selection feedback.
     /// </summary>
-    private bool SetCellType(
-        Cell cell,
-        CellType type,
-        bool walkable)
+    private bool SetCellType(Cell cell, CellType type, bool walkable)
     {
         // Occupied authored decorations cannot be silently overwritten by mechanics.
         if (cell.HasElement ||
@@ -606,11 +1151,7 @@ public sealed class MapCreatorController : MonoBehaviour
             return false;
         }
 
-        UndoableActionsManager.AddUndoableAction(
-            new Undoable_SetCellType(
-                cell.GetCellPos(),
-                cell.Type,
-                type));
+
         cell.SetType(type);
         cell.SetWalkable(walkable);
         RefreshCell(cell);
@@ -624,13 +1165,6 @@ public sealed class MapCreatorController : MonoBehaviour
     private bool PlaceDecoration(Cell cell)
     {
         // Clicking occupied content selects it instead of replacing it unexpectedly.
-        if (cell.EntityOnCell != null ||
-            !string.IsNullOrEmpty(cell.ElementID) ||
-            cell.HasElement)
-        {
-            SelectCell(cell);
-            return false;
-        }
         if (_selectedMapDeco == null ||
             cell.Type != CellType.Walkable)
         {
@@ -639,20 +1173,12 @@ public sealed class MapCreatorController : MonoBehaviour
 
         if (_selectedMapDeco.Type == "Floor")
         {
-            UndoableActionsManager.AddUndoableAction(
-                new Undoable_SetFloorType(
-                    cell.GetCellPos(),
-                    cell.FloorID,
-                    _selectedMapDeco.ID));
+
             cell.FloorID = _selectedMapDeco.ID;
         }
         else
         {
-            UndoableActionsManager.AddUndoableAction(
-                new Undoable_SetElement(
-                    cell.GetCellPos(),
-                    cell.ElementID,
-                    _selectedMapDeco.ID));
+
             cell.SetElement(_selectedMapDeco.ID);
         }
 
@@ -733,7 +1259,6 @@ public sealed class MapCreatorController : MonoBehaviour
         _selectedMovingPlatform =
             GridController.Platforms[cell.ToString()]
                 .GetComponent<MovingPlatform>();
-        SetTool(ToolType.Select);
         SelectCell(cell);
         return true;
     }
@@ -741,9 +1266,7 @@ public sealed class MapCreatorController : MonoBehaviour
     /// <summary>
     /// Adds one enemy to a compatible empty walkable cell.
     /// </summary>
-    private bool AddEnemy(
-        EnnemyType type,
-        Cell cell)
+    private bool AddEnemy(EnnemyType type, Cell cell)
     {
         // All retained enemy families follow the same placement guard.
         if (cell.EntityOnCell != null ||
@@ -763,62 +1286,29 @@ public sealed class MapCreatorController : MonoBehaviour
             GridController.SpawnEnnemy(
                 GameContext.CurrentMap.Grid,
                 serialized);
-        GridController.AddEnnemyCollider(_selectedEnnemy);
         SetTool(ToolType.Select);
         SelectCell(cell);
         return true;
     }
 
     /// <summary>
-    /// Deletes all authored content associated with the selected cell.
+    /// Erases the topmost selected layer without deleting unrelated supporting content.
     /// </summary>
     public void DeleteSelection()
     {
-        // Deletion is explicit, context-safe, and refreshes validation immediately.
-        if (_selectedCell == null ||
-            GameContext.CurrentMap == null)
+        // The keyboard and inspector share the same layer-aware eraser.
+        if (_selectedCell == null || _isBusy)
+            return;
+        CancelPathEditing();
+        Grid grid = GameContext.CurrentMap.Grid;
+        if (grid.IsStart(_selectedCell) || grid.IsEnd(_selectedCell))
         {
+            _statusMessage = "Déplace le départ ou la sortie avant de les effacer.";
             return;
         }
-
-        Cell cell = _selectedCell;
-        bool changed = false;
-        if (!string.IsNullOrEmpty(cell.ElementID))
-        {
-            cell.RemoveElement();
-            changed = true;
-        }
-        if (cell.GearType != GearType.None)
-        {
-            cell.SetGear(GearType.None);
-            changed = true;
-        }
-        if (_selectedEnnemy != null)
-        {
-            GameContext.CurrentMap.Grid.RemoveEnnemy(
-                cell.GetCellPos());
-            changed = true;
-        }
-        if (_selectedMovingPlatform != null)
-        {
-            GameContext.CurrentMap.Grid.RemoveMovingPlatform(
-                cell.GetCellPos());
-            changed = true;
-        }
-        if (cell.Type != CellType.Walkable)
-        {
-            cell.SetType(CellType.Walkable);
-            cell.SetWalkable(true);
-            changed = true;
-        }
-
-        if (!changed)
-            return;
-
-        UnselectCell();
+        EraseCell(_selectedCell);
         UpdateMap();
         ValidateGrid();
-        MarkDirty("Contenu supprimé");
     }
 
     /// <summary>
@@ -987,8 +1477,7 @@ public sealed class MapCreatorController : MonoBehaviour
     /// <summary>
     /// Converts one cardinal orientation to its authored Y-axis angle.
     /// </summary>
-    private static float GetOrientationAngle(
-        Orientation orientation)
+    private static float GetOrientationAngle(Orientation orientation)
     {
         // Angles match Unity's clockwise Y-axis convention used by map decorations.
         switch (orientation)
@@ -1020,13 +1509,16 @@ public sealed class MapCreatorController : MonoBehaviour
             return;
         }
 
-        _pathBackup.Clear();
+        if (CurrentTool == ToolType.Path)
+            return;
         List<CellPos> waypoints =
             GetSelectedWaypoints();
+        _pathBackup.Clear();
         if (waypoints != null)
             _pathBackup.AddRange(waypoints);
-        SetSelectedWaypoints(new List<CellPos>());
+        SetSelectedWaypoints(new List<CellPos> { _selectedCell.GetCellPos() });
         CurrentTool = ToolType.Path;
+        BrushMode = "Paint";
         CurrentDecorationId = string.Empty;
         _statusMessage =
             "Trajectoire : clique des points alignés, puis valide avec Entrée";
@@ -1064,7 +1556,10 @@ public sealed class MapCreatorController : MonoBehaviour
             return false;
         }
 
+        if (waypoints.Count > 0 && waypoints.Last().Equals(cell.GetCellPos()))
+            return false;
         waypoints.Add(cell.GetCellPos());
+        PresentationRevision++;
         _statusMessage =
             "Trajectoire : " + waypoints.Count + " point(s)";
         return true;
@@ -1089,6 +1584,7 @@ public sealed class MapCreatorController : MonoBehaviour
 
         _pathBackup.Clear();
         CurrentTool = ToolType.Select;
+        BrushMode = "Select";
         MarkDirty("Trajectoire validée");
         ValidateGrid();
     }
@@ -1106,6 +1602,7 @@ public sealed class MapCreatorController : MonoBehaviour
             new List<CellPos>(_pathBackup));
         _pathBackup.Clear();
         CurrentTool = ToolType.Select;
+        BrushMode = "Select";
         _statusMessage = "Modification de trajectoire annulée";
     }
 
@@ -1123,16 +1620,27 @@ public sealed class MapCreatorController : MonoBehaviour
     }
 
     /// <summary>
-    /// Replaces the waypoint list of the selected path-capable entity.
+    /// Updates both the preview entity and its persisted route definition.
     /// </summary>
-    private void SetSelectedWaypoints(
-        List<CellPos> waypoints)
+    private void SetSelectedWaypoints(List<CellPos> waypoints)
     {
-        // List replacement matches the serialization model used by enemies and platforms.
+        PresentationRevision++;
+        // Keeping the source list shared makes path edits survive saving and undo.
         if (_selectedEnnemy != null)
+        {
             _selectedEnnemy.WayPoints = waypoints;
+            var definition = GameContext.CurrentMap.Grid.GetEnnemyOnCell(_selectedEnnemy.StartCell);
+            if (definition != null)
+                definition.WayPoints = waypoints;
+        }
         else if (_selectedMovingPlatform != null)
+        {
             _selectedMovingPlatform.WayPoints = waypoints;
+            var definition = GameContext.CurrentMap.Grid.MovingPlatforms.FirstOrDefault(
+                item => item.StartPos.Equals(_selectedCell.GetCellPos()));
+            if (definition != null)
+                definition.WayPoints = waypoints;
+        }
     }
 
     #endregion
@@ -1140,42 +1648,21 @@ public sealed class MapCreatorController : MonoBehaviour
     #region Selection and refresh
 
     /// <summary>
-    /// Raycasts the board and returns the clicked cell position.
+    /// Projects the pointer onto the authoring grid independently of scene colliders.
     /// </summary>
     private CellPos? GetClickedCell()
     {
-        // Cell GameObjects retain their established x_y names for fast coordinate lookup.
-        if (Camera == null)
+        // All cells remain addressable in empty space and beneath decorative meshes.
+        if (Camera == null || GameContext.CurrentMap == null)
             return null;
-
-        Ray ray =
-            Camera.ScreenPointToRay(Input.mousePosition);
-        RaycastHit hit;
-        if (!Physics.Raycast(ray, out hit))
+        var plane = new Plane(Vector3.up, Vector3.zero);
+        Ray ray = Camera.ScreenPointToRay(Input.mousePosition);
+        if (!plane.Raycast(ray, out float distanceToGrid))
             return null;
-
-        string cellName = hit.transform.gameObject.name;
-        if (!cellName.Contains("_"))
-            return null;
-
-        string[] parts = cellName.Split('_');
-        int x;
-        int y;
-        if (parts.Length < 2 ||
-            !int.TryParse(parts[0], out x) ||
-            !int.TryParse(parts[1], out y))
-        {
-            return null;
-        }
-
-        Cell cell =
-            GameContext.CurrentMap.Grid.GetCell(x, y);
-        if (cell == null ||
-            GridController.GetCellGameObject(cell) == null)
-        {
-            return null;
-        }
-        return cell.GetCellPos();
+        Vector3 position = ray.GetPoint(distanceToGrid);
+        int x = Mathf.FloorToInt(position.x + 0.5f);
+        int y = Mathf.FloorToInt(position.z + 0.5f);
+        return GameContext.CurrentMap.Grid.GetCell(x, y) != null ? new CellPos(x, y) : (CellPos?)null;
     }
 
     /// <summary>
@@ -1183,16 +1670,11 @@ public sealed class MapCreatorController : MonoBehaviour
     /// </summary>
     private void SelectCell(Cell cell)
     {
+        PresentationRevision++;
         // Selection changes refresh the previous highlight without rebuilding the whole map.
         if (cell == null)
             return;
-
-        if (_selectedCell != null &&
-            !_selectedCell.Equals(cell))
-        {
-            ClearSelectionHighlight(_selectedCell);
-        }
-
+        cell = ResolveDecorationAnchor(cell);
         _selectedCell = cell;
         _selectedEnnemy =
             cell.EntityOnCell as Ennemy;
@@ -1207,7 +1689,6 @@ public sealed class MapCreatorController : MonoBehaviour
                 platformObject.GetComponent<MovingPlatform>();
         }
 
-        DrawSelectionHighlight();
         _statusMessage =
             "Case sélectionnée : " + cell.X + ", " + cell.Y;
     }
@@ -1217,12 +1698,11 @@ public sealed class MapCreatorController : MonoBehaviour
     /// </summary>
     private void UnselectCell()
     {
+        PresentationRevision++;
         // Path editing keeps its entity context until the user explicitly validates or cancels.
         if (CurrentTool == ToolType.Path)
             return;
 
-        if (_selectedCell != null)
-            ClearSelectionHighlight(_selectedCell);
         _selectedCell = null;
         _selectedEnnemy = null;
         _selectedMovingPlatform = null;
@@ -1230,87 +1710,18 @@ public sealed class MapCreatorController : MonoBehaviour
             "Sélection effacée";
     }
 
-    /// <summary>
-    /// Draws material feedback around the current selected cell or platform.
-    /// </summary>
-    private bool DrawSelectionHighlight()
-    {
-        // Renderer material replacement remains the established readable 3D selection cue.
-        if (_selectedCell == null)
-            return false;
 
-        _materialChanger.ResetAllRenderers();
-        _materialChanger.Clear();
-        GameObject cellObject =
-            GridController.GetCellGameObject(_selectedCell);
-        if (_selectedMovingPlatform != null)
-        {
-            GridController.Platforms.TryGetValue(
-                _selectedCell.ToString(),
-                out cellObject);
-        }
-        if (cellObject == null)
-            return false;
 
-        foreach (Renderer renderer in
-                 cellObject.GetComponentsInChildren<Renderer>())
-        {
-            _materialChanger.AddRenderer(
-                renderer,
-                renderer.materials);
-        }
-        _materialChanger.SetMaterial(SelectedMaterial);
-        return true;
-    }
+
 
     /// <summary>
-    /// Restores normal visuals and colliders for one previously selected cell.
-    /// </summary>
-    private void ClearSelectionHighlight(Cell cell)
-    {
-        // Refreshing the cross removes instantiated material copies and keeps adjacency correct.
-        _materialChanger.ResetAllRenderers();
-        _materialChanger.Clear();
-        if (cell == null ||
-            GameContext.CurrentMap == null)
-        {
-            return;
-        }
-
-        GridController.RefreshCrossCell(
-            cell,
-            GameContext.CurrentMap.Grid,
-            true);
-        GridController.AddCellColider(cell, true);
-    }
-
-    /// <summary>
-    /// Reframes the creator camera around the selected cell or the map center.
+    /// Fits the full board in the workbench viewport.
     /// </summary>
     public void FocusSelection()
     {
-        // The same action works as a reliable camera reset when nothing is selected.
-        if (CameraOrbit.Instance == null ||
-            GameContext.CurrentMap == null)
-        {
-            return;
-        }
-
-        if (_selectedCell != null)
-        {
-            CameraOrbit.Instance.targetPos =
-                _selectedCell.GetCellPos().ToVector3(0.2f);
-        }
-        else
-        {
-            CameraOrbit.Instance.targetPos =
-                new Vector3(
-                    GameContext.CurrentMap.Grid.Width * 0.5f,
-                    1f,
-                    GameContext.CurrentMap.Grid.Height * 0.5f);
-        }
-        CameraOrbit.Instance.distance = 15f;
-        CameraOrbit.Instance.forceUpdate = true;
+        // A visible reset button always recovers from an accidental pan or zoom.
+        if (CameraOrbit.Instance != null && GameContext.CurrentMap != null)
+            CameraOrbit.Instance.FrameBoard(GameContext.CurrentMap.Grid.Width, GameContext.CurrentMap.Grid.Height);
     }
 
     /// <summary>
@@ -1318,18 +1729,18 @@ public sealed class MapCreatorController : MonoBehaviour
     /// </summary>
     private void RefreshCell(Cell cell)
     {
-        // Local refresh keeps interactive authoring responsive on larger maps.
+        // Defer rebuilds to the end of a paint gesture.
+        if (_strokeActive)
+            return;
         if (cell == null)
             return;
 
-        _materialChanger.ResetAllRenderers();
-        _materialChanger.Clear();
         GridController.RefreshCrossCell(
             cell,
             GameContext.CurrentMap.Grid,
             true);
-        GridController.AddCellColider(cell, true);
         DrawFeedbacks();
+        _sceneView?.Refresh();
     }
 
     /// <summary>
@@ -1342,10 +1753,9 @@ public sealed class MapCreatorController : MonoBehaviour
         GridController.DrawGrid(GameContext.CurrentMap.Grid);
         GridController.SpawnEnnemies(GameContext.CurrentMap.Grid);
         GridController.SpawnPlatforms(GameContext.CurrentMap.Grid);
-        GridController.AddEnnemiesColliders();
-        GridController.AddCellsColiders(GameContext.CurrentMap.Grid);
         GameContext.SetEnvironment(GameContext.CurrentMap);
         DrawFeedbacks();
+        _sceneView?.Refresh();
         if (_selectedCell != null)
         {
             _selectedCell =
@@ -1365,19 +1775,25 @@ public sealed class MapCreatorController : MonoBehaviour
         if (GameContext.CurrentMap != null &&
             GameContext.CurrentMap.Grid != null)
         {
-            GameContext.CurrentMap.Grid.ValidateGrid(
-                ref _errors);
+            GameContext.CurrentMap.Grid.ValidateGrid(_errors);
         }
     }
 
     /// <summary>
     /// Marks the current revision dirty and exposes concise status feedback.
     /// </summary>
-    private void MarkDirty(string message)
+    private void MarkDirty(string message, bool coalesce = false)
     {
+        PresentationRevision++;
         // Dirty state is cleared only after persistence completes successfully.
         _isDirty = true;
         _statusMessage = message ?? "Carte modifiée";
+        if (_strokeActive)
+        {
+            _strokeChanged = true;
+            return;
+        }
+        RecordRevision(coalesce);
     }
 
     #endregion
@@ -1385,34 +1801,13 @@ public sealed class MapCreatorController : MonoBehaviour
     #region Element occupancy feedback
 
     /// <summary>
-    /// Recomputes all decoration occupancy and redraws unwalkable feedback markers.
+    /// Refreshes derived decoration occupancy without creating per-tile marker objects.
     /// </summary>
     public void DrawFeedbacks()
     {
-        // Multi-cell decoration bounds stay visible while authoring nearby content.
+        // The Fugui viewport draws occupancy, selection, and hover using pooled DrawList geometry.
         ResetElementOccupancy();
         ProcessElementOccupancy();
-        ClearFeedbacks();
-        for (int x = 0;
-             x < GameContext.CurrentMap.Grid.Width;
-             x++)
-        {
-            for (int y = 0;
-                 y < GameContext.CurrentMap.Grid.Height;
-                 y++)
-            {
-                Cell cell =
-                    GameContext.CurrentMap.Grid.GetCell(x, y);
-                if (!cell.HasElement)
-                    continue;
-
-                GameObject feedback =
-                    Instantiate(UnwalkableFeedbackPrefab);
-                feedback.transform.position =
-                    cell.GetCellPos().ToVector3(0f);
-                _unwalkableFeedback.Add(feedback);
-            }
-        }
     }
 
     /// <summary>
@@ -1478,19 +1873,7 @@ public sealed class MapCreatorController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Destroys all transient decoration occupancy feedback objects.
-    /// </summary>
-    private void ClearFeedbacks()
-    {
-        // Feedback objects are runtime-only and never persist with map content.
-        foreach (GameObject feedback in _unwalkableFeedback)
-        {
-            if (feedback != null)
-                Destroy(feedback);
-        }
-        _unwalkableFeedback.Clear();
-    }
+
 
     #endregion
 
@@ -1499,8 +1882,7 @@ public sealed class MapCreatorController : MonoBehaviour
     /// <summary>
     /// Applies one built-in environment preset and marks the revision dirty.
     /// </summary>
-    public void SetBuildinEnvironment(
-        BuildInEnvironments environment)
+    public void SetBuildinEnvironment(BuildInEnvironments environment)
     {
         // The full environment payload is copied into the active map before live preview.
         if (GameContext.CurrentMap == null)
@@ -1518,9 +1900,7 @@ public sealed class MapCreatorController : MonoBehaviour
     /// <summary>
     /// Updates one bounded numeric environment value from its stable editor identifier.
     /// </summary>
-    public void SetEnvironmentValue(
-        string valueId,
-        float value)
+    public void SetEnvironmentValue(string valueId, float value)
     {
         // The adapter supplies bounds while this switch preserves the authoritative serialized property map.
         if (GameContext.CurrentMap == null ||
@@ -1588,9 +1968,7 @@ public sealed class MapCreatorController : MonoBehaviour
     /// <summary>
     /// Updates one environment color from its stable editor identifier.
     /// </summary>
-    public void SetEnvironmentColor(
-        string colorId,
-        Color color)
+    public void SetEnvironmentColor(string colorId, Color color)
     {
         // All color values use the existing serializable vector representation used by map JSON.
         if (GameContext.CurrentMap == null ||
@@ -1651,43 +2029,40 @@ public sealed class MapCreatorController : MonoBehaviour
     /// <summary>
     /// Applies a modified environment payload and records a custom dirty revision.
     /// </summary>
-    private void ApplyCustomEnvironment(
-        EnvironmentSettings environment)
+    private void ApplyCustomEnvironment(EnvironmentSettings environment)
     {
         // Live preview remains immediate for numeric and color edits.
         GameContext.CurrentMap.Grid.Environment = environment;
         _environmentId = string.Empty;
         _environmentLabel = "Personnalisée";
         GameContext.SetEnvironment(GameContext.CurrentMap);
-        MarkDirty("Réglages d’ambiance modifiés");
+        MarkDirty("Réglages d’ambiance modifiés", true);
     }
 
     /// <summary>
-    /// Restores the previous supported authoring action.
+    /// Restores the previous complete authoring gesture.
     /// </summary>
     public void Undo()
     {
-        // History operations rebuild the board because their actions mutate serialized cell data.
-        if (!UndoableActionsManager.CanUndo)
+        // An unfinished path is cancelled before touching document history.
+        if (_strokeActive || _isBusy || !UndoableActionsManager.CanUndo)
             return;
-        UndoableActionsManager.Undo();
-        UpdateMap();
-        ValidateGrid();
-        MarkDirty("Action annulée");
+        CancelPathEditing();
+        RestoreRevision(UndoableActionsManager.Undo(CaptureRevision()));
+        _statusMessage = "Modification annulée.";
     }
 
     /// <summary>
-    /// Reapplies the next supported authoring action.
+    /// Reapplies the next complete authoring gesture.
     /// </summary>
     public void Redo()
     {
-        // Redo shares the same complete refresh guarantees as undo.
-        if (!UndoableActionsManager.CanRedo)
+        // Revisions restore metadata, mechanics, enemies, decoration, and ambiance together.
+        if (_strokeActive || _isBusy || !UndoableActionsManager.CanRedo)
             return;
-        UndoableActionsManager.Redo();
-        UpdateMap();
-        ValidateGrid();
-        MarkDirty("Action rétablie");
+        CancelPathEditing();
+        RestoreRevision(UndoableActionsManager.Redo(CaptureRevision()));
+        _statusMessage = "Modification rétablie.";
     }
 
     /// <summary>
@@ -1702,6 +2077,7 @@ public sealed class MapCreatorController : MonoBehaviour
         _selectedEnnemy = null;
         _selectedMovingPlatform = null;
         CurrentTool = ToolType.Select;
+        BrushMode = "Select";
         CurrentDecorationId = string.Empty;
         _environmentId = string.Empty;
         _environmentLabel = "Personnalisée";
@@ -1712,6 +2088,7 @@ public sealed class MapCreatorController : MonoBehaviour
         _isBusy = false;
         _isDirty = false;
         _statusMessage = "Carte prête";
+        _revisionSnapshot = CaptureRevision();
     }
 
     /// <summary>
@@ -1720,103 +2097,116 @@ public sealed class MapCreatorController : MonoBehaviour
     public void RequestSave()
     {
         // Repeated clicks during preview capture are ignored.
-        if (!_isReady || _isBusy)
+        if (!_isReady || _isBusy || _strokeActive || CurrentTool == ToolType.Path)
             return;
         StartCoroutine(SaveMap());
     }
 
     /// <summary>
-    /// Saves the current authored map and preview to the local map library.
+    /// Saves the authored map and preview while always releasing the busy state.
     /// </summary>
-    public IEnumerator SaveMap(
-        Action callback = null)
+    public IEnumerator SaveMap(Action callback = null)
     {
-        // Preview capture and serialization complete as one visible busy operation.
+        // Yield once to show progress without waiting for an Editor Game-view render.
         if (_isBusy && _isReady)
             yield break;
 
         _isBusy = true;
         _statusMessage = "Enregistrement de la carte…";
-        yield return StartCoroutine(
-            CapturePreview(
-                bytes =>
-                {
-                    GameContext.CurrentMap.Map.AlreadyFinished = 0;
-                    GameContext.CurrentMap.Map.SetState(MapState.Draft);
-                    LocalMapRepository.Save(
-                        GameContext.CurrentMap,
-                        bytes);
-                }));
-        UpdateMap();
-        _isDirty = false;
-        _isBusy = false;
-        _statusMessage = "Carte enregistrée";
-        callback?.Invoke();
+        yield return null;
+
+        bool saved = false;
+        try
+        {
+            byte[] preview = CapturePreview();
+            GameContext.CurrentMap.Map.AlreadyFinished = 0;
+            GameContext.CurrentMap.Map.SetState(MapState.Draft);
+            LocalMapRepository.Save(GameContext.CurrentMap, preview);
+            UpdateMap();
+            _isDirty = false;
+            _statusMessage = "Carte enregistrée";
+            _revisionSnapshot = CaptureRevision();
+            saved = true;
+        }
+        catch (Exception exception)
+        {
+            // Keep the revision recoverable and expose the real failure instead of a permanent overlay.
+            _isDirty = true;
+            _statusMessage = "Échec de l’enregistrement : " + exception.Message;
+            Debug.LogException(exception, this);
+        }
+        finally
+        {
+            _isBusy = false;
+        }
+
+        if (saved)
+            callback?.Invoke();
     }
 
     /// <summary>
-    /// Captures a square preview of all authored board content.
+    /// Captures a square map preview through the Universal Render Pipeline.
     /// </summary>
-    private IEnumerator CapturePreview(
-        Action<byte[]> callback)
+    private byte[] CapturePreview()
     {
-        // A dedicated orthographic camera produces deterministic library thumbnails.
+        // An explicit SRP render request also works when the Editor Scene view owns focus.
         Camera camera = ScreenshotCamera;
         if (camera == null)
-        {
-            callback?.Invoke(new byte[0]);
-            yield break;
-        }
+            return Array.Empty<byte>();
 
-        camera.gameObject.SetActive(true);
-        int maximumSize =
-            Mathf.Max(
+        bool wasActive = camera.gameObject.activeSelf;
+        bool wasEnabled = camera.enabled;
+        Vector3 previousPosition = camera.transform.position;
+        RenderTexture previousTarget = camera.targetTexture;
+        RenderTexture previousActive = RenderTexture.active;
+        RenderTexture renderTexture = null;
+        Texture2D screenshot = null;
+
+        try
+        {
+            camera.enabled = false;
+            camera.gameObject.SetActive(true);
+            int maximumSize = Mathf.Max(
                 GameContext.CurrentMap.Grid.Width,
                 GameContext.CurrentMap.Grid.Height);
-        camera.transform.position =
-            new Vector3(
+            camera.transform.position = new Vector3(
                 GameContext.CurrentMap.Grid.Width * 0.5f - 0.5f,
                 maximumSize,
                 GameContext.CurrentMap.Grid.Height * 0.5f - 0.5f);
 
-        const int resolution = 128;
-        var renderTexture =
-            new RenderTexture(
-                resolution,
-                resolution,
-                24,
-                UnityEngine.Experimental.Rendering.DefaultFormat.LDR)
+            const int resolution = 128;
+            renderTexture = new RenderTexture(resolution, resolution, 24, RenderTextureFormat.ARGB32);
+            renderTexture.Create();
+            var request = new UniversalRenderPipeline.SingleCameraRequest
             {
-                antiAliasing = 4
+                destination = renderTexture
             };
-        camera.targetTexture = renderTexture;
-        yield return new WaitForEndOfFrame();
-        yield return new WaitForEndOfFrame();
+            if (!RenderPipeline.SupportsRenderRequest(camera, request))
+                throw new InvalidOperationException("Le pipeline actif ne permet pas la capture URP.");
 
-        var screenshot =
-            new Texture2D(
-                resolution,
-                resolution,
-                TextureFormat.RGB24,
-                false);
-        camera.Render();
-        RenderTexture previous =
-            RenderTexture.active;
-        RenderTexture.active = renderTexture;
-        screenshot.ReadPixels(
-            new Rect(0f, 0f, resolution, resolution),
-            0,
-            0);
-        screenshot.Apply();
-        byte[] bytes = screenshot.EncodeToPNG();
-
-        camera.targetTexture = null;
-        RenderTexture.active = previous;
-        renderTexture.Release();
-        Destroy(renderTexture);
-        Destroy(screenshot);
-        camera.gameObject.SetActive(false);
-        callback?.Invoke(bytes);
+            RenderPipeline.SubmitRenderRequest(camera, request);
+            RenderTexture.active = renderTexture;
+            screenshot = new Texture2D(resolution, resolution, TextureFormat.RGB24, false);
+            screenshot.ReadPixels(new Rect(0f, 0f, resolution, resolution), 0, 0);
+            screenshot.Apply();
+            return screenshot.EncodeToPNG();
+        }
+        finally
+        {
+            // Restore the authored camera and render target even when rendering or encoding fails.
+            RenderTexture.active = previousActive;
+            camera.targetTexture = previousTarget;
+            camera.transform.position = previousPosition;
+            camera.gameObject.SetActive(wasActive);
+            camera.enabled = wasEnabled;
+            if (renderTexture != null)
+            {
+                renderTexture.Release();
+                Destroy(renderTexture);
+            }
+            if (screenshot != null)
+                Destroy(screenshot);
+        }
     }
 
     /// <summary>
@@ -1827,6 +2217,7 @@ public sealed class MapCreatorController : MonoBehaviour
         // Scene departure happens only after persistence reports completion.
         if (_isBusy)
             return;
+        CancelPathEditing();
         StartCoroutine(
             SaveMap(
                 () => StartCoroutine(
@@ -1853,6 +2244,7 @@ public sealed class MapCreatorController : MonoBehaviour
         ValidateGrid();
         if (_isBusy ||
             !_isReady ||
+            CurrentTool == ToolType.Path ||
             _errors.Count > 0)
         {
             _statusMessage =
@@ -1884,7 +2276,6 @@ public sealed class MapCreatorController : MonoBehaviour
         // Cleanup occurs before the scene transition to avoid pooled path and grid objects leaking.
         _isBusy = true;
         _statusMessage = "Fermeture de la forge…";
-        ClearFeedbacks();
         if (PoolManager.Instance != null)
             PoolManager.Instance.PushBackAllPool(PoolName.POCell);
         yield return null;
@@ -1909,9 +2300,7 @@ public sealed class MapCreatorController : MonoBehaviour
     /// <summary>
     /// Accepts obsolete tool registration calls from the disabled legacy Canvas.
     /// </summary>
-    public void RegisterToolButton(
-        ToolType tool,
-        GameObject button)
+    public void RegisterToolButton(ToolType tool, GameObject button)
     {
         // Runtime tool state is now data-driven and deliberately ignores scene button objects.
     }
@@ -1919,8 +2308,7 @@ public sealed class MapCreatorController : MonoBehaviour
     /// <summary>
     /// Gets a French display label for one built-in environment.
     /// </summary>
-    private static string GetEnvironmentLabel(
-        BuildInEnvironments environment)
+    private static string GetEnvironmentLabel(BuildInEnvironments environment)
     {
         // StreamingAssets filenames remain stable behind player-facing localized labels.
         switch (environment)

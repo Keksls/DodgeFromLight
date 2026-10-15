@@ -8,6 +8,13 @@ namespace DodgeFromLight.FuguiUI.ViewModels
     /// </summary>
     public sealed class MapCreatorActions
     {
+        public Action<int, int, bool> CreateMap { get; }
+        public Action<string> SetBrushMode { get; }
+        public Action<bool> SetPlanView { get; }
+        public Action<string> SetCameraView { get; }
+        public Action<bool> SetEnvironmentPreview { get; }
+        public Action ToggleGrid { get; }
+        public Action RotatePlacement { get; }
         public Action<string> SelectTool { get; }
         public Action<string> SelectDecoration { get; }
         public Action<string> SelectGear { get; }
@@ -37,33 +44,15 @@ namespace DodgeFromLight.FuguiUI.ViewModels
         /// <summary>
         /// Creates the complete intention surface implemented by the Unity map-creator adapter.
         /// </summary>
-        public MapCreatorActions(
-            Action<string> selectTool,
-            Action<string> selectDecoration,
-            Action<string> selectGear,
-            Action<string> selectEnvironment,
-            Action<string, float> setEnvironmentValue,
-            Action<string, Color> setEnvironmentColor,
-            Action<string> renameMap,
-            Action save,
-            Action saveAndClose,
-            Action discardAndClose,
-            Action playtest,
-            Action undo,
-            Action redo,
-            Action deleteSelection,
-            Action focusSelection,
-            Action<int> setOrientation,
-            Action<float> rotateElement,
-            Action<float> scaleElement,
-            Action<int> adjustArgument,
-            Action toggleNeedle,
-            Action beginPath,
-            Action confirmPath,
-            Action cancelPath,
-            Action<bool> setPointerOverUi,
-            Action<bool> setKeyboardCaptured)
+        public MapCreatorActions(Action<string> selectTool, Action<string> selectDecoration, Action<string> selectGear, Action<string> selectEnvironment, Action<string, float> setEnvironmentValue, Action<string, Color> setEnvironmentColor, Action<string> renameMap, Action save, Action saveAndClose, Action discardAndClose, Action playtest, Action undo, Action redo, Action deleteSelection, Action focusSelection, Action<int> setOrientation, Action<float> rotateElement, Action<float> scaleElement, Action<int> adjustArgument, Action toggleNeedle, Action beginPath, Action confirmPath, Action cancelPath, Action<bool> setPointerOverUi, Action<bool> setKeyboardCaptured, Action<string> setBrushMode, Action<bool> setPlanView, Action toggleGrid, Action rotatePlacement, Action<int, int, bool> createMap, Action<bool> setEnvironmentPreview, Action<string> setCameraView)
         {
+            SetEnvironmentPreview = setEnvironmentPreview ?? throw new ArgumentNullException(nameof(setEnvironmentPreview));
+            SetCameraView = setCameraView ?? throw new ArgumentNullException(nameof(setCameraView));
+            CreateMap = createMap ?? throw new ArgumentNullException(nameof(createMap));
+            SetBrushMode = setBrushMode ?? throw new ArgumentNullException(nameof(setBrushMode));
+            SetPlanView = setPlanView ?? throw new ArgumentNullException(nameof(setPlanView));
+            ToggleGrid = toggleGrid ?? throw new ArgumentNullException(nameof(toggleGrid));
+            RotatePlacement = rotatePlacement ?? throw new ArgumentNullException(nameof(rotatePlacement));
             // Every delegate is required so the presenter never guesses fallback behavior.
             SelectTool = selectTool ?? throw new ArgumentNullException(nameof(selectTool));
             SelectDecoration =

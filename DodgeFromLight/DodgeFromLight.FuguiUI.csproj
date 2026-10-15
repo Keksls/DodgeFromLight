@@ -50,16 +50,35 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\DodgeFromLight\FuguiUI\Screens\SoloHudPresenter.cs" />
+    <Compile Include="Assets\DodgeFromLight\FuguiUI\ViewModels\MapCreatorEnvironmentValue.cs" />
+    <Compile Include="Assets\DodgeFromLight\FuguiUI\Rendering\MapCreatorScrollRegion.cs" />
+    <Compile Include="Assets\DodgeFromLight\FuguiUI\ViewModels\MapCreatorSelectionState.cs" />
+    <Compile Include="Assets\DodgeFromLight\FuguiUI\ViewModels\MapCreatorEnvironmentColor.cs" />
+    <Compile Include="Assets\DodgeFromLight\FuguiUI\ViewModels\MapCreatorBoardCell.cs" />
     <Compile Include="Assets\DodgeFromLight\FuguiUI\Rendering\DarkFantasyUiSkin.cs" />
+    <Compile Include="Assets\DodgeFromLight\FuguiUI\ViewModels\MapCreatorViewportState.cs" />
+    <Compile Include="Assets\DodgeFromLight\FuguiUI\ViewModels\MapCreatorViewModel.cs" />
+    <Compile Include="Assets\DodgeFromLight\FuguiUI\ViewModels\MapCreatorViewState.cs" />
     <Compile Include="Assets\DodgeFromLight\FuguiUI\Rendering\DarkFantasyUiAssets.cs" />
+    <Compile Include="Assets\DodgeFromLight\FuguiUI\Rendering\MapCreatorTheme.cs" />
+    <Compile Include="Assets\DodgeFromLight\FuguiUI\Rendering\MapCreatorDrawListUi.cs" />
     <Compile Include="Assets\DodgeFromLight\FuguiUI\Screens\MainMenuPresenter.cs" />
+    <Compile Include="Assets\DodgeFromLight\FuguiUI\Rendering\MapCreatorAxisGizmo.cs" />
     <Compile Include="Assets\DodgeFromLight\FuguiUI\Rendering\DrawListUi.cs" />
     <Compile Include="Assets\DodgeFromLight\FuguiUI\ViewModels\MainMenuViewModel.cs" />
     <Compile Include="Assets\DodgeFromLight\FuguiUI\ViewModels\SoloHudViewModel.cs" />
+    <Compile Include="Assets\DodgeFromLight\FuguiUI\Screens\MapCreatorPresenter.cs" />
     <Compile Include="Assets\DodgeFromLight\FuguiUI\ViewModels\SoloMovementInputState.cs" />
+    <Compile Include="Assets\DodgeFromLight\FuguiUI\Rendering\MapCreatorIconBinding.cs" />
+    <Compile Include="Assets\DodgeFromLight\FuguiUI\ViewModels\MapCreatorPaletteGroup.cs" />
+    <Compile Include="Assets\DodgeFromLight\FuguiUI\ViewModels\MapCreatorEnvironmentPreview.cs" />
+    <Compile Include="Assets\DodgeFromLight\FuguiUI\Rendering\MapCreatorUiAssets.cs" />
     <Compile Include="Assets\DodgeFromLight\FuguiUI\ViewModels\SoloHudActions.cs" />
+    <Compile Include="Assets\DodgeFromLight\FuguiUI\ViewModels\MapCreatorPaletteItem.cs" />
+    <Compile Include="Assets\DodgeFromLight\FuguiUI\ViewModels\MapCreatorActions.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Assets\DodgeFromLight\FuguiUI\Resources\Shaders\MapCreatorSurface.shader" />
     <None Include="Assets\DodgeFromLight\FuguiUI\DodgeFromLight.FuguiUI.asmdef" />
     <None Include="Assets\DodgeFromLight\FuguiUI\Resources\Shaders\DarkFantasySurface.shader" />
   </ItemGroup>
@@ -606,6 +625,10 @@
     </Reference>
     <Reference Include="UnityEditor.Graphs">
       <HintPath>C:\Program Files\Unity\Hub\Editor\6000.4.11f1\Editor\Data\Managed\UnityEditor.Graphs.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEditor.WebGL.Extensions">
+      <HintPath>C:\Program Files\Unity\Hub\Editor\6000.4.11f1\Editor\Data\PlaybackEngines\WebGLSupport\UnityEditor.WebGL.Extensions.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEditor.OSXStandalone.Extensions">

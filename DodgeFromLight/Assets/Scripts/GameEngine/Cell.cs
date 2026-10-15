@@ -114,9 +114,12 @@ public class Cell
         ElementOrientation = 0f;
     }
 
+    /// <summary>
+    /// Compares grid coordinates while treating an absent cell as different from this cell.
+    /// </summary>
     public bool Equals(Cell cell)
     {
-        return X == cell.X && Y == cell.Y;
+        return cell != null && X == cell.X && Y == cell.Y;
     }
 
     public CellPos GetCellPos()

@@ -1,0 +1,30 @@
+{
+  "tool": "built-in image_gen",
+  "transparent_background": true,
+  "assets": [
+    {
+      "path": "DodgeFromLight/Assets/DodgeFromLight/FuguiUI/Resources/MapCreator/Tools/Structure.png",
+      "prompt": "Use case: stylized-concept. Asset type: ONE production dark-fantasy game UI icon. A hand-painted inventory illustration with sculpted tactile forms, aged ivory, pale silver, worn dark wood and antique brass fittings; same coherent set as an ivory/brass arrow cursor and brass-ferruled wooden paintbrush. Chunky simple silhouette legible at 40px, generous equal transparent padding, single isolated centered object occupying 76 percent of the square. Soft warm upper-left illumination, darker crevices, controlled highlights. No text, letters, border, surrounding button, watermark, scene, flat vectors or line art. Genuinely transparent background. Subject: three chunky square stone building blocks stacked in a stepped arrangement, warm gray limestone with small brass corner fittings, construction icon."
+    },
+    {
+      "path": "DodgeFromLight/Assets/DodgeFromLight/FuguiUI/Resources/MapCreator/Tools/Decorations.png",
+      "prompt": "Use case: stylized-concept. Asset type: ONE production dark-fantasy game UI icon. A hand-painted inventory illustration with sculpted tactile forms, aged ivory, pale silver, worn dark wood and antique brass fittings; same coherent set as an ivory/brass arrow cursor and brass-ferruled wooden paintbrush. Chunky simple silhouette legible at 40px, generous equal transparent padding, single isolated centered object occupying 76 percent of the square. Soft warm upper-left illumination, darker crevices, controlled highlights. No text, letters, border, surrounding button, watermark, scene, flat vectors or line art. Genuinely transparent background. Subject: a small ornate wooden chair with a carved backrest and dark burgundy seat, decorative antique-brass feet, clearly furniture."
+    },
+    {
+      "path": "DodgeFromLight/Assets/DodgeFromLight/FuguiUI/Resources/MapCreator/Tools/Enemies.png",
+      "prompt": "Use case: stylized-concept. Asset type: ONE production dark-fantasy game UI icon. A hand-painted inventory illustration with sculpted tactile forms, aged ivory, pale silver, worn dark wood and antique brass fittings; same coherent set as an ivory/brass arrow cursor and brass-ferruled wooden paintbrush. Chunky simple silhouette legible at 40px, generous equal transparent padding, single isolated centered object occupying 76 percent of the square. Soft warm upper-left illumination, darker crevices, controlled highlights. No text, letters, border, surrounding button, watermark, scene, flat vectors or line art. Genuinely transparent background. Subject: a single stylized intimidating horned monster head with dark charcoal skin, two ivory horns and restrained amber eyes, readable enemy silhouette, not gory."
+    },
+    {
+      "path": "DodgeFromLight/Assets/DodgeFromLight/FuguiUI/Resources/MapCreator/Tools/Gears.png",
+      "prompt": "Use case: stylized-concept. Asset type: ONE production dark-fantasy game UI icon. A hand-painted inventory illustration with sculpted tactile forms, aged ivory, pale silver, worn dark wood and antique brass fittings; same coherent set as an ivory/brass arrow cursor and brass-ferruled wooden paintbrush. Chunky simple silhouette legible at 40px, generous equal transparent padding, single isolated centered object occupying 76 percent of the square. Soft warm upper-left illumination, darker crevices, controlled highlights. No text, letters, border, surrounding button, watermark, scene, flat vectors or line art. Genuinely transparent background. Subject: one short medieval sword crossing a small round shield, ivory blade, antique brass shield rim and dark leather center, equipment icon."
+    },
+    {
+      "path": "DodgeFromLight/Assets/DodgeFromLight/FuguiUI/Resources/MapCreator/Tools/WorkLight.png",
+      "prompt": "Use case: stylized-concept. Asset type: ONE production dark-fantasy game UI icon. A hand-painted inventory illustration with sculpted tactile forms, aged ivory, pale silver, worn dark wood and antique brass fittings; same coherent set as an ivory/brass arrow cursor and brass-ferruled wooden paintbrush. Chunky simple silhouette legible at 40px, generous equal transparent padding, single isolated centered object occupying 76 percent of the square. Soft warm upper-left illumination, darker crevices, controlled highlights. No text, letters, border, surrounding button, watermark, scene, flat vectors or line art. Genuinely transparent background. Subject: one neutral matte warm-gray clay sphere with a clear soft shading gradient and a small brass pedestal, a studio material preview sphere. Neutral white light, no colored glow."
+    },
+    {
+      "path": "DodgeFromLight/Assets/DodgeFromLight/FuguiUI/Resources/MapCreator/Tools/GameLight.png",
+      "prompt": "Use case: stylized-concept. Asset type: ONE production dark-fantasy game UI icon. A hand-painted inventory illustration with sculpted tactile forms, aged ivory, pale silver, worn dark wood and antique brass fittings; same coherent set as an ivory/brass arrow cursor and brass-ferruled wooden paintbrush. Chunky simple silhouette legible at 40px, generous equal transparent padding, single isolated centered object occupying 76 percent of the square. Soft warm upper-left illumination, darker crevices, controlled highlights. No text, letters, border, surrounding button, watermark, scene, flat vectors or line art. Genuinely transparent background. Subject: one spherical miniature magical world with an ember-orange illuminated crescent and deep violet shaded side, surrounded by a thin antique-brass ring, a game atmosphere material preview sphere."
+    }
+  ]
+}

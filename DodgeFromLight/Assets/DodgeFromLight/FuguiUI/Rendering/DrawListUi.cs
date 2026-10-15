@@ -440,19 +440,13 @@ namespace DodgeFromLight.FuguiUI.Rendering
         /// <summary>
         /// Draws text with an explicit configured Fugui font size.
         /// </summary>
-        public static void DrawText(
-            FuDrawList drawList,
-            Vector2 position,
-            string text,
-            Color color,
-            int fontSize = 14,
-            FontType fontType = FontType.Regular)
+        public static void DrawText(FuDrawList drawList, Vector2 position, string text, Color color, int fontSize = 14, FontType fontType = FontType.Regular)
         {
             // Font pushes affect the DrawList text command without creating a Fugui layout item.
             if (string.IsNullOrEmpty(text))
                 return;
 
-            Fugui.PushFont(fontSize, fontType);
+            bool fontPushed = TryPushConfiguredFont(fontSize, fontType);
             try
             {
                 drawList.AddText(
@@ -467,7 +461,8 @@ namespace DodgeFromLight.FuguiUI.Rendering
             }
             finally
             {
-                Fugui.PopFont();
+                if (fontPushed)
+                    Fugui.PopFont();
             }
         }
 
@@ -501,21 +496,79 @@ namespace DodgeFromLight.FuguiUI.Rendering
         /// <summary>
         /// Measures text with an explicit configured Fugui font size.
         /// </summary>
-        public static Vector2 MeasureText(
-            string text,
-            int fontSize = 14,
-            FontType fontType = FontType.Regular)
+        public static Vector2 MeasureText(string text, int fontSize = 14, FontType fontType = FontType.Regular)
         {
             // Matching measurement and rendering avoids alignment drift at scaled resolutions.
-            Fugui.PushFont(fontSize, fontType);
+            bool fontPushed = TryPushConfiguredFont(fontSize, fontType);
             try
             {
                 return Fugui.CalcTextSize(text ?? string.Empty);
             }
             finally
             {
-                Fugui.PopFont();
+                if (fontPushed)
+                    Fugui.PopFont();
             }
+        }
+
+        /// <summary>
+        /// Selects an existing family, size, and style from the active atlas configuration before pushing it.
+        /// </summary>
+        private static bool TryPushConfiguredFont(int requestedSize, FontType requestedType)
+        {
+            // Use the same selection for drawing and measuring, including sparse user-authored font configs.
+            FontConfig config = Fugui.Settings?.FontConfig;
+            if (config == null || config.Fonts == null || Fugui.CurrentContext == null)
+                return false;
+
+            FontSizeConfig selected = null;
+            FontType selectedType = FontType.Regular;
+            int bestScore = int.MaxValue;
+            foreach (FontSizeConfig candidate in config.Fonts)
+            {
+                if (candidate == null || candidate.Name != config.DefaultFontName)
+                    continue;
+
+                bool hasRequestedStyle = HasConfiguredStyle(candidate, requestedType);
+                FontType candidateType = hasRequestedStyle ? requestedType : FontType.Regular;
+                if (!HasConfiguredStyle(candidate, candidateType))
+                    continue;
+
+                int score = Mathf.Abs(candidate.Size - requestedSize) * 4 + (hasRequestedStyle ? 0 : 1);
+                if (score >= bestScore)
+                    continue;
+                selected = candidate;
+                selectedType = candidateType;
+                bestScore = score;
+            }
+
+            // With no usable configured entry, retain Fugui's current atlas font without an unmatched pop.
+            if (selected == null)
+                return false;
+            Fugui.PushFont(selected.Name, selected.Size, selectedType);
+            return true;
+        }
+
+        /// <summary>
+        /// Checks whether a configured font size supplies sources for the requested style.
+        /// </summary>
+        private static bool HasConfiguredStyle(FontSizeConfig config, FontType type)
+        {
+            // Never request a style that is absent from the atlas source configuration.
+            SubFontConfig[] sources;
+            switch (type)
+            {
+                case FontType.Bold:
+                    sources = config.SubFonts_Bold;
+                    break;
+                case FontType.Italic:
+                    sources = config.SubFonts_Italic;
+                    break;
+                default:
+                    sources = config.SubFonts_Regular;
+                    break;
+            }
+            return sources != null && sources.Length > 0;
         }
 
         #endregion

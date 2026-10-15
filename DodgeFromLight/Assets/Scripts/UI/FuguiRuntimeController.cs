@@ -4,19 +4,16 @@ using UnityEngine;
 namespace DodgeFromLight.UnityPresentation.UI
 {
     /// <summary>
-    /// Ensures runtime scenes share one persistent initialized Fugui controller.
+    /// Validates the Fugui controller explicitly authored in the active scene.
     /// </summary>
     public static class FuguiRuntimeController
     {
-        private const string ControllerResourceName =
-            "DodgeFromLightFuguiController";
-
         /// <summary>
-        /// Ensures the persistent Main Fugui context is initialized.
+        /// Checks that the scene-authored controller initialized its Main Fugui context.
         /// </summary>
         public static bool EnsureInitialized()
         {
-            // Scene transitions reuse the controller configured to persist between scenes.
+            // Scene-authored controllers own their camera and font configuration through the Inspector.
             if (Fugui.IsInitialized)
                 return true;
 
@@ -27,20 +24,8 @@ namespace DodgeFromLight.UnityPresentation.UI
                 return false;
             }
 
-            GameObject controllerPrefab =
-                Resources.Load<GameObject>(ControllerResourceName);
-            if (controllerPrefab == null)
-            {
-                Debug.LogError(
-                    "The Dodge From Light Fugui controller resource is missing.");
-                return false;
-            }
-
-            Object.Instantiate(controllerPrefab);
-            if (Fugui.IsInitialized)
-                return true;
-
-            Debug.LogError("Fugui failed to initialize its Main runtime context.");
+            Debug.LogError(
+                "No active Fugui controller is present. Add the DodgeFromLightFuguiController prefab to this scene.");
             return false;
         }
     }

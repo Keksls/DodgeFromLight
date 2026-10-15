@@ -101,8 +101,6 @@ MonoBehaviour:
   ScreenshotCamera: {fileID: 0}
   Camera: {fileID: 0}
   GridController: {fileID: 4242827114044628561}
-  SelectedMaterial: {fileID: 2100000, guid: 451d5f83cbfe09a47afdc0013518951d, type: 2}
-  UnwalkableFeedbackPrefab: {fileID: 4221831657153249277, guid: 325c82a115239a04186aece44f47b358, type: 3}
 --- !u!1 &150445594315719167
 GameObject:
   m_ObjectHideFlags: 0
